@@ -725,6 +725,35 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0}
 .seg-top{margin-bottom:10px}
 :root[data-skin="solo"] .nut-hero,:root[data-skin="solo"] .frow,:root[data-skin="solo"] .macro-prev{border-color:rgba(77,163,255,.4)}
 </style>
+<style>
+/* ===== المساعد واليوميات ===== */
+.tabs .in{grid-template-columns:repeat(7,1fr)}
+.tab{font-size:10px;gap:1px;padding:6px 1px 4px}
+.tab svg{width:20px;height:20px}
+.ai-bar{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);margin-bottom:10px}
+.ai-bar small{display:block;font-size:10.5px;color:var(--text-3)}
+.ai-bar b{font-family:var(--font-display);font-size:14px}
+.ai-bar .bar{height:6px}
+.ai-bar .icon-btn{width:32px;height:32px;flex:none}
+.ai-bar .icon-btn svg{width:16px;height:16px;transform:rotate(-90deg)}
+.ai-input{padding:12px 14px}
+.ai-input textarea{min-height:130px!important;line-height:1.8;font-size:15px;resize:vertical}
+.ai-reply{background:var(--accent-soft);color:var(--accent-ink);border-radius:14px;padding:12px 14px;line-height:1.9;font-size:14.5px}
+.ai-wait{text-align:center;padding:34px 10px}
+.ai-wait b{display:block;margin-top:14px;font-size:16px}
+.spinner{width:38px;height:38px;margin:0 auto;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:spin 0.9s linear infinite}
+.jrow{display:flex;gap:12px;padding:12px 14px;cursor:pointer;align-items:flex-start}
+.jrow+.jrow{border-top:1px solid var(--line-2)}
+.jm{font-size:22px;line-height:1;flex:none;margin-top:2px}
+.jb{flex:1;min-width:0}
+.jd{font-size:12px;color:var(--text-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.jt{margin-top:4px;line-height:1.8;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.mood-row{display:flex;gap:3px;height:24px}
+.mood-row i{flex:1;border-radius:3px;display:block}
+#f-mood button{flex-direction:row;gap:5px}
+:root[data-skin="solo"] .ai-bar,:root[data-skin="solo"] .ai-input{border-color:rgba(77,163,255,.4)}
+:root[data-skin="solo"] .ai-reply{background:rgba(77,163,255,.12);border:1px solid rgba(77,163,255,.4)}
+</style>
 <div id="app" dir="rtl" lang="ar">
   <header class="top">
     <div class="brand"><div class="name" id="brand-name">حياة</div><div class="date" id="hdate"></div></div>
@@ -812,9 +841,9 @@ function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e
 
 /* ===================== البيانات والتخزين ===================== */
 const KEY='hayah.v1', BKEY='hayah.v1.backup';
-const VERSION=7;
+const VERSION=8;
 let loadNotice='', pendingFinanceSeed=false, pendingBodySeed=false, pendingFitSeed=false;
-function defaultState(){ return { v:VERSION, goals:[], tasks:[], habits:[], finance:defaultFinance(), body:{sessions:[],metrics:[],skills:[]}, timer:null, fit:{exercises:[],plan:{},logs:{},targets:{kcal:0,protein:0},samplePlan:false}, deen:{prayers:{},adhkar:{},quran:{wirdPages:4,reads:[],memo:{}},includeInDaily:true}, settings:{name:'',theme:'auto',skin:'calm',avatar:null,show3d:false,dailyDone:[],weekStart:6,seeded:false,lastBackupAt:null,collapsed:{'tasks-done':true,'goals-done':true,'goals-archived':true,'habits-archived':true}}, meta:{createdAt:nowISO(),updatedAt:nowISO(),backupDay:null} }; }
+function defaultState(){ return { v:VERSION, goals:[], tasks:[], habits:[], journal:[], ai:{key:'',model:'claude-haiku-4-5',limitUSD:3,spent:{month:'',usd:0,inTok:0,outTok:0,calls:0},history:[]}, finance:defaultFinance(), body:{sessions:[],metrics:[],skills:[]}, timer:null, fit:{exercises:[],plan:{},logs:{},targets:{kcal:0,protein:0},samplePlan:false}, deen:{prayers:{},adhkar:{},quran:{wirdPages:4,reads:[],memo:{}},includeInDaily:true}, settings:{name:'',theme:'auto',skin:'calm',avatar:null,show3d:false,dailyDone:[],weekStart:6,seeded:false,lastBackupAt:null,collapsed:{'tasks-done':true,'goals-done':true,'goals-archived':true,'habits-archived':true}}, meta:{createdAt:nowISO(),updatedAt:nowISO(),backupDay:null} }; }
 function sanitize(d){
   const def=defaultState();
   if(!d||typeof d!=='object') return def;
@@ -872,6 +901,13 @@ function sanitize(d){
   if(ff.targets&&typeof ff.targets==='object'){ fit.targets={kcal:Math.max(0,parseInt(ff.targets.kcal,10)||0),protein:Math.max(0,parseInt(ff.targets.protein,10)||0),carbs:Math.max(0,parseInt(ff.targets.carbs,10)||0),fat:Math.max(0,parseInt(ff.targets.fat,10)||0)}; }
   fit.height=(isFinite(+ff.height)&&+ff.height>=100&&+ff.height<=250)?Math.round(+ff.height):0; fit.goalWeight=(isFinite(+ff.goalWeight)&&+ff.goalWeight>=30&&+ff.goalWeight<=300)?r2(ff.goalWeight):0; fit.restSec=[60,90,120,180].includes(+ff.restSec)?+ff.restSec:90;
   s.fit=fit;
+  s.journal=Array.isArray(d.journal)?d.journal.filter(x=>x&&typeof x==='object'&&x.id&&typeof x.text==='string'&&x.text.trim()&&okDate(x.date)).map(x=>({id:x.id,date:x.date,text:x.text.slice(0,4000),mood:[1,2,3,4,5].includes(x.mood)?x.mood:3,source:x.source==='ai'?'ai':'me',createdAt:x.createdAt||nowISO()})).slice(-2000):[];
+  { const a=(d.ai&&typeof d.ai==='object')?d.ai:{}; const sp=(a.spent&&typeof a.spent==='object')?a.spent:{};
+    s.ai={ key:(typeof a.key==='string'&&/^sk-ant-/.test(a.key))?a.key.trim():'',
+      model:['claude-haiku-4-5','claude-sonnet-5'].includes(a.model)?a.model:'claude-haiku-4-5',
+      limitUSD:(isFinite(+a.limitUSD)&&+a.limitUSD>0&&+a.limitUSD<=200)?r2(a.limitUSD):3,
+      spent:{month:/^\d{4}-\d{2}$/.test(sp.month||'')?sp.month:'',usd:Math.max(0,+sp.usd||0),inTok:Math.max(0,parseInt(sp.inTok,10)||0),outTok:Math.max(0,parseInt(sp.outTok,10)||0),calls:Math.max(0,parseInt(sp.calls,10)||0)},
+      history:Array.isArray(a.history)?a.history.filter(x=>x&&typeof x==='object'&&x.id).map(x=>({id:x.id,at:x.at||nowISO(),text:String(x.text||'').slice(0,600),reply:String(x.reply||'').slice(0,600),n:parseInt(x.n,10)||0,labels:Array.isArray(x.labels)?x.labels.filter(y=>typeof y==='string').slice(0,6):[]})).slice(0,40):[] }; }
   const dd=(d.deen&&typeof d.deen==='object')?d.deen:{}; const dn={prayers:{},adhkar:{},quran:{wirdPages:4,reads:[],memo:{}},includeInDaily:dd.includeInDaily!==false};
   if(dd.prayers&&typeof dd.prayers==='object'){ for(const k in dd.prayers){ if(!okDate(k)) continue; const p=dd.prayers[k]; if(!p||typeof p!=='object') continue; const o={}; ['fajr','dhuhr','asr','maghrib','isha'].forEach(x=>{ if(['t','j','q'].includes(p[x])) o[x]=p[x]; }); if(Object.keys(o).length) dn.prayers[k]=o; } }
   if(dd.adhkar&&typeof dd.adhkar==='object'){ for(const k in dd.adhkar){ if(!okDate(k)) continue; const a=dd.adhkar[k]; if(!a||typeof a!=='object') continue; const o={}; ['morning','evening','prayer','sleep','wake','friday'].forEach(st=>{ if(a[st]&&typeof a[st]==='object'){ const m={}; for(const i in a[st]){ const v=parseInt(a[st][i],10); if(isFinite(v)&&v>0) m[i]=v; } if(Object.keys(m).length) o[st]=m; } }); const pr=parseInt(a.prayerRuns,10); if(isFinite(pr)&&pr>0) o.prayerRuns=Math.min(5,pr); const tb=parseInt(a.tasbih,10); if(isFinite(tb)&&tb>0) o.tasbih=tb; if(Object.keys(o).length) dn.adhkar[k]=o; } }
@@ -954,16 +990,16 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&sheetOpen) closeSh
 /* ===================== التوجيه والعرض ===================== */
 let tab='today', lastRenderDay=today();
 const scrollPos={};
-const filters={ tasks:'today', q:'', month:null, txAll:false, sessAll:false, progView:'vitals', surahF:'all', taskView:'tasks', fitView:'train' };
+const filters={ tasks:'today', q:'', month:null, txAll:false, sessAll:false, progView:'vitals', surahF:'all', taskView:'tasks', fitView:'train', assistView:'chat' };
 let draft=null;
-const TABS=[['today','اليوم',ICON.sun],['tasks','المهام',ICON.list],['fit','الجسد',ICON.dumbbell],['money','المال',ICON.wallet],['deen','العبادة',ICON.mosque],['progress','التطوّر',ICON.heart]];
+const TABS=[['today','اليوم',ICON.sun],['tasks','المهام',ICON.list],['fit','الجسد',ICON.dumbbell],['money','المال',ICON.wallet],['deen','العبادة',ICON.mosque],['assist','المساعد',ICON.brain],['progress','التطوّر',ICON.heart]];
 function render(){
   if(!state.settings.seeded){ try{ renderHeader(); }catch(e){} $('#view').innerHTML=renderWelcome(); $('.fab').hidden=true; $('.tabs').hidden=true; return; }
   $('.fab').hidden=false; $('.tabs').hidden=false;
   const y=window.scrollY;
   try{ renderHeader(); }catch(e){ reportError(e); }
   const v=$('#view');
-  const fn={today:renderToday,tasks:renderTasks,fit:renderFit,money:renderMoney,deen:renderDeen,progress:renderProgress}[tab]||renderToday;
+  const fn={today:renderToday,tasks:renderTasks,fit:renderFit,money:renderMoney,deen:renderDeen,assist:renderAssist,progress:renderProgress}[tab]||renderToday;
   let html='';
   try{ html=fn(); }catch(e){ reportError(e); html='<div class="banner bad"><span>تعذر عرض هذه الشاشة. بياناتك محفوظة.</span><button class="btn" data-action="reload">إعادة تحميل</button></div>'; }
   v.innerHTML=html;
@@ -2088,6 +2124,238 @@ function saveTargets2(form){
   closeSheet();
 }
 
+/* ===================== المساعد الذكي ===================== */
+function AI(){ return state.ai; }
+const AI_PRICE={'claude-haiku-4-5':{i:1,o:5},'claude-sonnet-5':{i:2,o:10}};
+const AI_MODELS=[['claude-haiku-4-5','سريع واقتصادي'],['claude-sonnet-5','أدق وأغلى 4×']];
+const MOODS=[[1,'سيئ','😞'],[2,'تعبان','😕'],[3,'عادي','😐'],[4,'كويس','🙂'],[5,'ممتاز','😄']];
+const ACT_LABEL={food:'أكل',expense:'مصروف',income:'دخل',workout:'تمرين',task_add:'مهمة',task_done:'إنجاز مهمة',habit_done:'عادة',goal_add:'هدف جديد',prayer:'صلاة',adhkar:'أذكار',quran:'قرآن',metric:'قياس',journal:'يوميات'};
+const ACT_ICON={food:'🍽️',expense:'💸',income:'💰',workout:'🏋️',task_add:'✅',task_done:'✅',habit_done:'🔁',goal_add:'🎯',prayer:'🕌',adhkar:'📿',quran:'📖',metric:'⚖️',journal:'📓'};
+function aiReady(){ return !!(AI().key&&AI().key.length>20); }
+function curMonthKey(){ return today().slice(0,7); }
+function aiSpent(){ const s=AI().spent||{}; if(s.month!==curMonthKey()) return {month:curMonthKey(),usd:0,inTok:0,outTok:0,calls:0}; return s; }
+function aiLeft(){ return round2((+AI().limitUSD||3)-aiSpent().usd); }
+function fmtUSD(n){ return '$'+(Math.round((+n||0)*10000)/10000).toFixed(4).replace(/0+$/,'').replace(/\.$/,''); }
+function aiTrack(model,usage){ const p=AI_PRICE[model]||AI_PRICE['claude-haiku-4-5']; const it=(usage&&usage.input_tokens||0)+(usage&&usage.cache_read_input_tokens||0), ot=(usage&&usage.output_tokens||0); const usd=(it*p.i+ot*p.o)/1e6; const s=aiSpent(); AI().spent={month:curMonthKey(),usd:Math.round((s.usd+usd)*1e6)/1e6,inTok:s.inTok+it,outTok:s.outTok+ot,calls:s.calls+1}; save(); return usd; }
+
+/* --- سياق مضغوط --- */
+function aiContext(){
+  const d=today(), wd=WD[parseISO(d).getDay()];
+  const L=[];
+  L.push('اليوم: '+d+' ('+wd+')'+(state.settings.name?' — المستخدم: '+state.settings.name:''));
+  const gs=state.goals.filter(g=>g.status==='active').slice(0,12);
+  if(gs.length) L.push('الأهداف: '+gs.map(g=>g.id+'|'+g.title).join(' ; '));
+  const ts=tasksForDate(d).concat(overdueTasks(d)).slice(0,15);
+  if(ts.length) L.push('مهام اليوم: '+ts.map(t=>t.id+'|'+t.title+(isTaskDone(t,d)?'|تمت':'')).join(' ; '));
+  const hs=habitsForDate(d).slice(0,12);
+  if(hs.length) L.push('عادات اليوم: '+hs.map(h=>h.id+'|'+h.title+'|هدف '+h.target+' '+(h.unit||'')+(isHabitDone(h,d)?'|تمت':'')).join(' ; '));
+  L.push('بنود المال: '+sortedBuckets().map(b=>b.id+'|'+b.name).join(' ; ')+' — العملة: '+F().currency);
+  L.push('تصنيفات المصروف: '+F().categories.join('، '));
+  const fo=FT().foods.filter(f=>!f.archived).slice(0,60);
+  if(fo.length) L.push('مكتبة الأطعمة (id|اسم|الوحدة|سعرات لكل وحدة): '+fo.map(f=>f.id+'|'+f.name+'|'+(f.unit==='g'?'100جم':(f.unitName||'حصة'))+'|'+f.kcal).join(' ; '));
+  const ex=FT().exercises.filter(e=>!e.archived).slice(0,25);
+  if(ex.length) L.push('التمارين: '+ex.map(e=>e.id+'|'+e.name).join(' ; '));
+  const sk=activeSkills().slice(0,12);
+  if(sk.length) L.push('المهارات: '+sk.map(s=>s.id+'|'+s.name).join(' ; '));
+  const pr=dayPrayers(d); L.push('صلوات اليوم: '+PRAYERS.map(p=>p[0]+'|'+p[1]+'|'+(pr[p[0]]==='t'?'في وقتها':pr[p[0]]==='j'?'جماعة':pr[p[0]]==='l'?'متأخرة':'لم تُسجّل')).join(' ; '));
+  const tg=targets(); if(tg.kcal) L.push('أهداف التغذية: '+tg.kcal+' سعرة، بروتين '+tg.protein+'، كارب '+tg.carbs+'، دهون '+tg.fat);
+  return L.join('\n');
+}
+const AI_SYS='أنت مساعد داخل تطبيق "حياة" — نظام شخصي لإدارة الحياة يستخدمه شخص مصري يكتب بالعامية المصرية.\n'
++'مهمتك: تقرأ كلامه الحر (ملخص يوم، مشاعر، أفكار، إنجازات) وتحوّله إلى إجراءات منظّمة داخل التطبيق، ثم تردّ عليه ردًا قصيرًا بالعامية المصرية.\n\n'
++'أنواع الإجراءات:\n'
++'- food: أكلة أكلها. املأ slot (breakfast/lunch/dinner/snack) و kcal و protein و carbs و fat. لو الصنف في مكتبة الأطعمة استخدم id و qty، وإلا قدّر القيم بنفسك من معرفتك بالأكل المصري.\n'
++'- expense / income: فلوس صرفها أو دخلت. amount رقم، category من التصنيفات، وللمصروف اختر bucketId المناسب.\n'
++'- workout: تمرين عمله. kind واحد من cardio/walk/sport/strength/flex/study/read/practice، و minutes، و intensity (1 خفيف 2 متوسط 3 عالي). المذاكرة والقراءة والتدريب تُسجّل هنا أيضًا مع skillId لو المهارة موجودة.\n'
++'- task_add: مهمة جديدة. لو قال إنه عملها بالفعل اجعل done=true. حدّد due بصيغة YYYY-MM-DD (افتراضيًا اليوم) و priority (1 عادي 2 مهم 3 عاجل) و goalId لو مرتبطة بهدف.\n'
++'- task_done: إتمام مهمة موجودة — استخدم id من قائمة مهام اليوم.\n'
++'- habit_done: تنفيذ عادة موجودة — id من قائمة العادات، و qty عدد المرات.\n'
++'- goal_add: هدف جديد. أنشئه فقط لو كلامه يدل على طموح كبير طويل المدى (مش مجرد مهمة). املأ area من learn/money/health/work/faith/relations/personal، و why، و deadline، و milestones (2-5 مراحل قصيرة).\n'
++'- prayer: صلاة صلاها. id اسم الصلاة بالإنجليزي، status من t (في وقتها) أو j (جماعة) أو l (متأخرة).\n'
++'- adhkar: أذكار. set إما morning أو evening.\n'
++'- quran: قراءة قرآن. pages عدد الصفحات.\n'
++'- metric: قياس جسم. weight بالكيلو، rhr نبض الراحة، waist الخصر بالسنتيمتر.\n'
++'- journal: تدوينة يوميات. text ملخص كلامه ومشاعره بصيغة الغائب المختصرة، و mood من 1 (سيئ) إلى 5 (ممتاز). أضف واحدة كلما عبّر عن مشاعر أو حكى عن يومه.\n\n'
++'قواعد مهمة:\n'
++'- كل إجراء لازم يكون له label: وصف عربي قصير جدًا (٣-٦ كلمات) يظهر للمستخدم قبل التطبيق.\n'
++'- لا تخترع إجراءات لم يذكرها. لو الكلام مشاعر فقط، اكتفِ بـ journal.\n'
++'- لو ذكر شيئًا غامضًا لا تستطيع تحديده، اذكره في reply بدل اختراع إجراء.\n'
++'- الأرقام تقديرية مقبولة، لكن كن واقعيًا في السعرات.\n'
++'- reply: من ٢ إلى ٤ جمل بالعامية المصرية — اعترف بما أنجزه، وانصحه بنصيحة واحدة عملية لو في حاجة تستاهل. لا تكرر قائمة الإجراءات.';
+const AI_SCHEMA={type:'object',properties:{reply:{type:'string'},actions:{type:'array',items:{type:'object',properties:{
+  type:{type:'string',enum:['food','expense','income','workout','task_add','task_done','habit_done','goal_add','prayer','adhkar','quran','metric','journal']},
+  label:{type:'string'},id:{type:'string'},title:{type:'string'},amount:{type:'number'},qty:{type:'number'},
+  slot:{type:'string'},kcal:{type:'number'},protein:{type:'number'},carbs:{type:'number'},fat:{type:'number'},
+  category:{type:'string'},bucketId:{type:'string'},kind:{type:'string'},minutes:{type:'number'},intensity:{type:'number'},skillId:{type:'string'},
+  due:{type:'string'},priority:{type:'number'},done:{type:'boolean'},goalId:{type:'string'},
+  area:{type:'string'},why:{type:'string'},deadline:{type:'string'},milestones:{type:'array',items:{type:'string'}},
+  status:{type:'string'},set:{type:'string'},pages:{type:'number'},
+  weight:{type:'number'},rhr:{type:'number'},waist:{type:'number'},mood:{type:'number'},text:{type:'string'},note:{type:'string'}
+},required:['type','label']}}},required:['reply','actions']};
+
+/* --- الاتصال --- */
+async function aiFetch(body){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':AI().key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify(body)});
+  const txt=await res.text(); let j=null; try{ j=JSON.parse(txt); }catch(e){}
+  return {ok:res.ok,status:res.status,json:j,raw:txt};
+}
+function aiErrMsg(r){
+  if(r.status===401) return 'المفتاح غير صحيح أو ملغي — راجعه في الإعدادات.';
+  if(r.status===400) return 'الطلب مرفوض: '+((r.json&&r.json.error&&r.json.error.message)||'').slice(0,120);
+  if(r.status===429) return 'وصلت حد الاستخدام المؤقت — استنى دقيقة وجرّب تاني.';
+  if(r.status===402||(r.json&&r.json.error&&/credit|balance/i.test(r.json.error.message||''))) return 'الرصيد خلص — اشحن من console.anthropic.com.';
+  if(r.status>=500) return 'خدمة Claude مش متاحة دلوقتي — جرّب بعد شوية.';
+  return 'فشل الاتصال: '+(r.status||'لا يوجد إنترنت');
+}
+function extractJSON(s){ if(!s) return null; let t=String(s).trim(); const f=t.match(/```(?:json)?\s*([\s\S]*?)```/); if(f) t=f[1].trim(); const a=t.indexOf('{'), b=t.lastIndexOf('}'); if(a<0||b<a) return null; try{ return JSON.parse(t.slice(a,b+1)); }catch(e){ return null; } }
+async function aiParse(text){
+  const model=AI().model||'claude-haiku-4-5';
+  const base={model,max_tokens:2000,system:AI_SYS+'\n\n=== حالة التطبيق الآن ===\n'+aiContext(),messages:[{role:'user',content:text}]};
+  let r=await aiFetch(Object.assign({},base,{output_config:{format:{type:'json_schema',schema:AI_SCHEMA}}}));
+  if(!r.ok&&r.status===400) r=await aiFetch(Object.assign({},base,{system:base.system+'\n\nأخرج JSON فقط بالشكل: {"reply":"...","actions":[{"type":"...","label":"...", ...}]} بدون أي نص خارج الـ JSON.'}));
+  if(!r.ok) throw new Error(aiErrMsg(r));
+  const msg=r.json||{}; aiTrack(model,msg.usage);
+  const txt=(msg.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+  const data=extractJSON(txt);
+  if(!data) throw new Error('الرد وصل بشكل غير متوقع — جرّب تاني أو صِغ كلامك بشكل أوضح.');
+  return {reply:String(data.reply||''),actions:Array.isArray(data.actions)?data.actions.filter(a=>a&&ACT_LABEL[a.type]):[]};
+}
+
+/* --- تطبيق الإجراءات --- */
+function aiQty(f,q){ let v=parseFloat(q); if(!isFinite(v)||v<=0) return 0; return f.unit==='g'?Math.min(3000,v):Math.min(30,v); }
+function aiFoodCalc(a){ const f=a.id?foodById(a.id):null; if(f&&aiQty(f,a.qty)>0) return Object.assign(computeFood(f,aiQty(f,a.qty)),{name:f.name,qty:aiQty(f,a.qty),unit:f.unit==='g'?'جم':(f.unitName||'')}); return null; }
+function applyAction(a,d){
+  const n=x=>{ const v=parseFloat(x); return isFinite(v)?v:0; };
+  switch(a.type){
+    case 'food':{ const L=ensureFitLog(d); if(!L.food) L.food=[]; const f=a.id?foodById(a.id):null; let e; if(f&&aiQty(f,a.qty)>0){ const c=computeFood(f,aiQty(f,a.qty)); e=Object.assign({id:uid(),foodId:f.id,name:f.name,slot:SLOT_NAME[a.slot]?a.slot:'snack',qty:aiQty(f,a.qty),qtyLabel:(f.unit==='g'?fmtNum(aiQty(f,a.qty))+' جم':fmtNum(aiQty(f,a.qty))+' '+(f.unitName||''))},c); }
+      else e={id:uid(),foodId:f?f.id:null,name:a.title||a.label||(f&&f.name)||'أكلة',slot:SLOT_NAME[a.slot]?a.slot:'snack',qty:1,qtyLabel:'',kcal:Math.round(n(a.kcal)),protein:round1(a.protein),carbs:round1(a.carbs),fat:round1(a.fat)};
+      L.food.push(e); break; }
+    case 'expense':{ if(!(n(a.amount)>0)) break; const b=bucketById(a.bucketId)||sortedBuckets().find(x=>x.kind==='personal')||sortedBuckets()[0]; if(!b) break; F().expenses.push({id:uid(),date:d,amount:round2(n(a.amount)),orig:null,bucketId:b.id,category:F().categories.includes(a.category)?a.category:'أخرى',note:a.note||'',createdAt:nowISO()}); break; }
+    case 'income':{ if(!(n(a.amount)>0)) break; const amt=round2(n(a.amount)); F().incomes.push({id:uid(),date:d,amount:amt,orig:null,note:a.note||a.title||'',split:splitByPct(amt,sortedBuckets()),mode:'pct',createdAt:nowISO()}); break; }
+    case 'workout':{ const m=Math.round(n(a.minutes))||30; const K=['cardio','walk','sport','strength','flex','study','read','practice']; B().sessions.push({id:uid(),date:d,kind:K.includes(a.kind)?a.kind:'other',minutes:Math.min(1440,Math.max(1,m)),intensity:[1,2,3].includes(a.intensity)?a.intensity:2,skillId:(a.skillId&&skillById(a.skillId))?a.skillId:null,hr:null,note:a.note||'',createdAt:nowISO()}); break; }
+    case 'task_add':{ const t=(a.title||a.label||'').trim(); if(!t) break; const due=/^\d{4}-\d{2}-\d{2}$/.test(a.due||'')?a.due:d; state.tasks.push({id:uid(),title:t.slice(0,120),note:a.note||'',goalId:(a.goalId&&goalById(a.goalId))?a.goalId:null,priority:[1,2,3].includes(a.priority)?a.priority:1,due,time:'',repeat:'none',subtasks:[],done:!!a.done,doneAt:a.done?nowISO():null,completions:{},createdAt:nowISO()}); break; }
+    case 'task_done':{ const t=state.tasks.find(x=>x.id===a.id); if(!t) break; if(t.repeat) t.completions[d]=true; else { t.done=true; t.doneAt=nowISO(); } break; }
+    case 'habit_done':{ const h=state.habits.find(x=>x.id===a.id); if(!h) break; h.log[d]=Math.min(h.target,Math.max(1,Math.round(n(a.qty))||h.target)); break; }
+    case 'goal_add':{ const t=(a.title||a.label||'').trim(); if(!t) break; const id=uid(); state.goals.push({id,title:t.slice(0,120),why:a.why||'',area:AREAS[a.area]?a.area:'personal',color:COLORS[state.goals.length%COLORS.length],deadline:/^\d{4}-\d{2}-\d{2}$/.test(a.deadline||'')?a.deadline:'',status:'active',createdAt:nowISO(),doneAt:null,milestones:(Array.isArray(a.milestones)?a.milestones:[]).slice(0,8).filter(x=>typeof x==='string'&&x.trim()).map(x=>({id:uid(),title:x.trim().slice(0,100),done:false}))}); break; }
+    case 'prayer':{ const k=PRAYERS.find(p=>p[0]===a.id||p[1]===a.title||p[1]===a.label); if(!k) break; if(!DN().prayers[d]) DN().prayers[d]={}; DN().prayers[d][k[0]]=['t','j','l'].includes(a.status)?a.status:'t'; break; }
+    case 'adhkar':{ const set=a.set==='evening'?'evening':'morning'; if(!DN().adhkar[d]) DN().adhkar[d]={}; const o=DN().adhkar[d][set]||(DN().adhkar[d][set]={}); ADHKAR[set].items.forEach((it,i)=>{ o[i]=it.n; }); break; }
+    case 'quran':{ const p=Math.round(n(a.pages)); if(!(p>0)) break; DN().quran.reads.push({id:uid(),date:d,pages:Math.min(60,p),note:a.note||'',createdAt:nowISO()}); break; }
+    case 'metric':{ const m={id:uid(),date:d,weight:null,rhr:null,note:a.note||'',createdAt:nowISO()}; if(n(a.weight)>0) m.weight=round2(n(a.weight)); if(n(a.rhr)>0) m.rhr=Math.round(n(a.rhr)); if(n(a.waist)>0) m.waist=round2(n(a.waist)); if(m.weight==null&&m.rhr==null&&m.waist==null) break; B().metrics.push(m); break; }
+    case 'journal':{ const t=(a.text||a.title||'').trim(); if(!t) break; state.journal.push({id:uid(),date:d,text:t.slice(0,4000),mood:[1,2,3,4,5].includes(a.mood)?a.mood:3,source:'ai',createdAt:nowISO()}); break; }
+  }
+}
+function applySelected(){
+  const acts=(draft.actions||[]).filter(a=>a.on!==false); if(!acts.length){ closeSheet(); return; }
+  const d=today(); const before=levelInfo().L;
+  commit(null,()=>{ acts.forEach(a=>{ try{ applyAction(a,d); }catch(e){ reportError(e); } }); state=sanitize(state);
+    AI().history.unshift({id:uid(),at:nowISO(),text:draft.text,reply:draft.reply,n:acts.length,labels:acts.map(a=>a.label||ACT_LABEL[a.type])}); AI().history=AI().history.slice(0,40); },{ms:9000});
+  const kinds={}; acts.forEach(a=>{ kinds[a.type]=(kinds[a.type]||0)+1; });
+  showSysWindow({head:'[ النظام ]',title:'تم تسجيل '+nOf(acts.length,'إجراء واحد','إجراءين','إجراءات','إجراء'),sub:Object.keys(kinds).map(k=>ACT_ICON[k]+' '+ACT_LABEL[k]+(kinds[k]>1?' ×'+kinds[k]:'')).join(' · '),ms:4200});
+  draft=null; closeSheet();
+}
+
+/* --- الواجهة --- */
+function renderAssist(){
+  const seg=filters.assistView||'chat';
+  let out='<div class="seg seg-top">'+[['chat','المساعد'],['journal','اليوميات']].map(x=>'<button type="button" data-action="assist-view" data-v="'+x[0]+'" class="'+(seg===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
+  try{ out+= seg==='journal'?renderJournal():renderChat(); }catch(e){ reportError(e); out+='<div class="card"><p class="hint">حدث خطأ في عرض هذا القسم.</p></div>'; }
+  return out;
+}
+function renderChat(){
+  let out='';
+  if(!aiReady()) return out+'<div class="card">'+emptyBlock(ICON.brain,'فعّل المساعد الذكي','احكِ يومك بالعامية وهو يوزّع كل شيء: أكل، تمرين، مصروف، مهام، صلوات، وحتى يصمّم لك هدفًا لو كلامك يستاهل — ويكتب يومياتك.','<button class="btn primary sm" data-action="ai-settings">إضافة مفتاح Claude</button>')+'</div>'
+    +'<div class="card" style="padding:12px 14px;margin-top:10px"><b>إزاي تجيب المفتاح؟</b><div class="hint" style="margin:6px 0 0;line-height:1.9">١. افتح <b>console.anthropic.com</b> بنفس حسابك<br>٢. <b>API Keys</b> ← Create Key ← انسخه<br>٣. <b>Billing</b> ← اشحن رصيد (الحد الأدنى $5)<br>٤. الصقه في الإعدادات هنا</div><p class="hint" style="margin-top:8px">المفتاح يتخزن على تليفونك فقط ولا يخرج منه إلا لخوادم Claude.</p></div>';
+  const sp=aiSpent(), left=aiLeft();
+  out+='<div class="ai-bar"><div><small>استهلاك '+esc(monthLabel(curMonthKey()))+'</small><b class="num">'+fmtUSD(sp.usd)+'</b></div><div class="bar" style="flex:1"><i style="width:'+Math.min(100,Math.round(sp.usd/Math.max(0.01,+AI().limitUSD||3)*100))+'%;background:'+(left<=0?'var(--bad)':'var(--good)')+'"></i></div><div style="text-align:end"><small>الحد '+fmtUSD(AI().limitUSD)+'</small><b class="num">'+sp.calls+' طلب</b></div><button class="icon-btn" data-action="ai-settings" aria-label="إعدادات المساعد">'+ICON.chev+'</button></div>';
+  if(left<=0) out+='<div class="banner bad"><span>وصلت حد الميزانية الشهرية. ارفع الحد من الإعدادات أو استنى الشهر الجاي.</span></div>';
+  out+='<div class="card ai-input"><textarea id="ai-text" class="inp" rows="5" placeholder="احكِ يومك بالعامية…&#10;مثال: صحيت الفجر في وقته، فطرت 3 بيضات وعيش، ذاكرت إنجليزي ساعة، اشتريت قهوة بـ45 جنيه، ولعبت كورة ساعة. حاسس إني بدأت أرجع لنظامي وده مريحني." data-input="ai-text">'+esc(draft&&draft.kind==='aitext'?draft.text:'')+'</textarea>'
+    +'<div class="btn-row" style="margin-top:8px"><button class="btn primary" data-action="ai-run" style="flex:1">'+ICON.brain+' حلّل وسجّل</button></div>'
+    +'<p class="hint" style="margin:8px 0 0">اكتب أي حاجة: أكلك، تمرينك، مصروفك، مهامك، صلواتك، أفكارك ومشاعرك — والمساعد يوزّعها ويعرضها عليك قبل التسجيل.</p></div>';
+  const h=AI().history||[];
+  if(h.length) out+='<div class="section">'+sectionH('آخر ما سجّلته',h.length)+'<div class="list">'+h.slice(0,8).map(x=>'<div class="row" style="min-height:52px"><div class="row-main" style="cursor:default"><div class="row-title" style="font-size:14.5px">'+esc((x.text||'').slice(0,70))+((x.text||'').length>70?'…':'')+'</div><div class="row-meta"><span>'+esc(agoLabel(x.at.slice(0,10)))+'</span><span>'+x.n+' إجراء</span>'+(x.labels||[]).slice(0,3).map(l=>'<span>'+esc(l)+'</span>').join('')+'</div></div></div>').join('')+'</div></div>';
+  return out;
+}
+function renderJournal(){
+  const j=(state.journal||[]).slice().sort((a,b)=>a.date===b.date?(a.createdAt<b.createdAt?1:-1):(a.date<b.date?1:-1));
+  let out='<div class="btn-row" style="margin-top:4px"><button class="btn primary" data-action="journal-add" style="flex:1">+ تدوينة جديدة</button></div>';
+  if(!j.length) return out+'<div class="card" style="margin-top:10px">'+emptyBlock(ICON.list,'لا يوميات بعد','اكتب ما تشعر به أو ملخص يومك — أو خلّ المساعد يكتبها لك من كلامك تلقائيًا.')+'</div>';
+  const last30=j.filter(x=>daysBetween(x.date,today())<=30);
+  if(last30.length>=3){ const avg=last30.reduce((a,x)=>a+(x.mood||3),0)/last30.length; const m=MOODS.find(x=>x[0]===Math.round(avg))||MOODS[2];
+    out+='<div class="card" style="padding:12px 14px;margin-top:10px"><div class="kv" style="border-bottom:0;padding:0"><span>مزاجك آخر ٣٠ يوم</span><span><b style="font-size:20px">'+m[2]+'</b> <b class="num">'+fmtNum(round1(avg))+'</b>/5 · '+last30.length+' تدوينة</span></div><div class="mood-row" style="margin-top:8px">'+last30.slice(0,20).reverse().map(x=>{ const mm=MOODS.find(y=>y[0]===(x.mood||3))||MOODS[2]; return '<i title="'+esc(fmtDate(x.date))+'" style="background:'+['var(--bad)','var(--bad)','var(--warn)','var(--good)','var(--good)'][(x.mood||3)-1]+';opacity:'+(0.45+(x.mood||3)*0.11)+'"></i>'; }).join('')+'</div></div>'; }
+  out+='<div class="list" style="margin-top:10px">'+j.slice(0,60).map(x=>{ const m=MOODS.find(y=>y[0]===(x.mood||3))||MOODS[2]; return '<div class="jrow" data-action="journal-edit" data-id="'+x.id+'"><div class="jm">'+m[2]+'</div><div class="jb"><div class="jd">'+esc(fmtDateFull(x.date))+(x.source==='ai'?' <span class="chip">من المساعد</span>':'')+'</div><div class="jt">'+esc(x.text)+'</div></div></div>'; }).join('')+'</div>';
+  return out;
+}
+function assistRun(){
+  const el=$('#ai-text'); const text=(el?el.value:'').trim();
+  if(text.length<3){ toast('اكتب كلامك الأول'); return; }
+  if(!aiReady()){ aiSettingsSheet(); return; }
+  if(aiLeft()<=0){ toast('وصلت حد الميزانية الشهرية'); return; }
+  draft={kind:'aitext',text};
+  openSheet('<div class="ai-wait"><div class="spinner"></div><b>بحلّل كلامك…</b><p class="hint">ثوانٍ قليلة</p></div>',{title:'المساعد',focus:false});
+  aiParse(text).then(res=>{
+    draft={kind:'review',text,reply:res.reply,actions:res.actions.map(a=>Object.assign({},a,{on:true}))};
+    renderReview();
+  }).catch(err=>{
+    draft={kind:'aitext',text};
+    openSheet('<div class="banner bad"><span>'+esc(err.message||'فشل الاتصال')+'</span></div><div class="btn-row" style="margin-top:12px"><button class="btn primary" data-action="ai-run-retry">إعادة المحاولة</button><button class="btn" data-action="ai-settings">الإعدادات</button></div><p class="hint">كلامك محفوظ ولم يضع.</p>',{title:'تعذّر التحليل',focus:false});
+  });
+}
+function renderReview(){
+  const acts=draft.actions||[]; const on=acts.filter(a=>a.on!==false).length;
+  let html=(draft.reply?'<div class="ai-reply">'+esc(draft.reply)+'</div>':'');
+  if(!acts.length) html+='<div class="card" style="padding:14px 16px"><p class="hint" style="margin:0">لم أجد شيئًا محددًا لتسجيله. جرّب تكتب تفاصيل أكتر (أرقام، أوقات، أسماء).</p></div>';
+  else{
+    html+='<div class="dsec" style="margin-top:12px"><h4><span>الإجراءات المقترحة</span><button class="link-btn" data-action="rev-all">'+(on===acts.length?'إلغاء الكل':'تحديد الكل')+'</button></h4><div class="list">'
+      +acts.map((a,i)=>'<div class="fitem'+(a.on!==false?' on':'')+'" data-action="rev-toggle" data-i="'+i+'"><button type="button" class="chk'+(a.on!==false?' on':'')+'" aria-label="تضمين">'+ICON.check+'</button><div class="fi-b"><div class="fi-t">'+ACT_ICON[a.type]+' '+esc(a.label||ACT_LABEL[a.type])+'</div><div class="fi-s">'+esc(ACT_LABEL[a.type])+revDetail(a)+'</div></div></div>').join('')+'</div></div>';
+  }
+  html+='<div class="form-actions"><button class="btn" data-action="ai-run-retry">تعديل الكلام</button>'+(acts.length?'<button class="btn primary" data-action="rev-apply">تسجيل '+on+'</button>':'')+'</div>';
+  openSheet(html,{title:'راجع قبل التسجيل',focus:false});
+}
+function revDetail(a){
+  const p=[]; if(a.type==='food'){ const c=aiFoodCalc(a); if(c){ p.push(fmtNum(c.qty)+' '+c.unit); p.push(c.kcal+' سعرة'); if(c.protein) p.push('بروتين '+fmtNum(c.protein)); return ' · '+p.map(esc).join(' · '); } }
+  if(a.kcal) p.push(a.kcal+' سعرة'); if(a.protein) p.push('بروتين '+fmtNum(a.protein)); if(a.amount) p.push(fmtNum(a.amount)+' '+F().currency);
+  if(a.minutes) p.push(a.minutes+' دقيقة'); if(a.pages) p.push(a.pages+' صفحة'); if(a.weight) p.push(fmtNum(a.weight)+' كجم');
+  if(a.due&&a.type==='task_add') p.push(dueLabel(a.due,today())); if(a.done) p.push('تمت');
+  if(a.milestones&&a.milestones.length) p.push(a.milestones.length+' مراحل'); if(a.mood) p.push('مزاج '+a.mood+'/5');
+  return p.length?' · '+p.map(esc).join(' · '):'';
+}
+function journalSheet(x){
+  const isNew=!x; draft={kind:'journal',id:x?x.id:null,mood:x?(x.mood||3):3};
+  const html='<form data-submit="save-journal" novalidate>'
+    +'<div class="field" style="margin-top:2px"><span class="lbl">مزاجك</span><div class="qchips" id="f-mood">'+MOODS.map(m=>'<button type="button" data-action="pick-mood" data-v="'+m[0]+'" class="'+(draft.mood===m[0]?'on':'')+'"><span style="font-size:17px">'+m[2]+'</span> '+m[1]+'</button>').join('')+'</div></div>'
+    +'<div class="field"><label for="f-text">التدوينة</label><textarea id="f-text" class="inp" name="text" rows="7" placeholder="إيه اللي حصل النهارده؟ وإيه اللي حاسس بيه؟" autofocus>'+esc(x?x.text:'')+'</textarea></div>'
+    +'<div class="field"><label for="f-date">التاريخ</label><input id="f-date" type="date" name="date" value="'+esc(x?x.date:today())+'"></div>'
+    +'<p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p>'
+    +'<div class="form-actions">'+(isNew?'':'<button type="button" class="btn danger" data-action="journal-del" data-id="'+x.id+'">حذف</button>')+'<button type="submit" class="btn primary">'+(isNew?'حفظ':'حفظ التعديل')+'</button></div></form>';
+  openSheet(html,{title:isNew?'تدوينة جديدة':'تعديل التدوينة'});
+}
+function saveJournal(form){
+  const text=form.text.value.trim(); if(!text) return formErr('اكتب شيئًا أولًا.');
+  const date=form.date.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return formErr('اختر تاريخًا صحيحًا.');
+  const mood=draft.mood, isNew=!draft.id;
+  commit(isNew?'تم حفظ التدوينة':'تم الحفظ',()=>{ if(isNew) state.journal.push({id:uid(),date,text:text.slice(0,4000),mood,source:'me',createdAt:nowISO()}); else { const x=state.journal.find(y=>y.id===draft.id); if(x) Object.assign(x,{date,text:text.slice(0,4000),mood}); } });
+  closeSheet();
+}
+function aiSettingsSheet(){
+  const a=AI(), sp=aiSpent();
+  draft={kind:'aiset',model:a.model||'claude-haiku-4-5'};
+  const html='<form data-submit="save-ai" novalidate>'
+    +'<div class="field" style="margin-top:2px"><label for="f-key">مفتاح Claude API</label><input id="f-key" type="password" name="key" value="'+esc(a.key||'')+'" placeholder="sk-ant-..." autocomplete="off" spellcheck="false" dir="ltr"><p class="hint">من console.anthropic.com ← API Keys. يتخزن على جهازك فقط، ولا يُدرج في ملف النسخة الاحتياطية.</p></div>'
+    +'<div class="field"><span class="lbl">الموديل</span><div class="seg" id="f-model">'+AI_MODELS.map(m=>'<button type="button" data-action="ai-model" data-v="'+m[0]+'" class="'+(draft.model===m[0]?'on':'')+'">'+(m[0].includes('haiku')?'Haiku':'Sonnet')+'</button>').join('')+'</div><p class="hint" id="f-model-hint">'+(AI_MODELS.find(m=>m[0]===draft.model)||AI_MODELS[0])[1]+' — Haiku يكفي للتسجيل اليومي.</p></div>'
+    +'<div class="field"><label for="f-limit">حد الإنفاق الشهري (دولار)</label><input id="f-limit" class="inp num" type="text" inputmode="decimal" name="limit" value="'+(a.limitUSD||3)+'"><p class="hint">التطبيق يوقف الطلبات تلقائيًا عند الوصول للحد.</p></div>'
+    +'<div class="card" style="padding:10px 14px"><div class="kv"><span>استهلاك '+esc(monthLabel(sp.month))+'</span><span class="num">'+fmtUSD(sp.usd)+'</span></div><div class="kv"><span>عدد الطلبات</span><span class="num">'+sp.calls+'</span></div><div class="kv" style="border-bottom:0"><span>التوكنز (دخل / خرج)</span><span class="num">'+sp.inTok+' / '+sp.outTok+'</span></div></div>'
+    +'<p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p>'
+    +'<div class="form-actions">'+(a.key?'<button type="button" class="btn danger" data-action="ai-clear">حذف المفتاح</button>':'')+'<button type="submit" class="btn primary">حفظ</button></div></form>';
+  openSheet(html,{title:'المساعد الذكي',focus:false});
+}
+function saveAI(form){
+  const key=form.key.value.trim();
+  if(key&&!/^sk-ant-/.test(key)) return formErr('المفتاح لازم يبدأ بـ sk-ant-');
+  let lim=parseAmount(form.limit.value); if(!(lim>0)) lim=3;
+  commit('تم حفظ إعدادات المساعد',()=>{ AI().key=key; AI().model=draft.model; AI().limitUSD=round2(lim); });
+  closeSheet();
+}
+
 /* ===================== شاشة العادات ===================== */
 function renderHabits(){
   const d=today();
@@ -2246,7 +2514,7 @@ function openSettings(sub){
   const html='<div class="field" style="margin-top:4px"><label for="s-name">اسمك (للتحية)</label><input id="s-name" type="text" maxlength="40" value="'+esc(s.name)+'" data-change="name" placeholder="اسمك" autocomplete="given-name"></div>'
     +'<div class="field"><span class="lbl">الثيم</span><div class="skins">'+SKINS.map(k=>'<button type="button" class="skin'+(s.skin===k[0]?' on':'')+'" data-action="set-skin" data-v="'+k[0]+'"><div class="sw" style="--pbg:'+k[2][0]+'"><i style="background:'+k[2][1]+'"></i><i style="background:'+k[2][2]+'"></i><i style="background:'+k[2][3]+'"></i></div>'+k[1]+'</button>').join('')+'</div>'+(solo?'<p class="hint">ثيم "النظام" مستوحى من نوافذ النظام في Solo Leveling — داكن دائمًا، والمسميات تتغير معه.</p>':'')+'</div>'
     +'<div class="field"'+(solo?' style="opacity:.45;pointer-events:none"':'')+'><span class="lbl">المظهر'+(solo?' — هذا الثيم داكن دائمًا':'')+'</span><div class="seg" id="s-theme">'+[['auto','تلقائي'],['light','فاتح'],['dark','داكن']].map(x=>'<button type="button" data-action="set-theme" data-v="'+x[0]+'" class="'+(s.theme===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div></div>'
-    +'<div class="field"><span class="lbl">المال</span><button type="button" class="btn block" data-action="fin-settings">البنود والنسب والعملة والتصنيفات</button></div>'
+    +'<div class="field"><span class="lbl">المال</span><button type="button" class="btn block" data-action="fin-settings">البنود والنسب والعملة والتصنيفات</button></div>'+'<div class="field"><span class="lbl">المساعد الذكي</span><button type="button" class="btn block" data-action="ai-settings">مفتاح Claude والميزانية الشهرية</button></div>'
     +'<div class="dsec" id="s-backup"><h4>النسخ الاحتياطي</h4><p class="hint" style="margin:0 0 10px">بياناتك على هذا الجهاز فقط. خُذ نسخة أسبوعيًا واحفظها في Google Drive أو أرسلها لنفسك على واتساب.</p><div class="btn-row"><button type="button" class="btn primary" data-action="backup-share">مشاركة ملف النسخة</button><button type="button" class="btn" data-action="backup-copy">نسخ النص</button></div><p class="hint">آخر نسخة: <span id="s-last">'+esc(fmtDateTime(s.lastBackupAt))+'</span> · <button type="button" class="link-btn" style="font-size:12.5px;padding:0 4px" data-action="backup-show">عرض النص</button></p><textarea class="inp export-box" id="s-export" readonly hidden></textarea></div>'
     +'<div class="dsec"><h4>استيراد نسخة</h4><textarea class="inp export-box" id="s-import" placeholder="الصق نص النسخة هنا"></textarea><div class="btn-row"><button type="button" class="btn" data-action="import-merge">دمج مع الحالي</button><button type="button" class="btn danger" data-action="import-replace">استبدال الكل</button></div><p class="hint" id="s-import-msg">الدمج يضيف العناصر الجديدة ويحدّث المتطابقة. الاستبدال يمسح الحالي ويضع النسخة مكانه (مع إمكانية التراجع).</p></div>'
     +(samples?'<div class="dsec"><h4>بيانات المثال</h4><button type="button" class="btn block" data-action="remove-samples">حذف كل الأمثلة (<span class="num">'+samples+'</span>)</button></div>':'')
@@ -2255,7 +2523,7 @@ function openSettings(sub){
   openSheet(html,{title:'الإعدادات',focus:false});
   if(sub==='backup'){ setTimeout(()=>{ const el=$('#s-backup'); if(el) el.scrollIntoView({block:'start'}); },80); }
 }
-function exportText(){ return JSON.stringify({app:'hayah',v:VERSION,exportedAt:nowISO(),data:state}); }
+function exportText(){ const c=clone(state); if(c.ai) c.ai.key=''; return JSON.stringify({app:'hayah',v:VERSION,exportedAt:nowISO(),data:c}); }
 function markBackup(){ state.settings.lastBackupAt=nowISO(); save(); const el=$('#s-last'); if(el) el.textContent=fmtDateTime(state.settings.lastBackupAt); }
 function showExportBox(){ const ta=$('#s-export'); if(!ta) return null; ta.value=exportText(); ta.hidden=false; return ta; }
 async function backupShare(){
@@ -2400,6 +2668,20 @@ const A={
   'rest-add':()=>{ if(restT){ restT.endAt+=30000; restT.total+=30; renderRest(); } },
   'rest-skip':()=>{ restT=null; renderRest(); },
   'week-review':()=>weekReviewSheet(),
+  /* --- المساعد واليوميات --- */
+  'assist-view':el=>{ filters.assistView=el.dataset.v; render(); window.scrollTo(0,0); },
+  'ai-settings':()=>aiSettingsSheet(),
+  'ai-model':el=>{ if(!draft) return; draft.model=el.dataset.v; $$('#f-model button').forEach(b=>b.classList.toggle('on',b.dataset.v===draft.model)); const h=$('#f-model-hint'); if(h) h.textContent=(AI_MODELS.find(m=>m[0]===draft.model)||AI_MODELS[0])[1]+' — Haiku يكفي للتسجيل اليومي.'; },
+  'ai-clear':()=>{ commit('تم حذف المفتاح',()=>{ AI().key=''; }); closeSheet(); },
+  'ai-run':()=>assistRun(),
+  'ai-run-retry':()=>{ const t=(draft&&draft.text)||''; closeSheet(); setTimeout(()=>{ filters.assistView='chat'; if(tab!=='assist') switchTab('assist'); else render(); setTimeout(()=>{ const el=$('#ai-text'); if(el){ el.value=t; el.focus(); } },60); },260); },
+  'rev-toggle':el=>{ if(!draft||!draft.actions) return; const a2=draft.actions[+el.dataset.i]; if(a2){ a2.on=a2.on===false; renderReview(); } },
+  'rev-all':()=>{ if(!draft||!draft.actions) return; const all=draft.actions.every(x=>x.on!==false); draft.actions.forEach(x=>{ x.on=!all; }); renderReview(); },
+  'rev-apply':()=>applySelected(),
+  'journal-add':()=>journalSheet(null),
+  'journal-edit':el=>{ const x=(state.journal||[]).find(y=>y.id===el.dataset.id); if(x) journalSheet(x); },
+  'journal-del':el=>{ const id=el.dataset.id; commit('تم حذف التدوينة',()=>{ state.journal=state.journal.filter(x=>x.id!==id); },{ms:8000}); closeSheet(); },
+  'pick-mood':el=>{ if(!draft) return; draft.mood=+el.dataset.v; $$('#f-mood button').forEach(b=>b.classList.toggle('on',+b.dataset.v===draft.mood)); },
   'edit-plan':el=>planSheet(+el.dataset.wd),
   'plan-day':el=>{ if(!draft||draft.kind!=='plan') return; planCommit(null); draft={kind:'plan',wd:+el.dataset.wd,plan:clone(dayPlan(+el.dataset.wd))}; renderPlanSheet(); },
   'pi-add':()=>{ if(!draft||draft.kind!=='plan') return; const exs=FT().exercises.filter(e=>!e.archived); if(!exs.length) return; const e=exs[0]; draft.plan.workout.items.push({exId:e.id,sets:e.defSets,reps:e.defReps,weight:e.defWeight}); renderPlanSheet(); },
@@ -2539,6 +2821,7 @@ const SUBMIT={
   'save-income':f=>saveIncome(f), 'save-expense':f=>saveExpense(f), 'save-transfer':f=>saveTransfer(f), 'save-fin-settings':f=>saveFinSettings(f),
   'save-session':f=>saveSession(f), 'save-metric':f=>saveMetric(f), 'save-skill':f=>saveSkill(f),
   'save-read':f=>saveRead(f), 'save-surah':f=>saveSurah(f), 'save-deen-settings':f=>saveDeenSettings(f),
+  'save-journal':f=>saveJournal(f), 'save-ai':f=>saveAI(f),
   'save-food':f=>saveFood(f), 'save-quick':f=>saveQuick(f), 'save-targets2':f=>saveTargets2(f),
   'save-sets':f=>saveSets(f), 'save-exercise':f=>saveExercise(f), 'save-extra':f=>saveExtra(f), 'save-targets':f=>saveTargets(f), 'save-fit-settings':f=>saveFitSettings(f),
   'ms-add':f=>{ const g=goalById(f.dataset.gid); const v=(f.title.value||'').trim(); if(!g||!v) return; commit(null,()=>{ g.milestones.push({id:uid(),title:v,done:false}); }); goalDetail(g.id); setTimeout(()=>{ const i=$('#sheet-root input[name=title]'); if(i) i.focus(); },50); },
