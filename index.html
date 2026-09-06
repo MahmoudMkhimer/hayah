@@ -2,12 +2,17 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0E7A78">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="حياة">
+<meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -790,6 +795,21 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0}
 .sx-x svg{width:15px;height:15px}
 .sx-x:active{background:var(--bad-soft);color:var(--bad)}
 </style>
+<style>
+/* ===== آيفون: المنطقة الآمنة وسلوك iOS ===== */
+.top{padding-top:calc(12px + env(safe-area-inset-top))}
+#app{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+.sheet{padding-bottom:env(safe-area-inset-bottom)}
+.tabs{padding-bottom:calc(8px + env(safe-area-inset-bottom))}
+body{-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text}
+input,textarea,select{font-size:16px}
+.ios-tip{position:fixed;left:10px;right:10px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:60;background:var(--toast-bg);color:var(--toast-fg);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow);line-height:1.8;font-size:14px}
+.ios-tip b{color:var(--toast-act)}
+.ios-tip .row2{display:flex;gap:8px;margin-top:10px}
+.ios-tip button{flex:1;min-height:38px;border-radius:10px;font-weight:600;font-size:13.5px;background:rgba(255,255,255,.14);color:inherit}
+.ios-tip button.p{background:var(--toast-act);color:var(--toast-bg)}
+</style>
 <div id="app" dir="rtl" lang="ar">
   <header class="top">
     <div class="brand"><div class="name" id="brand-name">حياة</div><div class="date" id="hdate"></div></div>
@@ -918,6 +938,7 @@ function sanitize(d){
   if(typeof s.settings.avatar!=='string'||!/^data:image\//.test(s.settings.avatar)||s.settings.avatar.length>1500000) s.settings.avatar=null;
   s.settings.avatarSnap=null; s.settings.avatar3d={}; s.settings.show3d=false;
   { const A3=(s.settings.avatar3d&&typeof s.settings.avatar3d==='object')?s.settings.avatar3d:{}; const hex=v=>typeof v==='string'&&/^#[0-9a-fA-F]{6}$/.test(v); const a3={}; ['skin','hair','shirt','pants','shoes','eyes'].forEach(k=>{ if(hex(A3[k])) a3[k]=A3[k]; }); if(['spiky','short','buzz'].includes(A3.hairStyle)) a3.hairStyle=A3.hairStyle; if(typeof A3.beard==='boolean') a3.beard=A3.beard; if(typeof A3.glasses==='boolean') a3.glasses=A3.glasses; s.settings.avatar3d=a3; }
+  s.settings.iosTipSeen=!!s.settings.iosTipSeen;
   s.settings.dailyDone=Array.isArray(s.settings.dailyDone)?s.settings.dailyDone.filter(x=>/^\d{4}-\d{2}-\d{2}$/.test(String(x))).slice(-400):[];
   const SK=['cardio','walk','sport','strength','flex','study','read','practice','other']; const bd=(d.body&&typeof d.body==='object')?d.body:{};
   const b={ sessions:Array.isArray(bd.sessions)?bd.sessions.filter(x=>x&&typeof x==='object'&&x.id&&okDate(x.date)&&isFinite(+x.minutes)&&+x.minutes>0):[], metrics:Array.isArray(bd.metrics)?bd.metrics.filter(x=>x&&typeof x==='object'&&x.id&&okDate(x.date)):[], skills:Array.isArray(bd.skills)?bd.skills.filter(x=>x&&typeof x==='object'&&x.id&&typeof x.name==='string'&&x.name.trim()):[] };
@@ -2984,6 +3005,8 @@ const A={
   'edit-read':el=>{ const r=DN().quran.reads.find(x=>x.id===el.dataset.id); if(r) readSheet(r); },
   'reads-more':()=>{ filters.readsAll=!filters.readsAll; render(); },
   'money-q-clear':()=>{ filters.moneyQ=''; render(); },
+  'ios-tip-close':()=>{ const e=$('#ios-tip'); if(e) e.remove(); },
+  'ios-tip-never':()=>{ const e=$('#ios-tip'); if(e) e.remove(); state.settings.iosTipSeen=true; save(); },
   'sms-open':()=>smsSheet(),
   'sms-scope':el=>{ if(!draft) return; draft.scope=el.dataset.v; $$('#f-scope button').forEach(b=>b.classList.toggle('on',b.dataset.v===draft.scope)); },
   'sms-days':el=>{ if(!draft) return; draft.days=+el.dataset.v; $$('#f-days button').forEach(b=>b.classList.toggle('on',+b.dataset.v===draft.days)); },
@@ -3205,6 +3228,16 @@ if(pendingFitSeed){ try{ seedFitSamples(); save(); }catch(e){ reportError(e); } 
 if(!FT().foods.length){ try{ seedFoods(); save(); }catch(e){ reportError(e); } }
 render();
 setInterval(timerTick,1000);
+/* تلميح تثبيت آيفون */
+(function(){ try{
+  const ua=navigator.userAgent||'';
+  const isIOS=/iPad|iPhone|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const standalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+  if(!isIOS||standalone||state.settings.iosTipSeen) return;
+  setTimeout(()=>{ const el=document.createElement('div'); el.className='ios-tip'; el.id='ios-tip';
+    el.innerHTML='<div>ثبّت <b>حياة</b> على شاشتك الرئيسية: اضغط زر المشاركة <b>⬆︎</b> تحت، ثم <b>«إضافة إلى الشاشة الرئيسية»</b> — هيفتح ملء الشاشة بدون شريط المتصفح ويشتغل بدون إنترنت.</div><div class="row2"><button class="p" data-action="ios-tip-close">تمام</button><button data-action="ios-tip-never">لا تُظهر تاني</button></div>';
+    document.body.appendChild(el); },1200);
+}catch(e){} })();
 if(state.settings.seeded&&state.settings.skin==='solo'){ setTimeout(()=>{ try{ const d=today(); const n=tasksForDate(d).filter(t=>!isTaskDone(t,d)).length+habitsForDate(d).filter(h=>!isHabitDone(h,d)).length; toast('[ النظام ] مرحبًا '+(state.settings.name||'أيها اللاعب')+(n?' — '+n+' مهام تنتظرك اليوم':' — المهمة اليومية مكتملة'),{ms:3500}); }catch(e){} },700); }
 setInterval(()=>{ if(today()!==lastRenderDay) render(); },30000);
 })();
