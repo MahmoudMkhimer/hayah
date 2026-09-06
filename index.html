@@ -809,6 +809,7 @@ input,textarea,select{font-size:16px}
 .ios-tip .row2{display:flex;gap:8px;margin-top:10px}
 .ios-tip button{flex:1;min-height:38px;border-radius:10px;font-weight:600;font-size:13.5px;background:rgba(255,255,255,.14);color:inherit}
 .ios-tip button.p{background:var(--toast-act);color:var(--toast-bg)}
+.errdet{margin:6px 10px 0;padding:10px;background:var(--surface-2);border-radius:10px;font-size:11px;line-height:1.6;white-space:pre-wrap;word-break:break-all;direction:ltr;text-align:left;max-height:160px;overflow:auto;color:var(--text-2)}
 </style>
 <div id="app" dir="rtl" lang="ar">
   <header class="top">
@@ -899,10 +900,10 @@ function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e
 const KEY='hayah.v1', BKEY='hayah.v1.backup';
 const VERSION=8;
 let loadNotice='', pendingFinanceSeed=false, pendingBodySeed=false, pendingFitSeed=false;
-function defaultState(){ return { v:VERSION, goals:[], tasks:[], habits:[], journal:[], ai:{key:'',model:'claude-haiku-4-5',limitUSD:3,spent:{month:'',usd:0,inTok:0,outTok:0,calls:0},history:[]}, finance:defaultFinance(), body:{sessions:[],metrics:[],skills:[]}, timer:null, fit:{exercises:[],plan:{},logs:{},targets:{kcal:0,protein:0},samplePlan:false}, deen:{prayers:{},adhkar:{},quran:{wirdPages:4,reads:[],memo:{}},includeInDaily:true}, settings:{name:'',theme:'auto',skin:'calm',avatar:null,show3d:false,dailyDone:[],weekStart:6,seeded:false,lastBackupAt:null,collapsed:{'tasks-done':true,'goals-done':true,'goals-archived':true,'habits-archived':true}}, meta:{createdAt:nowISO(),updatedAt:nowISO(),backupDay:null} }; }
+function defaultState(){ return { v:VERSION, goals:[], tasks:[], habits:[], journal:[], ai:{key:'',model:'claude-haiku-4-5',limitUSD:3,spent:{month:'',usd:0,inTok:0,outTok:0,calls:0},history:[]}, finance:defaultFinance(), body:{sessions:[],metrics:[],skills:[]}, timer:null, fit:{exercises:[],foods:[],plan:{},logs:{},targets:{kcal:0,protein:0,carbs:0,fat:0},profile:{},height:0,goalWeight:0,restSec:90,samplePlan:false}, deen:{prayers:{},adhkar:{},quran:{wirdPages:4,reads:[],memo:{}},includeInDaily:true}, settings:{name:'',theme:'auto',skin:'calm',avatar:null,show3d:false,dailyDone:[],weekStart:6,seeded:false,lastBackupAt:null,collapsed:{'tasks-done':true,'goals-done':true,'goals-archived':true,'habits-archived':true}}, meta:{createdAt:nowISO(),updatedAt:nowISO(),backupDay:null} }; }
 function sanitize(d){
   const def=defaultState();
-  if(!d||typeof d!=='object') return def;
+  if(!d||typeof d!=='object') d={};
   const s={ v:VERSION,
     goals:Array.isArray(d.goals)?d.goals.filter(g=>g&&typeof g==='object'&&g.id&&typeof g.title==='string'):[],
     tasks:Array.isArray(d.tasks)?d.tasks.filter(t=>t&&typeof t==='object'&&t.id&&typeof t.title==='string'):[],
@@ -1025,8 +1026,10 @@ function toast(msg,o){
 function hideToast(){ $('#toast').innerHTML=''; }
 
 /* ===================== الأخطاء ===================== */
-function showError(msg){ const b=$('#err'); b.innerHTML='<div class="errbar"><span>'+esc(msg)+'</span><button data-action="reload">إعادة تحميل</button><button data-action="dismiss-err">إغلاق</button></div>'; b.hidden=false; }
-function reportError(e){ try{ console.error(e); }catch(_){} showError('حصل خطأ غير متوقع في جزء من الشاشة. بياناتك محفوظة.'); }
+function showError(msg,detail){ const b=$('#err'); b.innerHTML='<div class="errbar"><span>'+esc(msg)+'</span>'+(detail?'<button data-action="err-detail">التفاصيل</button>':'')+'<button data-action="reload">إعادة تحميل</button><button data-action="dismiss-err">إغلاق</button></div>'+(detail?'<pre class="errdet" id="errdet" hidden>'+esc(detail)+'</pre>':''); b.hidden=false; }
+let lastErr='';
+function errText(e){ try{ if(!e) return 'خطأ غير معروف'; if(typeof e==='string') return e; const m=e.message||String(e); const st=(e.stack||'').split(String.fromCharCode(10)).slice(0,3).join(' | '); return m+(st?' @ '+st:''); }catch(_){ return 'خطأ'; } }
+function reportError(e){ try{ console.error(e); }catch(_){} lastErr=errText(e); showError('حصل خطأ غير متوقع في جزء من الشاشة. بياناتك محفوظة.',lastErr); }
 window.addEventListener('error',ev=>reportError(ev.error||ev.message));
 window.addEventListener('unhandledrejection',ev=>reportError(ev.reason));
 
@@ -1053,7 +1056,9 @@ const filters={ tasks:'today', q:'', month:null, txAll:false, sessAll:false, pro
 let draft=null;
 const TABS=[['today','اليوم',ICON.sun],['tasks','المهام',ICON.list],['fit','الجسد',ICON.dumbbell],['money','المال',ICON.wallet],['deen','العبادة',ICON.mosque],['assist','المساعد',ICON.brain],['progress','التطوّر',ICON.heart]];
 function render(){
-  if(!state.settings.seeded){ try{ renderHeader(); }catch(e){} $('#view').innerHTML=renderWelcome(); $('.fab').hidden=true; $('.tabs').hidden=true; return; }
+  if(!state.settings.seeded){ try{ renderHeader(); }catch(e){}
+    let wh=''; try{ wh=renderWelcome(); }catch(e){ reportError(e); wh='<div class="card" style="padding:22px"><h3>أهلًا بك في حياة</h3><p class="hint">اكتب اسمك وابدأ.</p><form data-submit="welcome-start" novalidate><div class="field"><label for="w-name">اسمك</label><input id="w-name" type="text" maxlength="40" placeholder="اختياري"></div><label class="toggle" hidden><input type="checkbox" id="w-seed"></label><button type="submit" class="btn primary block">ابدأ</button></form></div>'; }
+    $('#view').innerHTML=wh; $('.fab').hidden=true; $('.tabs').hidden=true; return; }
   $('.fab').hidden=false; $('.tabs').hidden=false;
   const y=window.scrollY;
   try{ renderHeader(); }catch(e){ reportError(e); }
@@ -3007,6 +3012,7 @@ const A={
   'money-q-clear':()=>{ filters.moneyQ=''; render(); },
   'ios-tip-close':()=>{ const e=$('#ios-tip'); if(e) e.remove(); },
   'ios-tip-never':()=>{ const e=$('#ios-tip'); if(e) e.remove(); state.settings.iosTipSeen=true; save(); },
+  'err-detail':()=>{ const d=$('#errdet'); if(!d) return; d.hidden=!d.hidden; if(!d.hidden){ try{ navigator.clipboard.writeText(lastErr); toast('اتنسخت — ابعتها لي'); }catch(e){} } },
   'sms-open':()=>smsSheet(),
   'sms-scope':el=>{ if(!draft) return; draft.scope=el.dataset.v; $$('#f-scope button').forEach(b=>b.classList.toggle('on',b.dataset.v===draft.scope)); },
   'sms-days':el=>{ if(!draft) return; draft.days=+el.dataset.v; $$('#f-days button').forEach(b=>b.classList.toggle('on',+b.dataset.v===draft.days)); },
@@ -3225,7 +3231,7 @@ applyTheme(); dailyBackup();
 if(pendingFinanceSeed){ try{ seedFinanceSamples(); save(); }catch(e){ reportError(e); } pendingFinanceSeed=false; }
 if(pendingBodySeed){ try{ seedBodySamples(); save(); }catch(e){ reportError(e); } pendingBodySeed=false; }
 if(pendingFitSeed){ try{ seedFitSamples(); save(); }catch(e){ reportError(e); } pendingFitSeed=false; }
-if(!FT().foods.length){ try{ seedFoods(); save(); }catch(e){ reportError(e); } }
+try{ if(!FT().foods||!FT().foods.length){ if(!FT().foods) FT().foods=[]; seedFoods(); save(); } }catch(e){ reportError(e); }
 render();
 setInterval(timerTick,1000);
 /* تلميح تثبيت آيفون */
