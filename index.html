@@ -774,6 +774,18 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0}
 .bacts{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)}
 .bacts .btn{flex:1;min-height:38px;font-size:13px;padding:0 6px}
 .bacts .btn.ghost{flex:0 0 88px}
+.smsx{background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;margin-bottom:8px;opacity:.6}
+.smsx.on{opacity:1;border-color:color-mix(in srgb,var(--accent) 45%,var(--line-2))}
+.sx-h{display:flex;align-items:center;gap:10px}
+.sx-t{flex:1;min-width:0}
+.sx-t b{display:block;overflow-wrap:anywhere;font-size:14.5px}
+.sx-m{display:flex;gap:7px;flex-wrap:wrap;font-size:11.5px;color:var(--text-3);margin-top:2px}
+.sx-a{font-family:var(--font-display);font-size:17px;white-space:nowrap}
+.sx-a.good{color:var(--good)}.sx-a.bad{color:var(--bad)}
+.sx-b{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.seg.sm button{min-height:32px;font-size:12.5px}
+.qchips.sm button{height:30px;padding:0 10px;font-size:12px}
+.sx-raw{margin-top:7px;padding-top:7px;border-top:1px dashed var(--line-2);font-size:11px;color:var(--text-3);line-height:1.6;max-height:44px;overflow:hidden}
 </style>
 <div id="app" dir="rtl" lang="ar">
   <header class="top">
@@ -851,7 +863,7 @@ function defaultBuckets(){ return [
   {id:'b_oblig',name:'الالتزامات',pct:34,color:'#3E8FBF',kind:'obligations',order:0,note:'فواتير، أقساط، إيجار، مواصلات أساسية — أي شيء ملزم'},
   {id:'b_invest',name:'الاستثمارات',pct:33,color:'#2C9A58',kind:'invest',order:1,note:'يتراكم ولا يُمس إلا برأس مال كافٍ لاستثمار فعلي'},
   {id:'b_personal',name:'الشخصي',pct:33,color:'#BF8418',kind:'personal',order:2,note:'حريتك الكاملة: أكل بره، ترفيه، مشتريات'} ]; }
-function defaultFinance(){ return {currency:'ج.م',currencies:[{label:'ر.س',rate:13.4}],buckets:defaultBuckets(),incomes:[],expenses:[],transfers:[],repairs:[],debts:[],categories:['أكل','مواصلات','فواتير','سكن','صحة','تعليم','ترفيه','ملابس','هدايا','أخرى']}; }
+function defaultFinance(){ return {currency:'ج.م',currencies:[{label:'ر.س',rate:13.4}],buckets:defaultBuckets(),incomes:[],expenses:[],transfers:[],repairs:[],debts:[],smsImported:[],categories:['أكل','مواصلات','فواتير','سكن','صحة','تعليم','ترفيه','ملابس','هدايا','أخرى']}; }
 function nDays(n){ n=Math.abs(n); if(n===1) return 'يوم'; if(n===2) return 'يومين'; if(n<=10) return n+' أيام'; return n+' يوم'; }
 function nOf(n,one,two,few,many){ if(n===0) return 'لا '+many; if(n===1) return one; if(n===2) return two; if(n<=10) return n+' '+few; return n+' '+many; }
 function fmtDate(s){ const d=parseISO(s); return d.getDate()+' '+MONTHS[d.getMonth()]; }
@@ -898,6 +910,7 @@ function sanitize(d){
   const fixOrig=x=>{ const o=x.orig; if(o&&typeof o==='object'&&typeof o.label==='string'&&o.label.trim()&&isFinite(+o.amount)&&+o.amount>0){ x.orig={label:o.label.trim().slice(0,8),amount:r2(o.amount),rate:isFinite(+o.rate)&&+o.rate>0?r2(o.rate):r2(x.amount/+o.amount)}; } else x.orig=null; };
   f.incomes.forEach(fixOrig); f.expenses.forEach(fixOrig); f.transfers.forEach(fixOrig);
   f.debts=Array.isArray(fin.debts)?fin.debts.filter(x=>x&&typeof x==='object'&&x.id&&okDate(x.date)&&isFinite(+x.amount)&&+x.amount>0).map(x=>({id:x.id,kind:x.kind==='owed_to_me'?'owed_to_me':'i_owe',person:typeof x.person==='string'?x.person.slice(0,40):'',amount:r2(x.amount),date:x.date,dueDate:okDate(x.dueDate)?x.dueDate:'',note:typeof x.note==='string'?x.note.slice(0,80):'',createdAt:x.createdAt||nowISO(),payments:Array.isArray(x.payments)?x.payments.filter(p=>p&&okDate(p.date)&&isFinite(+p.amount)&&+p.amount>0).map(p=>({id:p.id||uid(),date:p.date,amount:r2(p.amount),note:typeof p.note==='string'?p.note.slice(0,60):'',createdAt:p.createdAt||nowISO()})):[]})):[];
+  f.smsImported=Array.isArray(fin.smsImported)?fin.smsImported.filter(x=>typeof x==='string').slice(-2000):[];
   s.finance=f;
   if(typeof s.settings.avatar!=='string'||!/^data:image\//.test(s.settings.avatar)||s.settings.avatar.length>1500000) s.settings.avatar=null;
   s.settings.avatarSnap=null; s.settings.avatar3d={}; s.settings.show3d=false;
@@ -1266,6 +1279,7 @@ function renderMonthMoney(){
   let statusLine; if(st.deficits.length) statusLine='<span class="chip bad">فشل في: '+esc(st.deficits.map(x=>x.b.name).join('، '))+'</span>'; else if(st.overs.length) statusLine='<span class="chip warn">استهلاك من الفائض: '+esc(st.overs.map(x=>x.b.name).join('، '))+'</span>'; else if(!st.income) statusLine='<span class="chip">لا دخل مسجّل هذا الشهر</span>'; else statusLine='<span class="chip good">'+(m<cur?'شهر سليم ✓':'الشهر سليم حتى الآن')+'</span>';
   out+='<div class="money-sum"><div><div class="k">دخل الشهر</div><div class="v">'+money(st.income)+'</div></div><div><div class="k">المصروف</div><div class="v">'+money(st.spent)+'</div></div><div><div class="k">الصافي</div><div class="v" style="'+(net<0?'color:var(--bad)':'')+'">'+money(net)+'</div></div><div class="status">'+statusLine+(m===cur&&al&&al.available>0?' <span class="chip num">'+fmtNum(al.perDay)+' '+esc(F().currency)+' / يوم من '+esc(al.bucket.name)+'</span>':'')+'</div></div>';
   out+='<div class="acts3"><button class="btn primary" data-action="add-income">+ دخل</button><button class="btn" data-action="add-expense">+ مصروف</button><button class="btn" data-action="add-transfer">تحويل</button></div>';
+  out+='<button class="btn block" style="margin-top:8px" data-action="sms-open">'+ICON.brain+' استيراد من رسائل البنك</button>';
   out+='<div class="section">'+sectionH('البنود',null,'<button class="link-btn" data-action="fin-settings">تعديل البنود</button>')+sortedBuckets().map(b=>bucketCard(b,m)).join('')+'</div>';
   const mq=(filters.moneyQ||'').trim();
   out+='<div class="search" style="margin-top:12px"><span class="ic">'+ICON.search+'</span><input id="money-q" type="search" placeholder="ابحث في كل الشهور: مبلغ، ملاحظة، تصنيف…" value="'+esc(mq)+'" data-input="money-q" autocomplete="off"></div>';
@@ -2517,6 +2531,126 @@ function savePayment(form){
   draft=null; debtDetail(id);
 }
 
+/* ===================== استيراد المعاملات من الرسائل ===================== */
+function smsPlugin(){ try{ return (window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.SmsReader)||null; }catch(e){ return null; } }
+function isNativeApp(){ try{ return !!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()); }catch(e){ return false; } }
+const MONEY_RE=/(?:^|[^\d])((?:\d{1,3}(?:[,،]\d{3})+|\d+)(?:[.٫]\d{1,2})?)\s*(?:egp|ج\.?م|جنيه|le|sar|ر\.?س|usd|\$)?/i;
+const BANK_HINTS=['egp','ج.م','جنيه','تم خصم','تم إيداع','تم ايداع','خصم مبلغ','ايداع مبلغ','إيداع مبلغ','رصيد','حساب','بطاقة','مشتريات','تحويل','حوالة','instapay','انستاباي','vodafone cash','فودافون كاش','اتصالات كاش','اورنج كاش','محفظة','atm','pos','purchase','debited','credited','withdraw','transfer','balance','قسط','فاتورة'];
+function looksFinancial(m){ const b=(m.body||'').toLowerCase(); if(b.length<12) return false; if(!MONEY_RE.test(b)) return false; return BANK_HINTS.some(h=>b.indexOf(h)>=0); }
+function smsDate(ms){ try{ const d=new Date(+ms); return isoDate(d); }catch(e){ return today(); } }
+
+const SMS_SYS='أنت محلل رسائل بنكية مصرية داخل تطبيق مالي شخصي. تصلك رسائل SMS خام وتستخرج منها المعاملات المالية الحقيقية فقط.\n\n'
++'لكل معاملة أخرج: type إما expense (خصم/شراء/سحب/دفع) أو income (إيداع/تحويل وارد/راتب) — تجاهل أي رسالة إعلانية أو استعلام رصيد أو رمز تحقق أو تنبيه بدون حركة فعلية.\n'
++'amount: المبلغ بالأرقام فقط (بدون فواصل). currency: العملة كما وردت (EGP أو ج.م أو ر.س…) أو اتركها فارغة لو مش واضحة.\n'
++'date: تاريخ المعاملة YYYY-MM-DD إن ذُكر في الرسالة، وإلا اترك الحقل فارغًا ليُستخدم تاريخ الرسالة.\n'
++'desc: وصف عربي قصير ومفيد لما حدث (اسم المتجر أو الجهة أو نوع العملية) — هذا ما سيراه المستخدم في سجله.\n'
++'category: تصنيف مقترح من قائمة التصنيفات المتاحة، أو تصنيف جديد مناسب بكلمة أو كلمتين.\n'
++'ref: أي رقم مرجعي أو آخر 4 أرقام من البطاقة إن وُجد، وإلا اتركه فارغًا.\n'
++'smsId: انسخ id الرسالة كما وصلك بالضبط.\n'
++'confidence: من 0 إلى 1 — ثقتك أن هذه معاملة حقيقية بمبلغ صحيح.\n\n'
++'قواعد: لا تخترع معاملة غير موجودة. لو نفس المعاملة تكررت في رسالتين، أخرجها مرة واحدة. رسائل تأكيد الاستلام أو الرصيد المتبقي وحدها ليست معاملات.';
+const SMS_SCHEMA={type:'object',properties:{txs:{type:'array',items:{type:'object',properties:{
+  smsId:{type:'string'},type:{type:'string',enum:['expense','income']},amount:{type:'number'},currency:{type:'string'},
+  date:{type:'string'},desc:{type:'string'},category:{type:'string'},ref:{type:'string'},confidence:{type:'number'}
+},required:['smsId','type','amount','desc']}}},required:['txs']};
+
+async function aiParseSms(msgs){
+  const model=AI().model||'claude-haiku-4-5';
+  const payload=msgs.map(m=>({id:m.id,date:smsDate(m.date),from:(m.from||'').slice(0,24),body:(m.body||'').slice(0,400)}));
+  const sys=SMS_SYS+'\n\nالتصنيفات المتاحة: '+F().categories.join('، ')+'\nالعملة الأساسية: '+F().currency+'\nتاريخ اليوم: '+today();
+  const base={model,max_tokens:4000,system:sys,messages:[{role:'user',content:'حلّل هذه الرسائل:\n'+JSON.stringify(payload)}]};
+  let r=await aiFetch(Object.assign({},base,{output_config:{format:{type:'json_schema',schema:SMS_SCHEMA}}}));
+  if(!r.ok&&r.status===400) r=await aiFetch(Object.assign({},base,{system:sys+'\n\nأخرج JSON فقط: {"txs":[...]} بدون أي نص خارجه.'}));
+  if(!r.ok) throw new Error(aiErrMsg(r));
+  aiTrack(model,(r.json||{}).usage);
+  const txt=((r.json||{}).content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+  const data=extractJSON(txt); if(!data||!Array.isArray(data.txs)) throw new Error('الرد وصل بشكل غير متوقع — جرّب تاني.');
+  return data.txs.filter(t=>t&&(t.type==='expense'||t.type==='income')&&isFinite(+t.amount)&&+t.amount>0);
+}
+function smsImportedIds(){ return new Set((F().smsImported||[])); }
+function smsSheet(){
+  const native=isNativeApp(), plug=smsPlugin();
+  draft={kind:'sms',stage:'intro'};
+  let html='';
+  if(!aiReady()) html+='<div class="banner bad"><span>محتاج مفتاح Claude أولًا عشان يفهم الرسائل.</span><button class="btn sm" data-action="ai-settings">الإعدادات</button></div>';
+  html+='<div class="card" style="padding:14px 16px"><b>إزاي بيشتغل؟</b><div class="hint" style="margin:6px 0 0;line-height:1.9">١. التطبيق يقرأ رسائلك ويفلتر <b>محليًا</b> اللي فيها مبالغ وكلمات بنكية فقط<br>٢. المرشّحة بس تتبعت لـClaude عشان يطلّع المبلغ والوصف<br>٣. تراجع كل معاملة وتحدد بندها، وتشيل اللي مش عايزه<br>٤. اللي تسجّله مش هيتكرر لو فحصت تاني</div></div>';
+  if(!native) html+='<div class="banner warn" style="margin-top:10px"><span>القراءة التلقائية تشتغل في تطبيق الأندرويد فقط. في المتصفح استخدم اللصق بالأسفل.</span></div>';
+  html+='<div class="field" style="margin-top:12px"><span class="lbl">المدة</span><div class="seg" id="f-days">'+[[7,'أسبوع'],[30,'شهر'],[90,'٣ شهور']].map(x=>'<button type="button" data-action="sms-days" data-v="'+x[0]+'" class="'+(x[0]===30?'on':'')+'">'+x[1]+'</button>').join('')+'</div></div>';
+  if(native&&plug) html+='<button class="btn primary block big" style="margin-top:12px" data-action="sms-scan">افحص رسائلي الآن</button>';
+  html+='<div class="dsec"><h4>أو الصق الرسائل يدويًا</h4><textarea id="sms-paste" class="inp" rows="6" placeholder="انسخ رسالة أو أكتر من تطبيق الرسائل والصقهم هنا — كل رسالة في سطر أو أكتر."></textarea><button class="btn block" style="margin-top:8px" data-action="sms-paste-go">حلّل المُلصق</button></div>';
+  html+='<p class="hint">نصوص الرسائل المرشّحة فقط تُرسل للتحليل. النتيجة تُخزَّن على جهازك.</p>';
+  openSheet(html,{title:'استيراد من الرسائل',focus:false});
+  if(native&&plug) plug.check().then(r=>{ draft.granted=!!(r&&r.granted); }).catch(()=>{});
+}
+function smsWait(msg){ openSheet('<div class="ai-wait"><div class="spinner"></div><b>'+esc(msg)+'</b><p class="hint">ثوانٍ قليلة</p></div>',{title:'استيراد من الرسائل',focus:false}); }
+async function smsScan(){
+  const plug=smsPlugin(); if(!plug){ toast('القراءة التلقائية في التطبيق فقط'); return; }
+  const days=(draft&&draft.days)||30;
+  try{
+    let p=await plug.check();
+    if(!p||!p.granted){ p=await plug.request(); }
+    if(!p||!p.granted){ openSheet('<div class="banner bad"><span>مفيش إذن لقراءة الرسائل. من إعدادات الهاتف: التطبيقات ← حياة ← الأذونات ← الرسائل ← السماح. في شاومي أحيانًا لازم تفعّلها يدويًا.</span></div><div class="btn-row" style="margin-top:12px"><button class="btn" data-action="sms-open">رجوع</button></div>',{title:'إذن مرفوض',focus:false}); return; }
+    smsWait('بقرأ رسائلك…');
+    const res=await plug.read({days,limit:400});
+    const all=(res&&res.messages)||[];
+    const done=smsImportedIds();
+    const cand=all.filter(m=>looksFinancial(m)&&!done.has(String(m.id)));
+    if(!cand.length){ openSheet('<div class="card" style="padding:16px"><b>مفيش رسائل جديدة فيها معاملات</b><p class="hint" style="margin:6px 0 0">فحصت '+all.length+' رسالة في آخر '+days+' يوم. لو معاملاتك بتيجي بإشعارات مش رسائل، استخدم اللصق.</p></div><div class="btn-row" style="margin-top:12px"><button class="btn" data-action="sms-open">رجوع</button></div>',{title:'لا نتائج',focus:false}); return; }
+    await smsAnalyze(cand.slice(0,60),all.length);
+  }catch(e){ const m=String(e&&e.message||e); openSheet('<div class="banner bad"><span>'+esc(m==='no-permission'?'مفيش إذن لقراءة الرسائل.':m)+'</span></div><div class="btn-row" style="margin-top:12px"><button class="btn primary" data-action="sms-scan">إعادة المحاولة</button><button class="btn" data-action="sms-open">رجوع</button></div>',{title:'تعذّرت القراءة',focus:false}); }
+}
+async function smsPasteGo(){
+  const el=$('#sms-paste'); const raw=(el?el.value:'').trim();
+  if(raw.length<10){ toast('الصق الرسائل الأول'); return; }
+  const parts=raw.split(/\n{2,}/).map(x=>x.trim()).filter(x=>x.length>8);
+  const msgs=(parts.length?parts:[raw]).slice(0,40).map((b,i)=>({id:'paste-'+Date.now()+'-'+i,from:'',body:b,date:Date.now()}));
+  await smsAnalyze(msgs,msgs.length);
+}
+async function smsAnalyze(msgs,scanned){
+  if(!aiReady()){ openSheet('<div class="banner bad"><span>محتاج مفتاح Claude الأول عشان يقرأ الرسائل ويفهمها.</span></div><div class="btn-row" style="margin-top:12px"><button class="btn primary" data-action="ai-settings">إضافة المفتاح</button><button class="btn" data-action="sms-open">رجوع</button></div>',{title:'المساعد غير مفعّل',focus:false}); return; }
+  if(aiLeft()<=0){ openSheet('<div class="banner bad"><span>وصلت حد الميزانية الشهرية ('+fmtUSD(AI().limitUSD)+'). ارفع الحد من إعدادات المساعد أو استنى الشهر الجاي.</span></div><div class="btn-row" style="margin-top:12px"><button class="btn primary" data-action="ai-settings">إعدادات المساعد</button><button class="btn" data-action="sms-open">رجوع</button></div>',{title:'الميزانية انتهت',focus:false}); return; }
+  smsWait('بحلّل '+msgs.length+' رسالة…');
+  try{
+    const txs=await aiParseSms(msgs);
+    const byId={}; msgs.forEach(m=>byId[String(m.id)]=m);
+    const defB=(sortedBuckets().find(b=>b.kind==='personal')||sortedBuckets()[0]||{}).id;
+    draft={kind:'smsreview',scanned,items:txs.map(t=>{ const m=byId[String(t.smsId)]||{};
+      return {on:(+t.confidence||1)>=0.5,type:t.type,amount:round2(+t.amount),date:/^\d{4}-\d{2}-\d{2}$/.test(t.date||'')?t.date:smsDate(m.date||Date.now()),
+        desc:String(t.desc||'').slice(0,120),category:String(t.category||'').slice(0,20)||'أخرى',ref:String(t.ref||'').slice(0,20),
+        conf:+t.confidence||1,smsId:String(t.smsId||''),bucketId:defB,body:String(m.body||'').slice(0,200)}; })};
+    smsReview();
+  }catch(e){ openSheet('<div class="banner bad"><span>'+esc(e.message||'فشل التحليل')+'</span></div><div class="btn-row" style="margin-top:12px"><button class="btn" data-action="sms-open">رجوع</button></div>',{title:'تعذّر التحليل',focus:false}); }
+}
+function smsReview(){
+  const it=draft.items||[]; const on=it.filter(x=>x.on).length;
+  const bs=sortedBuckets();
+  let html='<p class="hint" style="margin:2px 0 10px">لقيت <b>'+it.length+'</b> معاملة'+(draft.scanned?' من '+draft.scanned+' رسالة':'')+'. راجع كل واحدة وحدد بندها.</p>';
+  if(!it.length) html+='<div class="card" style="padding:16px"><p class="hint" style="margin:0">مفيش معاملات واضحة في الرسائل دي.</p></div>';
+  else html+='<div class="dsec" style="margin-top:0"><h4><span>المعاملات</span><button class="link-btn" data-action="sms-all">'+(on===it.length?'إلغاء الكل':'تحديد الكل')+'</button></h4>'
+    +it.map((x,i)=>'<div class="smsx'+(x.on?' on':'')+'"><div class="sx-h"><button type="button" class="chk'+(x.on?' on':'')+'" data-action="sms-toggle" data-i="'+i+'" aria-label="تضمين">'+ICON.check+'</button><div class="sx-t"><b>'+esc(x.desc)+'</b><div class="sx-m"><span>'+esc(agoLabel(x.date))+'</span><span>'+esc(x.category)+'</span>'+(x.ref?'<span>'+esc(x.ref)+'</span>':'')+(x.conf<0.6?'<span class="chip warn">غير مؤكد</span>':'')+'</div></div><b class="sx-a '+(x.type==='income'?'good':'bad')+'">'+(x.type==='income'?'+':'−')+fmtNum(x.amount)+'</b></div>'
+      +'<div class="sx-b"><div class="seg sm"><button type="button" data-action="sms-type" data-i="'+i+'" data-v="expense" class="'+(x.type==='expense'?'on':'')+'">مصروف</button><button type="button" data-action="sms-type" data-i="'+i+'" data-v="income" class="'+(x.type==='income'?'on':'')+'">دخل</button></div>'
+      +(x.type==='expense'?'<div class="qchips sm">'+bs.map(b=>'<button type="button" data-action="sms-bucket" data-i="'+i+'" data-id="'+b.id+'" class="'+(x.bucketId===b.id?'on':'')+'" style="'+(x.bucketId===b.id?'background:'+esc(b.color)+';color:#fff':'')+'">'+esc(b.name)+'</button>').join('')+'</div>':'<span class="hint" style="margin:0">الدخل يتقسّم تلقائيًا على البنود بالنسب</span>')
+      +'</div>'+(x.body?'<div class="sx-raw">'+esc(x.body)+'</div>':'')+'</div>').join('')+'</div>';
+  html+='<div class="form-actions"><button class="btn" data-action="sms-open">رجوع</button>'+(it.length?'<button class="btn primary" data-action="sms-apply">تسجيل '+on+'</button>':'')+'</div>';
+  openSheet(html,{title:'راجع المعاملات',focus:false});
+}
+function smsApply(){
+  const acts=(draft.items||[]).filter(x=>x.on); if(!acts.length){ closeSheet(); return; }
+  const ids=acts.map(x=>x.smsId).filter(x=>x&&x.indexOf('paste-')!==0);
+  commit(null,()=>{
+    acts.forEach(x=>{
+      if(x.type==='income') F().incomes.push({id:uid(),date:x.date,amount:x.amount,orig:null,note:x.desc,split:splitByPct(x.amount,sortedBuckets()),mode:'pct',createdAt:nowISO()});
+      else { const b=bucketById(x.bucketId)||sortedBuckets()[0]; if(!b) return; const cat=x.category||'أخرى'; if(F().categories.indexOf(cat)<0&&F().categories.length<40) F().categories.push(cat);
+        F().expenses.push({id:uid(),date:x.date,amount:x.amount,orig:null,bucketId:b.id,category:cat,note:x.desc,createdAt:nowISO()}); }
+    });
+    if(!Array.isArray(F().smsImported)) F().smsImported=[];
+    F().smsImported=F().smsImported.concat(ids).slice(-2000);
+  },{ms:9000});
+  const inc=acts.filter(x=>x.type==='income').length, exp=acts.length-inc;
+  showSysWindow({head:'[ استيراد ]',title:'تم تسجيل '+nOf(acts.length,'معاملة واحدة','معاملتين','معاملات','معاملة'),sub:(exp?'💸 '+exp+' مصروف':'')+(exp&&inc?' · ':'')+(inc?'💰 '+inc+' دخل':''),ms:4000});
+  draft=null; closeSheet(); filters.moneyView='month'; if(tab!=='money') switchTab('money'); else render();
+}
+
 /* ===================== شاشة العادات ===================== */
 function renderHabits(){
   const d=today();
@@ -2833,6 +2967,15 @@ const A={
   'edit-read':el=>{ const r=DN().quran.reads.find(x=>x.id===el.dataset.id); if(r) readSheet(r); },
   'reads-more':()=>{ filters.readsAll=!filters.readsAll; render(); },
   'money-q-clear':()=>{ filters.moneyQ=''; render(); },
+  'sms-open':()=>smsSheet(),
+  'sms-days':el=>{ if(!draft) return; draft.days=+el.dataset.v; $$('#f-days button').forEach(b=>b.classList.toggle('on',+b.dataset.v===draft.days)); },
+  'sms-scan':()=>smsScan(),
+  'sms-paste-go':()=>smsPasteGo(),
+  'sms-toggle':el=>{ if(!draft||!draft.items) return; const x=draft.items[+el.dataset.i]; if(x){ x.on=!x.on; smsReview(); } },
+  'sms-all':()=>{ if(!draft||!draft.items) return; const all=draft.items.every(x=>x.on); draft.items.forEach(x=>{ x.on=!all; }); smsReview(); },
+  'sms-type':el=>{ if(!draft||!draft.items) return; const x=draft.items[+el.dataset.i]; if(x){ x.type=el.dataset.v; smsReview(); } },
+  'sms-bucket':el=>{ if(!draft||!draft.items) return; const x=draft.items[+el.dataset.i]; if(x){ x.bucketId=el.dataset.id; smsReview(); } },
+  'sms-apply':()=>smsApply(),
   'money-view':el=>{ filters.moneyView=el.dataset.v; filters.moneyQ=''; render(); window.scrollTo(0,0); },
   'bucket-history':el=>bucketHistorySheet(el.dataset.id),
   'add-debt':el=>debtSheet(null,{kind:el.dataset.kind}),
