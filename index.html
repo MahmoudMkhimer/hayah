@@ -755,6 +755,22 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0}
 .tap-hint{color:var(--accent);opacity:.75;font-weight:600;white-space:nowrap}
 .tx,.jrow,.fitem[data-action],.row[data-action]{-webkit-tap-highlight-color:color-mix(in srgb,var(--accent) 12%,transparent)}
 .tx:active,.jrow:active{background:var(--surface-2)}
+.mtable{font-size:12.5px}
+.mth,.mtr{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr 1.05fr;gap:4px;align-items:center;padding:8px 6px}
+.mth{color:var(--text-3);font-size:11px;border-bottom:1px solid var(--line)}
+.mtr{border-bottom:1px solid var(--line-2);cursor:pointer}
+.mtr:active{background:var(--surface-2)}
+.mtr span:first-child{font-weight:600}
+.debt{padding:11px 14px;cursor:pointer}
+.debt+.debt{border-top:1px solid var(--line-2)}
+.debt.late{background:color-mix(in srgb,var(--bad) 5%,transparent)}
+.debt.done{opacity:.6}
+.debt .dh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.debt .dn{font-weight:600}
+.debt .dh b{font-family:var(--font-display);font-size:17px}
+.debt .dh b.good{color:var(--good)}.debt .dh b.bad{color:var(--bad)}
+.debt .ds{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-3);margin-top:3px}
+.debt .bar{margin-top:7px}
 </style>
 <div id="app" dir="rtl" lang="ar">
   <header class="top">
@@ -832,7 +848,7 @@ function defaultBuckets(){ return [
   {id:'b_oblig',name:'الالتزامات',pct:34,color:'#3E8FBF',kind:'obligations',order:0,note:'فواتير، أقساط، إيجار، مواصلات أساسية — أي شيء ملزم'},
   {id:'b_invest',name:'الاستثمارات',pct:33,color:'#2C9A58',kind:'invest',order:1,note:'يتراكم ولا يُمس إلا برأس مال كافٍ لاستثمار فعلي'},
   {id:'b_personal',name:'الشخصي',pct:33,color:'#BF8418',kind:'personal',order:2,note:'حريتك الكاملة: أكل بره، ترفيه، مشتريات'} ]; }
-function defaultFinance(){ return {currency:'ج.م',currencies:[{label:'ر.س',rate:13.4}],buckets:defaultBuckets(),incomes:[],expenses:[],transfers:[],repairs:[],categories:['أكل','مواصلات','فواتير','سكن','صحة','تعليم','ترفيه','ملابس','هدايا','أخرى']}; }
+function defaultFinance(){ return {currency:'ج.م',currencies:[{label:'ر.س',rate:13.4}],buckets:defaultBuckets(),incomes:[],expenses:[],transfers:[],repairs:[],debts:[],categories:['أكل','مواصلات','فواتير','سكن','صحة','تعليم','ترفيه','ملابس','هدايا','أخرى']}; }
 function nDays(n){ n=Math.abs(n); if(n===1) return 'يوم'; if(n===2) return 'يومين'; if(n<=10) return n+' أيام'; return n+' يوم'; }
 function nOf(n,one,two,few,many){ if(n===0) return 'لا '+many; if(n===1) return one; if(n===2) return two; if(n<=10) return n+' '+few; return n+' '+many; }
 function fmtDate(s){ const d=parseISO(s); return d.getDate()+' '+MONTHS[d.getMonth()]; }
@@ -878,6 +894,7 @@ function sanitize(d){
   { const seen=new Set([f.currency]); f.currencies=f.currencies.filter(c=>{ if(seen.has(c.label)) return false; seen.add(c.label); return true; }); }
   const fixOrig=x=>{ const o=x.orig; if(o&&typeof o==='object'&&typeof o.label==='string'&&o.label.trim()&&isFinite(+o.amount)&&+o.amount>0){ x.orig={label:o.label.trim().slice(0,8),amount:r2(o.amount),rate:isFinite(+o.rate)&&+o.rate>0?r2(o.rate):r2(x.amount/+o.amount)}; } else x.orig=null; };
   f.incomes.forEach(fixOrig); f.expenses.forEach(fixOrig); f.transfers.forEach(fixOrig);
+  f.debts=Array.isArray(fin.debts)?fin.debts.filter(x=>x&&typeof x==='object'&&x.id&&okDate(x.date)&&isFinite(+x.amount)&&+x.amount>0).map(x=>({id:x.id,kind:x.kind==='owed_to_me'?'owed_to_me':'i_owe',person:typeof x.person==='string'?x.person.slice(0,40):'',amount:r2(x.amount),date:x.date,dueDate:okDate(x.dueDate)?x.dueDate:'',note:typeof x.note==='string'?x.note.slice(0,80):'',createdAt:x.createdAt||nowISO(),payments:Array.isArray(x.payments)?x.payments.filter(p=>p&&okDate(p.date)&&isFinite(+p.amount)&&+p.amount>0).map(p=>({id:p.id||uid(),date:p.date,amount:r2(p.amount),note:typeof p.note==='string'?p.note.slice(0,60):'',createdAt:p.createdAt||nowISO()})):[]})):[];
   s.finance=f;
   if(typeof s.settings.avatar!=='string'||!/^data:image\//.test(s.settings.avatar)||s.settings.avatar.length>1500000) s.settings.avatar=null;
   s.settings.avatarSnap=null; s.settings.avatar3d={}; s.settings.show3d=false;
@@ -975,7 +992,7 @@ window.addEventListener('unhandledrejection',ev=>reportError(ev.reason));
 
 /* ===================== الشيت (النافذة السفلية) ===================== */
 let sheetOpen=false, sheetOnClose=null, sheetCtx=null;
-function refreshSheet(){ if(!sheetOpen||!sheetCtx) return; if(sheetCtx.kind==='goal') goalDetail(sheetCtx.id); else if(sheetCtx.kind==='habit') habitDetail(sheetCtx.id); else if(sheetCtx.kind==='bucket') bucketDetail(sheetCtx.id); else if(sheetCtx.kind==='skill') skillDetail(sheetCtx.id); else if(sheetCtx.kind==='surahs') surahsSheet(); else if(sheetCtx.kind==='surah') surahSheet(sheetCtx.id); else if(sheetCtx.kind==='exercise') exerciseDetail(sheetCtx.id); else if(sheetCtx.kind==='weights') weightLogSheet(); }
+function refreshSheet(){ if(!sheetOpen||!sheetCtx) return; if(sheetCtx.kind==='goal') goalDetail(sheetCtx.id); else if(sheetCtx.kind==='habit') habitDetail(sheetCtx.id); else if(sheetCtx.kind==='bucket') bucketDetail(sheetCtx.id); else if(sheetCtx.kind==='skill') skillDetail(sheetCtx.id); else if(sheetCtx.kind==='surahs') surahsSheet(); else if(sheetCtx.kind==='surah') surahSheet(sheetCtx.id); else if(sheetCtx.kind==='exercise') exerciseDetail(sheetCtx.id); else if(sheetCtx.kind==='weights') weightLogSheet(); else if(sheetCtx.kind==='debt') debtDetail(sheetCtx.id); else if(sheetCtx.kind==='buckethist') bucketHistorySheet(sheetCtx.id); }
 function openSheet(html,o){
   o=o||{}; const r=$('#sheet-root');
   r.innerHTML='<div class="sheet-bg" data-action="close-sheet"></div><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div>'+(o.title?'<div class="sheet-h"><h3>'+esc(o.title)+'</h3><button class="icon-btn" data-action="close-sheet" aria-label="إغلاق">'+ICON.x+'</button></div>':'')+'<div class="sheet-body">'+html+'</div></div>';
@@ -992,7 +1009,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&sheetOpen) closeSh
 /* ===================== التوجيه والعرض ===================== */
 let tab='today', lastRenderDay=today();
 const scrollPos={};
-const filters={ tasks:'today', q:'', month:null, txAll:false, sessAll:false, progView:'vitals', surahF:'all', taskView:'tasks', fitView:'train', assistView:'chat', moneyQ:'', readsAll:false };
+const filters={ tasks:'today', q:'', month:null, txAll:false, sessAll:false, progView:'vitals', surahF:'all', taskView:'tasks', fitView:'train', assistView:'chat', moneyQ:'', readsAll:false, moneyView:'month' };
 let draft=null;
 const TABS=[['today','اليوم',ICON.sun],['tasks','المهام',ICON.list],['fit','الجسد',ICON.dumbbell],['money','المال',ICON.wallet],['deen','العبادة',ICON.mosque],['assist','المساعد',ICON.brain],['progress','التطوّر',ICON.heart]];
 function render(){
@@ -1229,6 +1246,12 @@ function bucketCard(b,m){
 
 /* ===================== المال — الشاشة ===================== */
 function renderMoney(){
+  const seg=filters.moneyView||'month';
+  let head='<div class="seg seg-top">'+[['month','الشهر'],['cum','التراكم'],['debts','الديون']].map(x=>'<button type="button" data-action="money-view" data-v="'+x[0]+'" class="'+(seg===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
+  if(seg!=='month'){ try{ return head+(seg==='debts'?renderDebts():renderCumulative()); }catch(e){ reportError(e); return head+'<div class="card"><p class="hint">حدث خطأ في عرض هذا القسم.</p></div>'; } }
+  return head+renderMonthMoney();
+}
+function renderMonthMoney(){
   const m=filters.month||curMonth(), cur=curMonth(), d=today();
   const canNext=m<addMonths(cur,1);
   let out='<div class="mnav"><button class="icon-btn" data-action="money-month" data-dir="-1" aria-label="الشهر السابق">'+ICON.chevR+'</button><div class="m">'+esc(monthLabel(m))+(m===cur?' <span class="chip acc">الحالي</span>':'')+'</div><button class="icon-btn" data-action="money-month" data-dir="1" aria-label="الشهر التالي"'+(canNext?'':' disabled')+'>'+ICON.chevL+'</button></div>';
@@ -2368,6 +2391,127 @@ function saveAI(form){
   closeSheet();
 }
 
+/* ===================== التراكم عبر الشهور ===================== */
+function monthsRange(max){ const act=activeMonths(); const cur=curMonth(); let first=act.length?act[0]:cur; if(first>cur) first=cur; const out=[]; let m=first, guard=0; while(m<=cur&&guard++<120){ out.push(m); m=addMonths(m,1); } return max?out.slice(-max):out; }
+function bucketTimeline(b,months){ let run=0; return months.map(m=>{ const bm=bucketMonth(b,m); run=round2(run+bm.net); return {m,alloc:bm.alloc,spent:bm.spent,tin:bm.tin,tout:bm.tout,net:bm.net,run}; }); }
+function netPosition(m){ m=m||curMonth(); let pos=0,neg=0; sortedBuckets().forEach(b=>{ const v=bucketState(b,m).balance; if(v>=0) pos+=v; else neg+=v; }); return {pos:round2(pos),neg:round2(neg),total:round2(pos+neg)}; }
+function monthNet(m){ return round2(monthIncome(m)-monthSpent(m)); }
+function catTotals(months){ const t={}; F().expenses.forEach(e=>{ if(months.indexOf(ym(e.date))<0) return; const k=e.category||'أخرى'; t[k]=round2((t[k]||0)+e.amount); }); return Object.entries(t).sort((a,b)=>b[1]-a[1]); }
+function lineChart(vals,labels,color){
+  if(vals.length<2) return '';
+  const W=320,H=110,P=16; const mn=Math.min(0,...vals), mx=Math.max(0,...vals); const rng=Math.max(1,mx-mn);
+  const X=i=>P+(vals.length===1?0:i/(vals.length-1))*(W-2*P), Y=v=>H-P-(v-mn)/rng*(H-2*P);
+  const pts=vals.map((v,i)=>X(i).toFixed(1)+','+Y(v).toFixed(1)).join(' ');
+  const zero=(mn<0&&mx>0)?'<line x1="'+P+'" y1="'+Y(0).toFixed(1)+'" x2="'+(W-P)+'" y2="'+Y(0).toFixed(1)+'" stroke="var(--line)" stroke-dasharray="3 3" stroke-width="1"/>':'';
+  return '<svg class="wline" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'+zero+'<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round"/>'+vals.map((v,i)=>'<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="'+(i===vals.length-1?3.5:2)+'" fill="'+(v<0?'var(--bad)':color)+'"/>').join('')+'</svg>';
+}
+function renderCumulative(){
+  const months=monthsRange(24), cur=curMonth(), np=netPosition(cur), cn=F().currency;
+  let out='';
+  if(!hasFinanceData()) return '<div class="card">'+emptyBlock(ICON.wallet,'لا بيانات بعد','سجّل دخلك ومصروفاتك، وهنا هتشوف كام اتراكم لك أو عليك عبر الشهور.')+'</div>';
+  out+='<div class="card" style="padding:14px 16px"><div class="hint" style="margin:0">صافي وضعك التراكمي حتى '+esc(monthLabel(cur))+'</div><div class="big-amount" style="font-size:30px;margin-top:4px;color:'+(np.total<0?'var(--bad)':'var(--good)')+'">'+(np.total>0?'+':'')+fmtNum(np.total)+' <small>'+esc(cn)+'</small></div>'
+    +'<div class="two" style="margin-top:10px"><div><div class="hint" style="margin:0">فائض متراكم</div><b class="num" style="color:var(--good);font-size:17px">'+fmtNum(np.pos)+'</b></div><div><div class="hint" style="margin:0">عجز متراكم</div><b class="num" style="color:'+(np.neg<0?'var(--bad)':'var(--text-3)')+';font-size:17px">'+fmtNum(np.neg)+'</b></div></div>'
+    +'<p class="hint" style="margin:8px 0 0">الفائض = مخصصات لم تُصرف وتراكمت لك. العجز = صرفت أكثر مما خُصّص، فأصبح دَينًا على البنود القادمة.</p></div>';
+  const nets=months.map(monthNet);
+  if(months.length>1) out+='<div class="card" style="padding:12px 14px;margin-top:10px"><div class="hint" style="margin:0 0 4px">صافي كل شهر (دخل − مصروف)</div>'+lineChart(nets,months,'var(--accent)')+'<div class="hint" style="display:flex;justify-content:space-between;margin:2px 0 0"><span>'+esc(monthLabel(months[0]))+'</span><span>'+esc(monthLabel(months[months.length-1]))+'</span></div></div>';
+  out+='<div class="section">'+sectionH('الرصيد التراكمي لكل بند')+sortedBuckets().map(b=>{ const tl=bucketTimeline(b,months); const last=tl[tl.length-1]; const runs=tl.map(x=>x.run);
+    return '<div class="bcard" role="button" tabindex="0" data-action="bucket-history" data-id="'+b.id+'" style="--c:'+esc(b.color)+'"><div class="bh"><i class="dot"></i><span class="bn">'+esc(b.name)+'</span><span class="chip num">'+b.pct+'%</span></div>'
+      +'<div class="bnums"><span>مجموع المخصص<b>'+fmtNum(tl.reduce((a,x)=>a+x.alloc,0))+'</b></span><span>مجموع المصروف<b>'+fmtNum(tl.reduce((a,x)=>a+x.spent,0))+'</b></span><span>'+(last.run<0?'عليك':'لك')+'<b style="color:'+(last.run<0?'var(--bad)':'var(--good)')+'">'+fmtNum(last.run)+'</b></span></div>'
+      +(runs.length>1?lineChart(runs,months,'var(--c)'):'')+'<div class="bfoot"><span style="color:var(--text-3)">'+months.length+' '+(months.length===1?'شهر':months.length===2?'شهران':'شهور')+'</span><span class="link-btn">السجل الشهري ›</span></div></div>'; }).join('')+'</div>';
+  const last3=months.slice(-3), cats=catTotals(last3);
+  if(cats.length){ const tot=cats.reduce((a,x)=>a+x[1],0);
+    out+='<div class="section">'+sectionH('أين تذهب فلوسك',null,'<span class="hint" style="margin:0">آخر '+last3.length+' شهور</span>')+'<div class="card" style="padding:12px 14px"><div class="catbars">'+cats.slice(0,8).map(x=>'<div class="cb"><span>'+esc(x[0])+' <small style="color:var(--text-3)">'+Math.round(x[1]/tot*100)+'% · متوسط '+fmtNum(round2(x[1]/last3.length))+'/شهر</small></span><b>'+money(x[1])+'</b><div class="bar"><i style="width:'+Math.round(x[1]/tot*100)+'%"></i></div></div>').join('')+'</div></div></div>'; }
+  out+='<div class="section">'+sectionH('ملخص الشهور')+'<div class="list">'+months.slice().reverse().map(m=>{ const st=monthStatus(m), n=monthNet(m);
+    return '<div class="hist" role="button" tabindex="0" data-action="money-goto" data-m="'+m+'"><div><div style="font-weight:600">'+esc(monthLabel(m))+'</div><div class="hint" style="margin:0">دخل '+fmtNum(st.income)+' · مصروف '+fmtNum(st.spent)+'</div></div><div style="text-align:end"><b class="num" style="color:'+(n<0?'var(--bad)':'var(--good)')+'">'+(n>0?'+':'')+fmtNum(n)+'</b>'+(st.deficits.length?'<div><span class="chip bad">عجز</span></div>':'')+'</div></div>'; }).join('')+'</div></div>';
+  return out;
+}
+function bucketHistorySheet(id){
+  const b=bucketById(id); if(!b) return; const months=monthsRange(24), tl=bucketTimeline(b,months);
+  const html='<div class="detail-h" style="--c:'+esc(b.color)+'"><h3><i class="dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--c);margin-inline-end:8px;vertical-align:middle"></i>'+esc(b.name)+'</h3><div class="metas"><span class="chip num">'+b.pct+'% من الدخل</span><span class="chip">'+esc(KIND_LABEL[b.kind]||'')+'</span></div></div>'
+    +'<div class="card" style="padding:12px 14px;margin-top:8px"><div class="hint" style="margin:0 0 4px">الرصيد التراكمي</div>'+lineChart(tl.map(x=>x.run),months,'var(--c)')+'</div>'
+    +'<div class="dsec"><h4>شهرًا بشهر</h4><div class="mtable"><div class="mth"><span>الشهر</span><span>مخصص</span><span>مصروف</span><span>الصافي</span><span>المتراكم</span></div>'
+    +tl.slice().reverse().map(x=>'<div class="mtr" data-action="money-goto" data-m="'+x.m+'"><span>'+esc(monthLabel(x.m).replace(' ',' '))+'</span><span class="num">'+fmtNum(x.alloc)+'</span><span class="num">'+fmtNum(x.spent)+'</span><span class="num" style="color:'+(x.net<0?'var(--bad)':'var(--text-2)')+'">'+(x.net>0?'+':'')+fmtNum(x.net)+'</span><span class="num" style="font-weight:700;color:'+(x.run<0?'var(--bad)':'var(--good)')+'">'+fmtNum(x.run)+'</span></div>').join('')+'</div>'
+    +'<p class="hint">"المتراكم" = ما تبقّى لك في هذا البند من بداية استخدامك للتطبيق حتى نهاية ذلك الشهر. السالب يعني صرفت أكثر من مخصصك فأصبح عليك.</p></div>'
+    +'<div class="acts-grid"><button class="btn" data-action="open-bucket" data-id="'+b.id+'">تفاصيل الشهر الحالي</button><button class="btn" data-action="add-expense" data-bucket="'+b.id+'">+ مصروف من البند</button></div>';
+  openSheet(html,{title:'السجل التراكمي',focus:false,ctx:{kind:'buckethist',id:b.id}});
+}
+
+/* ===================== الديون ===================== */
+function debts(){ return F().debts; }
+function debtPaid(d){ return round2((d.payments||[]).reduce((a,p)=>a+(+p.amount||0),0)); }
+function debtLeft(d){ return round2(d.amount-debtPaid(d)); }
+function debtTotals(){ let mine=0,theirs=0; debts().forEach(d=>{ const l=debtLeft(d); if(l<=0.009) return; if(d.kind==='owed_to_me') mine+=l; else theirs+=l; }); return {mine:round2(mine),theirs:round2(theirs),net:round2(mine-theirs)}; }
+function renderDebts(){
+  const t=debtTotals(), cn=F().currency;
+  const open=debts().filter(d=>debtLeft(d)>0.009), closed=debts().filter(d=>debtLeft(d)<=0.009);
+  let out='<div class="card" style="padding:14px 16px"><div class="two"><div><div class="hint" style="margin:0">لك عند الناس</div><b class="num" style="color:var(--good);font-size:20px">'+fmtNum(t.mine)+' <small>'+esc(cn)+'</small></b></div><div><div class="hint" style="margin:0">عليك للناس</div><b class="num" style="color:'+(t.theirs>0?'var(--bad)':'var(--text-3)')+';font-size:20px">'+fmtNum(t.theirs)+' <small>'+esc(cn)+'</small></b></div></div>'
+    +'<div class="kv" style="margin-top:10px;border-bottom:0;padding-bottom:0"><span>الصافي</span><span class="num" style="font-weight:700;color:'+(t.net<0?'var(--bad)':'var(--good)')+'">'+(t.net>0?'+':'')+fmtNum(t.net)+' '+esc(cn)+'</span></div></div>';
+  out+='<div class="acts3" style="grid-template-columns:1fr 1fr"><button class="btn primary" data-action="add-debt" data-kind="i_owe">+ دَين عليّا</button><button class="btn" data-action="add-debt" data-kind="owed_to_me">+ دَين ليّا</button></div>';
+  const grp=(kind,title,cls)=>{ const list=open.filter(d=>d.kind===kind); if(!list.length) return '';
+    return '<div class="section">'+sectionH(title,list.length)+'<div class="list">'+list.sort((a,b)=>(a.dueDate||'9999')<(b.dueDate||'9999')?-1:1).map(d=>{ const left=debtLeft(d), paid=debtPaid(d), pct=d.amount>0?Math.round(paid/d.amount*100):0; const late=d.dueDate&&d.dueDate<today();
+      return '<div class="debt'+(late?' late':'')+'" data-action="open-debt" data-id="'+d.id+'"><div class="dh"><span class="dn">'+esc(d.person||'بدون اسم')+'</span><b class="num '+cls+'">'+fmtNum(left)+'</b></div><div class="ds"><span>'+esc(d.note||'')+'</span>'+(d.dueDate?'<span class="'+(late?'chip bad':'')+'">'+(late?'تأخر ':'')+esc(dueLabel(d.dueDate,today()))+'</span>':'')+(paid>0?'<span>سُدّد '+fmtNum(paid)+' من '+fmtNum(d.amount)+'</span>':'')+'<span class="tap-hint">✎ تفاصيل</span></div>'+(paid>0?'<div class="bar"><i style="width:'+pct+'%;background:var(--good)"></i></div>':'')+'</div>'; }).join('')+'</div></div>'; };
+  out+=grp('i_owe','ديون عليّا','bad')+grp('owed_to_me','ديون ليّا','good');
+  if(!open.length) out+='<div class="card" style="margin-top:10px">'+emptyBlock(ICON.wallet,'لا ديون مفتوحة','سجّل أي مبلغ استلفته أو سلّفته، وتابع سداده على دفعات.')+'</div>';
+  if(closed.length) out+='<div class="section">'+sectionH('مسدّدة',closed.length)+'<div class="list">'+closed.slice(0,20).map(d=>'<div class="debt done" data-action="open-debt" data-id="'+d.id+'"><div class="dh"><span class="dn">'+esc(d.person||'')+'</span><span class="chip good">تم السداد ✓</span></div><div class="ds"><span>'+(d.kind==='i_owe'?'كان عليك':'كان لك')+' '+fmtNum(d.amount)+' '+esc(cn)+'</span><span>'+esc(agoLabel(d.date))+'</span></div></div>').join('')+'</div></div>';
+  return out;
+}
+function debtSheet(d,def){
+  def=def||{}; const isNew=!d; draft={kind:'debt',id:d?d.id:null,dkind:d?d.kind:(def.kind||'i_owe')};
+  const html='<form data-submit="save-debt" novalidate>'
+    +'<div class="field" style="margin-top:2px"><span class="lbl">النوع</span><div class="seg" id="f-dkind"><button type="button" data-action="pick-dkind" data-v="i_owe" class="'+(draft.dkind==='i_owe'?'on':'')+'">عليّا (استلفت)</button><button type="button" data-action="pick-dkind" data-v="owed_to_me" class="'+(draft.dkind==='owed_to_me'?'on':'')+'">ليّا (سلّفت)</button></div></div>'
+    +'<div class="field"><label for="f-amount">المبلغ</label>'+amountField(d?d.amount:0,'f-amount','autofocus')+'</div>'
+    +'<div class="field"><label for="f-person">مع مين؟</label><input id="f-person" type="text" name="person" maxlength="40" placeholder="اسم الشخص أو الجهة" value="'+esc(d?d.person:'')+'" autocomplete="off"></div>'
+    +'<div class="two"><div class="field"><label for="f-date">تاريخ الدَّين</label><input id="f-date" type="date" name="date" value="'+esc(d?d.date:today())+'"></div><div class="field"><label for="f-due">موعد السداد</label><input id="f-due" type="date" name="dueDate" value="'+esc(d&&d.dueDate?d.dueDate:'')+'"></div></div>'
+    +'<div class="field"><label for="f-note">ملاحظة</label><input id="f-note" type="text" name="note" maxlength="80" placeholder="اختياري" value="'+esc(d?d.note:'')+'"></div>'
+    +'<p class="hint">الدَّين سجل مستقل عن بنودك — لا يدخل في مخصصات الشهر إلا لو سجّلت السداد كمصروف.</p>'
+    +'<p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p>'
+    +'<div class="form-actions">'+(isNew?'':'<button type="button" class="btn danger" data-action="delete-debt" data-id="'+d.id+'">حذف</button>')+'<button type="submit" class="btn primary">'+(isNew?'تسجيل':'حفظ')+'</button></div></form>';
+  openSheet(html,{title:isNew?'دَين جديد':'تعديل الدَّين'});
+}
+function saveDebt(form){
+  const af=amountFromForm(form); if(!af) return formErr('اكتب المبلغ أولًا.'); if(af.err) return formErr(af.err);
+  const date=form.date.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return formErr('اختر تاريخًا صحيحًا.');
+  const dueDate=/^\d{4}-\d{2}-\d{2}$/.test(form.dueDate.value)?form.dueDate.value:'';
+  const person=form.person.value.trim(), note=form.note.value.trim(), kind=draft.dkind, isNew=!draft.id; let id=draft.id;
+  commit(isNew?'تم تسجيل الدَّين':'تم الحفظ',()=>{ if(isNew){ id=uid(); debts().push({id,kind,person,amount:af.amount,date,dueDate,note,payments:[],createdAt:nowISO()}); } else { const x=debts().find(y=>y.id===id); if(x) Object.assign(x,{kind,person,amount:af.amount,date,dueDate,note}); } });
+  draft=null; if(isNew) closeSheet(); else debtDetail(id);
+}
+function debtDetail(id){
+  const d=debts().find(x=>x.id===id); if(!d) return closeSheet();
+  const left=debtLeft(d), paid=debtPaid(d), cn=F().currency;
+  const html='<div class="detail-h"><h3>'+esc(d.person||'دَين')+'</h3><div class="metas"><span class="chip '+(d.kind==='i_owe'?'bad':'good')+'">'+(d.kind==='i_owe'?'عليك':'لك')+'</span><span class="chip num">'+fmtNum(d.amount)+' '+esc(cn)+'</span>'+(d.dueDate?'<span class="chip'+(d.dueDate<today()&&left>0?' bad':'')+'">'+esc(dueLabel(d.dueDate,today()))+'</span>':'')+(left<=0.009?'<span class="chip good">مسدّد ✓</span>':'')+'</div>'+(d.note?'<div class="why">'+esc(d.note)+'</div>':'')+'</div>'
+    +'<div class="stats"><div class="stat"><b class="num">'+fmtNum(d.amount)+'</b><small>الأصل</small></div><div class="stat"><b class="num" style="color:var(--good)">'+fmtNum(paid)+'</b><small>المسدّد</small></div><div class="stat"><b class="num" style="color:'+(left>0?'var(--bad)':'var(--good)')+'">'+fmtNum(left)+'</b><small>المتبقي</small></div><div class="stat"><b class="num">'+(d.amount>0?Math.round(paid/d.amount*100):100)+'%</b><small>نسبة السداد</small></div></div>'
+    +(d.amount>0?'<div class="bar" style="height:8px;margin-top:8px"><i style="width:'+Math.min(100,Math.round(paid/d.amount*100))+'%;background:var(--good)"></i></div>':'')
+    +'<div class="dsec"><h4><span>الدفعات</span>'+(left>0.009?'<button class="link-btn" data-action="add-payment" data-id="'+d.id+'">+ دفعة</button>':'')+'</h4>'
+    +((d.payments||[]).length?'<div class="list">'+d.payments.slice().sort((a,b)=>a.date<b.date?1:-1).map(p=>'<div class="tx"><span class="ti">'+ICON.check+'</span><div class="tm"><div class="tt">دفعة</div><div class="ts"><span>'+esc(agoLabel(p.date))+'</span>'+(p.note?'<span>'+esc(p.note)+'</span>':'')+'</div></div><span class="ta">'+money(p.amount)+'</span><button class="mini" data-action="del-payment" data-id="'+d.id+'" data-pid="'+p.id+'" aria-label="حذف">'+ICON.x+'</button></div>').join('')+'</div>':'<p class="hint" style="margin:0">لا دفعات بعد.</p>')+'</div>'
+    +'<div class="acts-grid">'+(left>0.009?'<button class="btn primary" data-action="add-payment" data-id="'+d.id+'">تسجيل دفعة</button><button class="btn" data-action="settle-debt" data-id="'+d.id+'">سدّد المتبقي كله</button>':'')+'<button class="btn" data-action="edit-debt" data-id="'+d.id+'">تعديل</button><button class="btn danger" data-action="delete-debt" data-id="'+d.id+'">حذف</button></div>';
+  openSheet(html,{title:'تفاصيل الدَّين',focus:false,ctx:{kind:'debt',id:d.id}});
+}
+function paymentSheet(id,full){
+  const d=debts().find(x=>x.id===id); if(!d) return; const left=debtLeft(d);
+  draft={kind:'payment',id,link:true};
+  const html='<form data-submit="save-payment" novalidate>'
+    +'<div class="banner"><span>'+(d.kind==='i_owe'?'تسدّد لـ':'تستلم من')+' <b>'+esc(d.person||'')+'</b> — المتبقي '+money(left)+'</span></div>'
+    +'<div class="field"><label for="f-amount">مبلغ الدفعة</label>'+amountField(full?left:0,'f-amount','autofocus')+'</div>'
+    +'<div class="two"><div class="field"><label for="f-date">التاريخ</label><input id="f-date" type="date" name="date" value="'+today()+'"></div><div class="field"><label for="f-note">ملاحظة</label><input id="f-note" type="text" name="note" maxlength="60" placeholder="اختياري"></div></div>'
+    +'<label class="toggle" style="margin-top:6px"><input type="checkbox" id="f-link" checked><span>سجّلها كـ'+(d.kind==='i_owe'?'مصروف من بنودك':'دخل يُقسَّم على بنودك')+' كمان</span></label>'
+    +'<p class="hint">شيل العلامة لو الحركة المالية مسجّلة بالفعل، عشان ما تتحسبش مرتين.</p>'
+    +'<p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p>'
+    +'<div class="form-actions"><button type="submit" class="btn primary">تسجيل الدفعة</button></div></form>';
+  openSheet(html,{title:'دفعة'});
+}
+function savePayment(form){
+  const d=debts().find(x=>x.id===draft.id); if(!d) return closeSheet();
+  const amt=parseAmount(form.amount.value); if(!(amt>0)) return formErr('اكتب مبلغ الدفعة.');
+  const left=debtLeft(d); if(amt>left+0.009) return formErr('المبلغ أكبر من المتبقي ('+fmtNum(left)+'). عدّل الرقم أو عدّل أصل الدَّين.');
+  const date=form.date.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return formErr('اختر تاريخًا صحيحًا.');
+  const note=form.note.value.trim(); const link=!!$('#f-link').checked; const id=d.id;
+  commit('سُجّلت الدفعة',()=>{ const x=debts().find(y=>y.id===id); x.payments.push({id:uid(),date,amount:round2(amt),note,createdAt:nowISO()});
+    if(link){ if(x.kind==='i_owe'){ const b=sortedBuckets().find(z=>z.kind==='obligations')||sortedBuckets()[0]; if(b) F().expenses.push({id:uid(),date,amount:round2(amt),orig:null,bucketId:b.id,category:F().categories.includes('أخرى')?'أخرى':F().categories[0],note:'سداد دَين'+(x.person?' لـ'+x.person:''),createdAt:nowISO()}); }
+      else { F().incomes.push({id:uid(),date,amount:round2(amt),orig:null,note:'تحصيل دَين'+(x.person?' من '+x.person:''),split:splitByPct(round2(amt),sortedBuckets()),mode:'pct',createdAt:nowISO()}); } } });
+  draft=null; debtDetail(id);
+}
+
 /* ===================== شاشة العادات ===================== */
 function renderHabits(){
   const d=today();
@@ -2684,6 +2828,16 @@ const A={
   'edit-read':el=>{ const r=DN().quran.reads.find(x=>x.id===el.dataset.id); if(r) readSheet(r); },
   'reads-more':()=>{ filters.readsAll=!filters.readsAll; render(); },
   'money-q-clear':()=>{ filters.moneyQ=''; render(); },
+  'money-view':el=>{ filters.moneyView=el.dataset.v; filters.moneyQ=''; render(); window.scrollTo(0,0); },
+  'bucket-history':el=>bucketHistorySheet(el.dataset.id),
+  'add-debt':el=>debtSheet(null,{kind:el.dataset.kind}),
+  'open-debt':el=>debtDetail(el.dataset.id),
+  'edit-debt':el=>{ const d=debts().find(x=>x.id===el.dataset.id); if(d) debtSheet(d); },
+  'delete-debt':el=>{ const id=el.dataset.id; commit('تم حذف الدَّين',()=>{ F().debts=F().debts.filter(x=>x.id!==id); },{ms:9000}); closeSheet(); },
+  'pick-dkind':el=>{ if(!draft) return; draft.dkind=el.dataset.v; $$('#f-dkind button').forEach(b=>b.classList.toggle('on',b.dataset.v===draft.dkind)); },
+  'add-payment':el=>paymentSheet(el.dataset.id,false),
+  'settle-debt':el=>paymentSheet(el.dataset.id,true),
+  'del-payment':el=>{ const id=el.dataset.id,pid=el.dataset.pid; commit('تم حذف الدفعة',()=>{ const d=F().debts.find(x=>x.id===id); if(d) d.payments=d.payments.filter(p=>p.id!==pid); },{ms:8000}); debtDetail(id); },
   'assist-view':el=>{ filters.assistView=el.dataset.v; render(); window.scrollTo(0,0); },
   'ai-settings':()=>aiSettingsSheet(),
   'ai-model':el=>{ if(!draft) return; draft.model=el.dataset.v; $$('#f-model button').forEach(b=>b.classList.toggle('on',b.dataset.v===draft.model)); const h=$('#f-model-hint'); if(h) h.textContent=(AI_MODELS.find(m=>m[0]===draft.model)||AI_MODELS[0])[1]+' — Haiku يكفي للتسجيل اليومي.'; },
@@ -2778,7 +2932,7 @@ const A={
   'sub-toggle':el=>{ if(!draft) return; const s=draft.subtasks.find(x=>x.id===el.dataset.id); if(s) s.done=!s.done; $('#sub-list').innerHTML=subListHTML(); },
   /* --- المال --- */
   'money-month':el=>{ const m=filters.month||curMonth(); filters.month=addMonths(m,+el.dataset.dir); filters.txAll=false; render(); },
-  'money-goto':el=>{ filters.month=el.dataset.m; filters.txAll=false; render(); window.scrollTo(0,0); },
+  'money-goto':el=>{ filters.month=el.dataset.m; filters.txAll=false; filters.moneyView='month'; if(sheetOpen) closeSheet(); render(); window.scrollTo(0,0); },
   'tx-more':()=>{ filters.txAll=!filters.txAll; render(); },
   'add-income':()=>incomeSheet(null),
   'add-expense':el=>{ expenseSheet(null,{bucket:el.dataset.bucket||null}); if(el.dataset.return&&draft) draft.returnBucket=el.dataset.bucket; },
@@ -2836,6 +2990,7 @@ const SUBMIT={
   'save-income':f=>saveIncome(f), 'save-expense':f=>saveExpense(f), 'save-transfer':f=>saveTransfer(f), 'save-fin-settings':f=>saveFinSettings(f),
   'save-session':f=>saveSession(f), 'save-metric':f=>saveMetric(f), 'save-skill':f=>saveSkill(f),
   'save-read':f=>saveRead(f), 'save-surah':f=>saveSurah(f), 'save-deen-settings':f=>saveDeenSettings(f),
+  'save-debt':f=>saveDebt(f), 'save-payment':f=>savePayment(f),
   'save-journal':f=>saveJournal(f), 'save-ai':f=>saveAI(f),
   'save-food':f=>saveFood(f), 'save-quick':f=>saveQuick(f), 'save-targets2':f=>saveTargets2(f),
   'save-sets':f=>saveSets(f), 'save-exercise':f=>saveExercise(f), 'save-extra':f=>saveExtra(f), 'save-targets':f=>saveTargets(f), 'save-fit-settings':f=>saveFitSettings(f),
