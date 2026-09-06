@@ -771,6 +771,9 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0}
 .debt .dh b.good{color:var(--good)}.debt .dh b.bad{color:var(--bad)}
 .debt .ds{display:flex;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--text-3);margin-top:3px}
 .debt .bar{margin-top:7px}
+.bacts{display:flex;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--line-2)}
+.bacts .btn{flex:1;min-height:38px;font-size:13px;padding:0 6px}
+.bacts .btn.ghost{flex:0 0 88px}
 </style>
 <div id="app" dir="rtl" lang="ar">
   <header class="top">
@@ -1241,7 +1244,7 @@ function bucketCard(b,m){
   else foot='<span style="color:var(--text-3)">'+(s.alloc?'متبقي من مخصص الشهر '+money(Math.max(0,s.alloc+s.tin-s.tout-s.spent)):'لا مخصص هذا الشهر')+'</span><span class="link-btn">التفاصيل ›</span>';
   return '<div class="bcard'+(s.status==='deficit'?' deficit':'')+'" role="button" tabindex="0" data-action="open-bucket" data-id="'+b.id+'" style="--c:'+esc(b.color)+'"><div class="bh"><i class="dot"></i><span class="bn">'+esc(b.name)+'</span><span class="chip num">'+b.pct+'%</span>'+statusChip(s.status)+'</div>'
     +'<div class="bnums"><span>مخصص الشهر<b>'+money(s.alloc)+'</b></span><span>مصروف<b>'+money(s.spent)+'</b></span><span>'+(b.kind==='invest'?'الرصيد المتراكم':'متاح للصرف')+'<b style="'+(s.available<0?'color:var(--bad)':'')+'">'+money(b.kind==='invest'?s.balance:s.available)+'</b></span></div>'
-    +'<div class="bar"><i style="width:'+pct+'%;'+(s.status==='deficit'?'background:var(--bad)':'')+'"></i></div><div class="bfoot">'+foot+'</div></div>';
+    +'<div class="bar"><i style="width:'+pct+'%;'+(s.status==='deficit'?'background:var(--bad)':'')+'"></i></div><div class="bfoot">'+foot+'</div><div class="bacts"><button type="button" class="btn sm" data-action="add-expense" data-bucket="'+b.id+'">+ مصروف من '+esc(b.name)+'</button><button type="button" class="btn sm ghost" data-action="bucket-history" data-id="'+b.id+'">التراكم</button></div></div>';
 }
 
 /* ===================== المال — الشاشة ===================== */
@@ -1343,9 +1346,10 @@ function expenseSheet(e,def){
   draft={kind:'expense',id:e?e.id:null,bucketId:e?e.bucketId:defB,category:e?e.category:(F().categories[0]||'أخرى')}; initCurDraft(e);
   const html='<form data-submit="save-expense" novalidate>'
     +'<div class="field"><label for="f-amount">المبلغ</label>'+amountField(dispAmount(e),'f-amount','autofocus')+'</div>'
+    +'<div class="field"><label for="f-note">على إيه صرفت؟</label><input id="f-note" type="text" name="note" maxlength="120" placeholder="اكتب أي حاجة: عشاء مع أصحابي، شحن موبايل، هدية لأمي…" value="'+esc(e?e.note:'')+'" autocomplete="off"><p class="hint">اكتب بحرية — ده اللي هيظهرلك في السجل والبحث.</p></div>'
     +'<div class="field"><span class="lbl">من أي بند؟</span><div id="f-bucket">'+bucketChips(draft.bucketId,'pick-bucket')+'</div><p class="hint" id="f-bucket-hint"'+(bucketById(draft.bucketId)&&bucketById(draft.bucketId).kind==='invest'?'':' hidden')+' style="color:var(--warn)">تنبيه: بند الاستثمار لا يُمس إلا برأس مال كافٍ — سجّله فقط لو كان استثمارًا فعليًا.</p></div>'
-    +'<div class="field"><span class="lbl">التصنيف</span><div class="qchips" id="f-cat">'+F().categories.map(c=>'<button type="button" data-action="pick-cat" data-v="'+esc(c)+'" class="'+(c===draft.category?'on':'')+'">'+esc(c)+'</button>').join('')+'</div></div>'
-    +'<div class="two"><div class="field"><label for="f-date">التاريخ</label><input id="f-date" type="date" name="date" value="'+esc(e?e.date:today())+'"></div><div class="field"><label for="f-note">ملاحظة</label><input id="f-note" type="text" name="note" maxlength="80" placeholder="اختياري" value="'+esc(e?e.note:'')+'"></div></div>'
+    +'<div class="field"><span class="lbl">التصنيف <small style="color:var(--text-3);font-weight:400">— للتقارير والإحصاءات</small></span><div class="qchips" id="f-cat">'+F().categories.map(c=>'<button type="button" data-action="pick-cat" data-v="'+esc(c)+'" class="'+(c===draft.category?'on':'')+'">'+esc(c)+'</button>').join('')+'</div><div class="addline" style="margin-top:8px"><input class="inp" type="text" id="f-newcat" name="newcat" placeholder="أو اكتب تصنيفًا جديدًا ويتحفظ لك" maxlength="20" autocomplete="off" data-input="newcat"></div></div>'
+    +'<div class="field"><label for="f-date">التاريخ</label><input id="f-date" type="date" name="date" value="'+esc(e?e.date:today())+'"></div>'
     +'<p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p>'
     +'<div class="form-actions">'+(isNew?'':'<button type="button" class="btn danger" data-action="delete-tx" data-kind="expense" data-id="'+e.id+'">حذف</button>')+'<button type="submit" class="btn primary">'+(isNew?'تسجيل المصروف':'حفظ التغييرات')+'</button></div></form>';
   openSheet(html,{title:isNew?'تسجيل مصروف':'تعديل المصروف'});
@@ -1354,8 +1358,9 @@ function saveExpense(form){
   const af=amountFromForm(form); if(!af) return formErr('اكتب المبلغ أولًا.'); if(af.err) return formErr(af.err); const amount=af.amount, orig=af.orig;
   const date=form.date.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return formErr('اختر تاريخًا صحيحًا.');
   const b=bucketById(draft.bucketId); if(!b) return formErr('اختر البند.');
-  const note=form.note.value.trim(), isNew=!draft.id, category=draft.category, bucketId=b.id;
-  commit(()=>{ const s=bucketState(b,ym(date)); if(s.status==='deficit') return 'سُجّل — لكن '+b.name+' الآن في عجز '+fmtNum(-s.balance)+' '+F().currency; if(s.status==='over') return 'سُجّل — تجاوزت مخصص الشهر في '+b.name; return isNew?'تم تسجيل المصروف':'تم حفظ المصروف'; },()=>{ rememberRate(orig); if(isNew) F().expenses.push({id:uid(),date,amount,orig,bucketId,category,note,createdAt:nowISO()}); else { const x=F().expenses.find(y=>y.id===draft.id); if(x) Object.assign(x,{date,amount,orig,bucketId,category,note}); } },{ms:6000});
+  const nc=(form.newcat&&form.newcat.value||'').trim().slice(0,20);
+  const note=form.note.value.trim(), isNew=!draft.id, category=nc||draft.category, bucketId=b.id;
+  commit(()=>{ const s=bucketState(b,ym(date)); if(s.status==='deficit') return 'سُجّل — لكن '+b.name+' الآن في عجز '+fmtNum(-s.balance)+' '+F().currency; if(s.status==='over') return 'سُجّل — تجاوزت مخصص الشهر في '+b.name; return isNew?'تم تسجيل المصروف':'تم حفظ المصروف'; },()=>{ rememberRate(orig); if(nc&&F().categories.indexOf(nc)<0) F().categories.push(nc); if(isNew) F().expenses.push({id:uid(),date,amount,orig,bucketId,category,note,createdAt:nowISO()}); else { const x=F().expenses.find(y=>y.id===draft.id); if(x) Object.assign(x,{date,amount,orig,bucketId,category,note}); } },{ms:6000});
   filters.month=ym(date); const rb=draft.returnBucket; draft=null; if(rb) bucketDetail(rb); else closeSheet();
 }
 function transferSheet(t,def){
