@@ -934,6 +934,7 @@ input,textarea,select{font-size:16px}
 .rep-h .metas{justify-content:center;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .rep-a{padding:12px 14px;margin-top:10px;border-inline-start:4px solid var(--c)}
 .rep-a .hint{margin:10px 0 0;font-size:12px}
+.rep-img{width:100%;display:block;border-radius:14px;border:1px solid var(--line-2)}
 .rep-f{margin:10px 0 0;padding-inline-start:18px;font-size:13.5px;line-height:1.8;color:var(--text-2)}
 </style>
 <div id="app" dir="rtl" lang="ar">
@@ -1025,7 +1026,7 @@ function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e
 const KEY='hayah.v1', BKEY='hayah.v1.backup';
 const VERSION=9;
 let loadNotice='', pendingFinanceSeed=false, pendingBodySeed=false, pendingFitSeed=false;
-function defaultState(){ return { v:VERSION, goals:[], tasks:[], habits:[], journal:[], ai:{key:'',model:'claude-haiku-4-5',limitUSD:3,spent:{month:'',usd:0,inTok:0,outTok:0,calls:0},history:[]}, finance:defaultFinance(), body:{sessions:[],metrics:[],skills:[]}, timer:null, fit:{exercises:[],foods:[],plan:{},logs:{},targets:{kcal:0,protein:0,carbs:0,fat:0},profile:{},height:0,goalWeight:0,restSec:90,samplePlan:false}, deen:{prayers:{},adhkar:{},quran:{wirdPages:4,reads:[],memo:{}},includeInDaily:true,sunnah:{},counts:{},dhikrTargets:{},dhikrCustom:[]}, cali:{logs:[]}, areaLogs:[], seasons:[], social:{reports:[],ratingsIn:[],ratingsOut:[]}, evals:{}, settings:{name:'',seasonStart:'',seasonBase:{memo:0},shareAreas:['str','end','spi','int','dis'],theme:'auto',skin:'calm',avatar:null,show3d:false,dailyDone:[],weekStart:6,seeded:false,lastBackupAt:null,collapsed:{'tasks-done':true,'goals-done':true,'goals-archived':true,'habits-archived':true}}, meta:{createdAt:nowISO(),updatedAt:nowISO(),backupDay:null} }; }
+function defaultState(){ return { v:VERSION, goals:[], tasks:[], habits:[], journal:[], ai:{key:'',model:'claude-haiku-4-5',limitUSD:3,spent:{month:'',usd:0,inTok:0,outTok:0,calls:0},history:[]}, finance:defaultFinance(), body:{sessions:[],metrics:[],skills:[]}, timer:null, fit:{exercises:[],foods:[],plan:{},logs:{},targets:{kcal:0,protein:0,carbs:0,fat:0},profile:{},height:0,goalWeight:0,restSec:90,samplePlan:false}, deen:{prayers:{},adhkar:{},quran:{wirdPages:4,reads:[],memo:{}},includeInDaily:true,sunnah:{},counts:{},dhikrTargets:{},dhikrCustom:[]}, cali:{logs:[]}, areaLogs:[], seasons:[], social:{reports:[],ratingsIn:[],ratingsOut:[]}, evals:{}, settings:{name:'',reportReminder:{on:false,h:23,m:0},reportEmail:'',seasonStart:'',seasonBase:{memo:0},shareAreas:['str','end','spi','int','dis'],theme:'auto',skin:'calm',avatar:null,show3d:false,dailyDone:[],weekStart:6,seeded:false,lastBackupAt:null,collapsed:{'tasks-done':true,'goals-done':true,'goals-archived':true,'habits-archived':true}}, meta:{createdAt:nowISO(),updatedAt:nowISO(),backupDay:null} }; }
 function sanitize(d){
   const def=defaultState();
   if(!d||typeof d!=='object') d={};
@@ -3329,10 +3330,10 @@ function dayEval(d){ const r={};
   (state.areaLogs||[]).forEach(l=>{ if(l.date!==d) return; r[l.area]=Math.min(100,(r[l.area]||0)+Math.round(l.pts)); });
   const vals=AREA5.map(a=>r[a.k]).filter(v=>v!=null); r.all=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0; return r; }
 function evalCard(d,full){ const ev=dayEval(d), g=gradeOf(ev.all); const E=state.evals[d];
-  let h='<div class="section">'+sectionH(d===today()?'تقييم اليوم':'تقييم '+fmtDate(d),null,full?'<button class="link-btn" data-action="eval-hist">السجل</button>':'<button class="link-btn" data-action="open-areas">الجوانب ›</button>')+'<div class="card evc"><div class="ev-top"><div class="ev-grade g-'+g+'">'+g+'</div><div style="flex:1"><div class="ev-big"><b class="num">'+ev.all+'</b><small>/100</small></div><small class="hint" style="margin:0">'+GRADE_T[g]+' · بيتحدّث مع كل تسجيل</small></div></div>'
+  let h='<div class="section">'+sectionH(d===today()?'تقييم اليوم':'تقييم '+fmtDate(d),null,full?'<button class="link-btn" data-action="eval-hist">السجل</button>':'<span><button class="link-btn" data-action="rep-open" data-v="day">📤 ابعت</button><button class="link-btn" data-action="open-areas">الجوانب ›</button></span>')+'<div class="card evc"><div class="ev-top"><div class="ev-grade g-'+g+'">'+g+'</div><div style="flex:1"><div class="ev-big"><b class="num">'+ev.all+'</b><small>/100</small></div><small class="hint" style="margin:0">'+GRADE_T[g]+' · بيتحدّث مع كل تسجيل</small></div></div>'
     +'<div class="ev-rows">'+AREA5.map(a=>'<div class="evr"><span>'+a.ic+' '+esc(a.n)+'</span><div class="bar"><i style="width:'+(ev[a.k]||0)+'%;background:'+a.c+'"></i></div><b class="num">'+(ev[a.k]==null?'راحة':ev[a.k])+'</b></div>').join('')+'</div>';
   if(full){ const vals=[], lab=[]; for(let i=13;i>=0;i--){ const x=addDays(d,-i); vals.push(dayEval(x).all); lab.push(i%2?'':String(parseISO(x).getDate())); } h+='<div class="dsec" style="margin-top:14px"><h4><span>آخر ١٤ يوم</span><span class="num">متوسط '+Math.round(vals.reduce((a,b)=>a+b,0)/vals.length)+'</span></h4>'+sBars(vals,'var(--accent)',lab)+'</div>';
-    h+=(E?'<div class="ev-ai">'+esc(E.t)+'</div>':'')+'<button type="button" class="btn sm'+(E?'':' primary')+'" style="margin-top:10px" data-action="eval-ai">'+(E?'قيّمني تاني':'اطلب تقييم النظام (AI)')+'</button>'; }
+    h+=(E?'<div class="ev-ai">'+esc(E.t)+'</div>':'')+'<div class="btn-row" style="margin-top:10px"><button type="button" class="btn sm'+(E?'':' primary')+'" data-action="eval-ai">'+(E?'قيّمني تاني':'اطلب تقييم النظام (AI)')+'</button><button type="button" class="btn sm" data-action="rep-open" data-v="day">📤 ابعت تقرير اليوم</button></div>'; }
   else if(E) h+='<div class="ev-ai" style="font-size:13px">'+esc(E.t.length>220?E.t.slice(0,220)+'…':E.t)+'</div>';
   return h+'</div></div>'; }
 function evalHistSheet(){ const d=today(); let rows=''; for(let i=0;i<30;i++){ const x=addDays(d,-i); if(SS()&&x<SS()&&i>0) break; const e=dayEval(x), g=gradeOf(e.all); rows+='<div class="row" style="min-height:52px"><span class="ev-grade sm g-'+g+'">'+g+'</span><div class="row-main" style="cursor:default"><div class="row-title" style="font-size:14px">'+esc(agoLabel(x))+' — <b class="num">'+e.all+'</b></div><div class="row-meta">'+AREA5.map(a=>'<span>'+a.ic+' <span class="num">'+(e[a.k]==null?'—':e[a.k])+'</span></span>').join('')+'</div></div></div>'; }
@@ -3469,7 +3470,8 @@ function parseShareText(t){ const m=String(t||'').match(/#([sr])=([A-Za-z0-9_-]{
 function checkHash(){ try{ const m=parseShareText(location.hash); if(!m) return; try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTimeout(()=>{ try{ handleIncoming(m[0],m[1]); }catch(e){ reportError(e); } },350); }catch(e){ reportError(e); } }
 window.addEventListener('hashchange',checkHash);
 function renderFriends(){ const S=SOC(), sa=state.settings.shareAreas; let out='';
-  out+='<div class="card" style="padding:14px"><h3 class="fr-h">شارك تقدّمك مع حد</h3><p class="hint" style="margin:4px 0 10px">اختار الجوانب اللي عايزه يشوفها. هيوصله لينك فيه مستواك وتقييم أيامك وأهم أرقامك آخر ٧ أيام، ويقدر يقيّمك ويبعتلك تقييمه بلينك.</p><div class="qchips">'+AREA5.map(a=>'<button type="button" data-action="share-area" data-k="'+a.k+'" class="'+(sa.includes(a.k)?'on':'')+'">'+a.ic+' '+esc(a.n)+'</button>').join('')+'</div><div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" data-action="share-make">ابعت لينك</button><button type="button" class="btn" data-action="share-preview">معاينة</button></div><p class="hint" style="margin:8px 0 0">مفيش سيرفر ولا حسابات: البيانات جوّه اللينك نفسه. المصاريف والفلوس مش بتتبعت. كل ما تحب تحدّث ابعت لينك جديد.</p></div>';
+  out+='<div class="card" style="padding:14px"><h3 class="fr-h">تقرير بالصورة</h3><p class="hint" style="margin:4px 0 10px">صورة فيها تقييم يومك أو أسبوعك في الجوانب اللي تختارها، تبعتها لأي حد على واتساب أو الإيميل. الفلوس مش بتظهر فيها.</p><div class="btn-row"><button type="button" class="btn primary" data-action="rep-open" data-v="day">تقرير اليوم</button><button type="button" class="btn" data-action="rep-open" data-v="week">آخر ٧ أيام</button></div></div>'+reminderCard();
+  out+='<div class="card" style="padding:14px;margin-top:14px"><h3 class="fr-h">لينك لصاحب عنده التطبيق</h3><p class="hint" style="margin:4px 0 10px">لو صاحبك عنده «حياة»: بيلصق اللينك في التطبيق ويشوف تقريرك تفاعلي ويقيّمك بالنجوم ويبعتلك تقييمه بلينك. الجوانب المختارة هنا هي نفسها اللي في الصورة.</p><div class="qchips">'+AREA5.map(a=>'<button type="button" data-action="share-area" data-k="'+a.k+'" class="'+(sa.includes(a.k)?'on':'')+'">'+a.ic+' '+esc(a.n)+'</button>').join('')+'</div><div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" data-action="share-make">ابعت لينك</button><button type="button" class="btn" data-action="share-preview">معاينة</button></div><p class="hint" style="margin:8px 0 0">مفيش سيرفر ولا حسابات: البيانات جوّه اللينك نفسه. المصاريف والفلوس مش بتتبعت. كل ما تحب تحدّث ابعت لينك جديد.</p></div>';
   out+='<div class="section">'+sectionH('وصلك لينك؟')+'<div class="card" style="padding:12px"><textarea class="inp" id="sh-paste" rows="2" placeholder="الصق اللينك هنا (تقرير أو تقييم من صاحبك)"></textarea><button type="button" class="btn block" style="margin-top:8px" data-action="share-paste">افتح</button><p class="hint" style="margin:6px 0 0">على الآيفون والمتصفح اللينك بيفتح التطبيق لوحده. على تطبيق الأندرويد: انسخ الرسالة والصقها هنا.</p></div></div>';
   if(S.ratingsIn.length){ const agg={}; AREA5.forEach(a=>{ const v=S.ratingsIn.slice(0,20).map(r=>r.st[a.k]).filter(Boolean); if(v.length) agg[a.k]=v.reduce((p,q)=>p+q,0)/v.length; }); const ov=S.ratingsIn.slice(0,20).map(r=>r.o).filter(Boolean);
     out+='<div class="section">'+sectionH('أصحابك شايفينك إزاي',S.ratingsIn.length)+'<div class="card" style="padding:4px 14px">'+(ov.length?'<div class="rate-row"><b>الكلي</b><span>'+stars(ov.reduce((p,q)=>p+q,0)/ov.length)+' <small class="num">'+(Math.round(ov.reduce((p,q)=>p+q,0)/ov.length*10)/10)+'</small></span></div>':'')+AREA5.filter(a=>agg[a.k]).map(a=>'<div class="rate-row"><span>'+a.ic+' '+esc(a.n)+'</span><span>'+stars(agg[a.k])+' <small class="num">'+(Math.round(agg[a.k]*10)/10)+'</small></span></div>').join('')+'</div>'
@@ -3478,6 +3480,85 @@ function renderFriends(){ const S=SOC(), sa=state.settings.shareAreas; let out='
   if(S.ratingsOut.length) out+='<div class="section">'+sectionH('تقييمات بعتها',S.ratingsOut.length)+'<div class="list">'+S.ratingsOut.slice(0,30).map(r=>'<div class="tx"><span class="ti">📤</span><div class="tm"><div class="tt">لـ '+esc(r.toN||'صديق')+(r.o?' — '+stars(r.o):'')+'</div><div class="ts"><span>'+(r.at?esc(agoLabel(r.at)):'')+'</span><button type="button" class="link-btn" style="font-size:12px" data-action="rout-del" data-id="'+r.id+'">حذف</button></div></div></div>').join('')+'</div></div>';
   if(!S.reports.length&&!S.ratingsIn.length) out+='<div class="card" style="margin-top:16px">'+emptyBlock('🤝','لسه مفيش أصحاب','ابعت لينك تقدّمك لحد بتثق فيه يتابعك ويقيّمك، واطلب منه يبعتلك تقريره عشان تقيّمه انت كمان.','')+'</div>';
   return out; }
+
+/* ===================== تقرير بالصورة + التذكير اليومي ===================== */
+function capPlugin(n){ try{ const C=window.Capacitor; if(!C||!(C.isNativePlatform&&C.isNativePlatform())) return null; return (C.Plugins&&C.Plugins[n])||(C.registerPlugin?C.registerPlugin(n):null); }catch(e){ return null; } }
+const GRADE_C={S:'#B57CFF',A:'#2EC27E',B:'#4DA3FF',C:'#F5B301',D:'#FF7A45',E:'#FF5A5A'};
+function repData(period){ const d=today(), from=period==='week'?addDays(d,-6):d; const evs=[]; for(let i=6;i>=0;i--) evs.push(dayEval(addDays(d,-i)));
+  const ev=evs[6]; const sel=AREA5.filter(a=>state.settings.shareAreas.includes(a.k)); const avg=k=>{ const v=evs.map(e=>e[k]).filter(x=>x!=null); return v.length?Math.round(v.reduce((p,q)=>p+q,0)/v.length):null; };
+  const sc=period==='week'?avg('all'):ev.all; return {d,from,evs,ev,sel,avg,sc,gr:gradeOf(sc||0),F:periodFacts(from,d),li:levelInfo(),cl:classOf(),X:xpLedger()}; }
+function drawReport(period){ const R=repData(period); const W=1080, P=56, rowH=270, GAP=22; const H=600+R.sel.length*(rowH+GAP)+120;
+  const c=document.createElement('canvas'); c.width=W; c.height=H; const x=c.getContext('2d'); try{ x.direction='rtl'; }catch(e){}
+  const FONT='"IBM Plex Sans Arabic","Readex Pro","Segoe UI",Tahoma,sans-serif';
+  const rr=(X,Y,w,h,r)=>{ x.beginPath(); x.moveTo(X+r,Y); x.arcTo(X+w,Y,X+w,Y+h,r); x.arcTo(X+w,Y+h,X,Y+h,r); x.arcTo(X,Y+h,X,Y,r); x.arcTo(X,Y,X+w,Y,r); x.closePath(); };
+  const T=(t,px,y,size,w,col,al)=>{ x.font=(w||500)+' '+size+'px '+FONT; x.fillStyle=col||'#fff'; x.textAlign=al||'right'; x.fillText(String(t),px,y); };
+  const fitT=(t,maxW,size,w)=>{ x.font=(w||500)+' '+size+'px '+FONT; t=String(t); if(x.measureText(t).width<=maxW) return t; while(t.length>3&&x.measureText(t+'…').width>maxW) t=t.slice(0,-1); return t+'…'; };
+  const bars=(vals,X,Y,w,h,col)=>{ const n=vals.length, gap=8, bw=(w-gap*(n-1))/n; const mx=Math.max(1,...vals.map(v=>v==null||v<0?0:v)); vals.forEach((v,i)=>{ const rest=v==null||v<0; const bh=rest?8:Math.max(6,Math.round(v/mx*h)); const bx=X+w-(i+1)*bw-i*gap; x.fillStyle=rest?'rgba(255,255,255,.15)':col; x.globalAlpha=rest?1:(i===n-1?1:.55); rr(bx,Y+h-bh,bw,bh,6); x.fill(); x.globalAlpha=1; }); };
+  const g=x.createLinearGradient(0,0,0,H); g.addColorStop(0,'#0A1120'); g.addColorStop(1,'#121B35'); x.fillStyle=g; x.fillRect(0,0,W,H);
+  x.strokeStyle='rgba(110,160,255,.4)'; x.lineWidth=3; rr(22,22,W-44,H-44,34); x.stroke();
+  T('[ النظام ] · '+(period==='week'?'تقرير آخر ٧ أيام':'تقرير اليوم'),W-P,100,30,600,'#7FB2FF');
+  T(fitT(state.settings.name||'اللاعب',620,64,700),W-P,178,64,700,'#FFFFFF');
+  T(fmtDateFull(R.d),W-P,230,30,400,'rgba(255,255,255,.65)');
+  T('المستوى '+R.li.L+' · رتبة '+rankFor(R.li.L),W-P,292,34,600,'#FFD97A');
+  if(R.cl.k) T(R.cl.ic+' '+R.cl.name,W-P,344,34,600,'#C9B6FF');
+  x.fillStyle=GRADE_C[R.gr]; rr(P,96,200,200,36); x.fill(); T(R.gr,P+100,236,124,800,'#0A1120','center');
+  T((R.sc==null?'—':R.sc)+'/100',P+100,348,40,700,'#FFFFFF','center'); T(GRADE_T[R.gr],P+100,392,26,500,'rgba(255,255,255,.65)','center');
+  T('التقييم الكلي — آخر ٧ أيام',W-P,430,28,600,'rgba(255,255,255,.75)'); bars(R.evs.map(e=>e.all),P,450,W-2*P,96,'#4DA3FF');
+  const wd=[]; for(let i=6;i>=0;i--) wd.push(WD_S[parseISO(addDays(R.d,-i)).getDay()]); const bw=(W-2*P-48)/7; wd.forEach((l,i)=>T(l,P+(W-2*P)-(i+1)*bw-i*8+bw/2,580,22,500,'rgba(255,255,255,.45)','center'));
+  let y=612; R.sel.forEach(a=>{ const v=period==='week'?R.avg(a.k):R.ev[a.k]; x.fillStyle='rgba(255,255,255,.05)'; rr(P,y,W-2*P,rowH,28); x.fill(); x.strokeStyle=a.c; x.globalAlpha=.55; x.lineWidth=2; rr(P,y,W-2*P,rowH,28); x.stroke(); x.globalAlpha=1;
+    x.fillStyle=a.c; rr(W-P-8,y+24,8,rowH-48,4); x.fill();
+    T(a.ic+' '+a.n,W-P-36,y+66,42,700,'#FFFFFF'); T(a.cls+' · '+a.d,W-P-36,y+106,24,500,a.c);
+    T('Lv '+areaLevel(R.X.area[a.k]),P+32,y+70,44,800,a.c,'left'); T(v==null?'راحة':(period==='week'?'متوسط ':'اليوم ')+v+'/100',P+32,y+110,26,600,'rgba(255,255,255,.75)','left');
+    x.fillStyle='rgba(255,255,255,.1)'; rr(P+32,y+132,W-2*P-72,16,8); x.fill(); if(v){ const fw=Math.round((W-2*P-72)*v/100); x.fillStyle=a.c; rr(P+32+(W-2*P-72)-fw,y+132,fw,16,8); x.fill(); }
+    const facts=R.F[a.k].slice(0,3); facts.forEach((t,i)=>T(fitT('• '+t,560,25,500),W-P-36,y+190+i*34,25,500,'rgba(255,255,255,.82)'));
+    if(!facts.length) T('مفيش تسجيل في الفترة دي',W-P-36,y+190,25,500,'rgba(255,255,255,.45)');
+    bars(R.evs.map(e=>e[a.k]),P+32,y+166,330,80,a.c);
+    y+=rowH+GAP; });
+  T('حياة — نظام حياتك اليومي',W/2,H-58,26,500,'rgba(255,255,255,.45)','center');
+  return c; }
+function reportText(period){ const R=repData(period); const L=[]; L.push((period==='week'?'تقرير آخر ٧ أيام':'تقرير اليوم')+' — '+(state.settings.name||'')+' — '+fmtDateFull(R.d)); L.push('التقييم الكلي: '+(R.sc==null?'—':R.sc)+'/100 ('+R.gr+' — '+GRADE_T[R.gr]+')'); L.push('المستوى '+R.li.L+' · رتبة '+rankFor(R.li.L)+(R.cl.k?' · '+R.cl.name:'')); L.push('');
+  R.sel.forEach(a=>{ const v=period==='week'?R.avg(a.k):R.ev[a.k]; L.push(a.ic+' '+a.n+' (Lv '+areaLevel(R.X.area[a.k])+'): '+(v==null?'راحة':v+'/100')); R.F[a.k].slice(0,4).forEach(t=>L.push('   • '+t)); }); L.push(''); L.push('— من تطبيق حياة'); return L.join('\n'); }
+function reportImageSheet(period){ period=period||filters.repPeriod||'day'; filters.repPeriod=period; let c; try{ c=drawReport(period); }catch(e){ reportError(e); return; } draft={kind:'repimg',period,canvas:c};
+  const em=state.settings.reportEmail||'', sa=state.settings.shareAreas;
+  const html='<div class="seg" style="margin-bottom:10px">'+[['day','اليوم'],['week','آخر ٧ أيام']].map(p=>'<button type="button" data-action="rep-period" data-v="'+p[0]+'" class="'+(period===p[0]?'on':'')+'">'+p[1]+'</button>').join('')+'</div>'
+    +'<div class="qchips" style="margin-bottom:10px">'+AREA5.map(a=>'<button type="button" data-action="rep-area" data-k="'+a.k+'" class="'+(sa.includes(a.k)?'on':'')+'">'+a.ic+' '+esc(a.n)+'</button>').join('')+'</div>'
+    +'<img class="rep-img" src="'+c.toDataURL('image/png')+'" alt="صورة التقرير">'
+    +'<div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" data-action="rep-share">ابعت الصورة</button>'+(em?'<button type="button" class="btn" data-action="rep-mail">إيميل لـ '+esc(em)+'</button>':'<button type="button" class="btn" data-action="rep-copy">انسخ كنص</button>')+'</div>'
+    +'<p class="hint">«ابعت الصورة» بيفتح واتساب/جيميل/أي تطبيق. المصاريف والفلوس مش بتظهر. '+(em?'زر الإيميل بيفتح رسالة جاهزة بالنص لـ '+esc(em)+'.':'تقدر تحط إيميل ثابت من «الأصحاب».')+'</p>';
+  openSheet(html,{title:'تقرير بالصورة',focus:false}); }
+async function shareReportImage(){ if(!draft||draft.kind!=='repimg') return; const c=draft.canvas, period=draft.period; const name='hayah-'+today()+(period==='week'?'-week':'')+'.png'; const text=(period==='week'?'تقرير آخر ٧ أيام':'تقرير اليوم')+' من «حياة»';
+  try{ const FS=capPlugin('Filesystem'), SH=capPlugin('Share');
+    if(FS&&SH){ const w=await FS.writeFile({path:name,data:c.toDataURL('image/png').split(',')[1],directory:'CACHE'}); await SH.share({title:'تقرير حياة',text,files:[w.uri],dialogTitle:'ابعت التقرير'}); return; }
+    if(navigator.canShare&&window.File){ const blob=await new Promise(r=>c.toBlob(r,'image/png')); const file=new File([blob],name,{type:'image/png'}); if(navigator.canShare({files:[file]})){ await navigator.share({files:[file],text,title:'تقرير حياة'}); return; } }
+    const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download=name; document.body.appendChild(a); a.click(); a.remove(); toast('اتحفظت الصورة — ابعتها من المعرض',{ms:3500});
+  }catch(e){ const m=String(e&&(e.message||e)); if(/cancel|abort/i.test(m)) return; toast('مقدرتش أفتح المشاركة: '+m.slice(0,80)); } }
+function reportMail(){ const em=state.settings.reportEmail; if(!em) return; const p=(draft&&draft.period)||'day'; const sub=(p==='week'?'تقرير آخر ٧ أيام':'تقرير اليوم')+' — '+(state.settings.name||'حياة')+' — '+today(); const a=document.createElement('a'); a.href='mailto:'+em+'?subject='+encodeURIComponent(sub)+'&body='+encodeURIComponent(reportText(p)); a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove(); }
+function reminderCard(){ const r=state.settings.reportReminder, native=!!capPlugin('LocalNotifications'); const tm=pad(r.h)+':'+pad(r.m);
+  return '<div class="card" style="padding:14px;margin-top:14px"><h3 class="fr-h">التذكير اليومي بالتقرير</h3>'
+    +'<label class="toggle"><span>إشعار كل يوم الساعة <b class="num">'+tm+'</b> — تدوس عليه يفتحلك صورة تقرير اليوم جاهزة تبعتها</span><input type="checkbox" data-ch13="rep-rem"'+(r.on?' checked':'')+(native?'':' disabled')+'></label>'
+    +'<div class="two"><div class="field" style="margin-top:4px"><label for="rep-time">الساعة</label><input id="rep-time" type="time" data-ch13="rep-time" value="'+tm+'"></div><div class="field" style="margin-top:4px"><label for="rep-email">إيميل ثابت (اختياري)</label><input id="rep-email" type="email" inputmode="email" data-ch13="rep-email" value="'+esc(state.settings.reportEmail||'')+'" placeholder="name@gmail.com" autocomplete="off"></div></div>'
+    +'<p class="hint" style="margin:8px 0 0">'+(native?'لو الإشعار اتأخر أو ماظهرش: من إعدادات الموبايل خلّي «حياة» مسموح لها بالإشعارات ومن غير «توفير البطارية».':'الإشعار اليومي بيشتغل في تطبيق الأندرويد بس.')+' الإرسال الأوتوماتيك من غير ما تدوس محتاج سيرفر إيميل، فالتطبيق بيجهّزلك كل حاجة وانت تدوس «ابعت».</p></div>'; }
+async function scheduleReminder(ask){ const LN=capPlugin('LocalNotifications'); if(!LN) return false; const r=state.settings.reportReminder;
+  try{ await LN.cancel({notifications:[{id:1301}]}); }catch(e){}
+  if(!r.on) return true;
+  try{ let p=await LN.checkPermissions(); if(p.display!=='granted'&&ask) p=await LN.requestPermissions(); if(p.display!=='granted'){ if(ask) toast('اسمح للتطبيق بالإشعارات من إعدادات الموبايل',{ms:4000}); return false; }
+    await LN.schedule({notifications:[{id:1301,title:'[ النظام ] تقرير اليوم جاهز',body:'شوف تقييم يومك في كل جانب وابعته بضغطة',schedule:{on:{hour:r.h,minute:r.m},allowWhileIdle:true},extra:{kind:'report'},smallIcon:'ic_stat_hayah',iconColor:'#0E7A78'}]}); return true;
+  }catch(e){ if(ask) toast('مقدرتش أظبط الإشعار: '+String(e&&e.message||e).slice(0,80)); return false; } }
+function initReminder(){ const LN=capPlugin('LocalNotifications'); if(!LN) return; try{ LN.addListener('localNotificationActionPerformed',ev=>{ try{ const ex=ev&&ev.notification&&ev.notification.extra; if(ex&&ex.kind==='report') setTimeout(()=>{ if(sheetOpen) closeSheet(); setTimeout(()=>reportImageSheet('day'),250); },300); }catch(e){ reportError(e); } }); }catch(e){} if(state.settings.reportReminder.on) scheduleReminder(false); }
+document.addEventListener('change',e=>{ const el=e.target, k=el&&el.dataset&&el.dataset.ch13; if(!k) return; try{ const st=state.settings;
+  if(k==='rep-rem'){ st.reportReminder.on=!!el.checked; save(); scheduleReminder(true).then(ok=>{ if(st.reportReminder.on&&ok) toast('هيوصلك إشعار كل يوم الساعة '+pad(st.reportReminder.h)+':'+pad(st.reportReminder.m)); if(st.reportReminder.on&&!ok){ st.reportReminder.on=false; save(); render(); } }); }
+  else if(k==='rep-time'){ const m=/^(\d{1,2}):(\d{2})/.exec(el.value||''); if(!m) return; st.reportReminder.h=Math.min(23,+m[1]); st.reportReminder.m=Math.min(59,+m[2]); save(); render(); if(st.reportReminder.on) scheduleReminder(true); }
+  else if(k==='rep-email'){ const v=(el.value||'').trim(); if(v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ toast('الإيميل مش مظبوط'); return; } st.reportEmail=v.slice(0,120); save(); toast(v?'اتحفظ الإيميل':'اتشال الإيميل',{ms:1500}); }
+}catch(err){ reportError(err); } });
+const ACT13B={
+  'rep-open':el=>reportImageSheet(el.dataset.v||'day'),
+  'rep-period':el=>reportImageSheet(el.dataset.v),
+  'rep-area':el=>{ const k=el.dataset.k, sa=state.settings.shareAreas; if(sa.includes(k)){ if(sa.length===1) return toast('لازم جانب واحد على الأقل'); state.settings.shareAreas=sa.filter(x=>x!==k); } else state.settings.shareAreas=AREA5.map(a=>a.k).filter(x=>x===k||sa.includes(x)); save(); reportImageSheet(filters.repPeriod); },
+  'rep-share':()=>{ shareReportImage(); },
+  'rep-mail':()=>reportMail(),
+  'rep-copy':async()=>{ const t=reportText((draft&&draft.period)||'day'); try{ await navigator.clipboard.writeText(t); toast('اتنسخ التقرير كنص'); }catch(e){ toast('مقدرتش أنسخ'); } }
+};
+
 
 /* ===================== المساعد — إضافات ===================== */
 function aiCtx13(L){ const d=today(); L.push('الأذكار المعدودة (id|اسم|عدد اليوم): '+dhikrList().map(x=>x.id+'|'+x.n+'|'+dhikrCount(d,x.id)).join(' ; ')); L.push('السنن (id|اسم): '+SUNNAH.map(x=>x.id+'|'+x.n+(daySunnah(d)[x.id]?'|تمت':'')).join(' ; ')); L.push('مهارات الكاليستنكس (id|اسم): '+CALI.map(s=>s.id+'|'+s.n).join(' ; ')); }
@@ -3544,6 +3625,7 @@ function sanitize13(d,s,dn){
   s.areaLogs=Array.isArray(d.areaLogs)?d.areaLogs.filter(l=>l&&typeof l==='object'&&l.id&&okD(l.date)&&AK.includes(l.area)&&typeof l.text==='string'&&l.text.trim()).map(l=>({id:String(l.id),date:l.date,area:l.area,text:l.text.trim().slice(0,200),pts:Math.max(0,Math.min(50,Math.round(+l.pts)||0)),reason:typeof l.reason==='string'?l.reason.slice(0,200):'',source:l.source==='ai'?'ai':'me',createdAt:typeof l.createdAt==='string'?l.createdAt:nowISO()})).slice(-3000):[];
   s.seasons=Array.isArray(d.seasons)?d.seasons.filter(x=>x&&typeof x==='object'&&okD(x.start)).map(x=>{ let ar=null; if(x.area&&typeof x.area==='object'){ ar={}; AK.forEach(k=>{ ar[k]=Math.max(0,parseInt(x.area[k],10)||0); }); } return {id:String(x.id||x.start),start:x.start,end:okD(x.end)?x.end:x.start,xp:Math.max(0,parseInt(x.xp,10)||0),L:Math.max(1,parseInt(x.L,10)||1),rk:['E','D','C','B','A','S'].includes(x.rk)?x.rk:'E',cls:typeof x.cls==='string'?x.cls.slice(0,40):'',area:ar}; }).slice(0,50):[];
   const st=s.settings; st.seasonStart=okD(st.seasonStart)?st.seasonStart:''; { const b=(st.seasonBase&&typeof st.seasonBase==='object')?st.seasonBase:{}; const sb={memo:Math.max(0,parseInt(b.memo,10)||0)}; if(okD(b.date)&&b.ca&&typeof b.ca==='object'){ sb.date=b.date; sb.ca={}; AK.forEach(a=>{ const o=b.ca[a]; if(!o||typeof o!=='object') return; sb.ca[a]={}; for(const c in o){ const v=Math.max(0,parseInt(o[c],10)||0); if(v&&/^[a-z]{2,10}$/.test(c)) sb.ca[a][c]=v; } }); } st.seasonBase=sb; }
+  { const r=(st.reportReminder&&typeof st.reportReminder==='object')?st.reportReminder:{}; const h=parseInt(r.h,10), m=parseInt(r.m,10); st.reportReminder={on:!!r.on,h:(h>=0&&h<=23)?h:23,m:(m>=0&&m<=59)?m:0}; st.reportEmail=(typeof st.reportEmail==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(st.reportEmail.trim()))?st.reportEmail.trim().slice(0,120):''; }
   st.shareAreas=Array.isArray(st.shareAreas)?AK.filter(k=>st.shareAreas.includes(k)):AK.slice(); if(!st.shareAreas.length) st.shareAreas=AK.slice();
   const so=(d.social&&typeof d.social==='object')?d.social:{};
   s.social={reports:Array.isArray(so.reports)?so.reports.map(cleanSnap).filter(Boolean).slice(0,60):[],ratingsIn:Array.isArray(so.ratingsIn)?so.ratingsIn.map(cleanRating).filter(Boolean).slice(0,200):[],ratingsOut:Array.isArray(so.ratingsOut)?so.ratingsOut.map(cleanRating).filter(Boolean).slice(0,200):[]};
@@ -3809,7 +3891,7 @@ const SUBMIT={
   'ms-add':f=>{ const g=goalById(f.dataset.gid); const v=(f.title.value||'').trim(); if(!g||!v) return; commit(null,()=>{ g.milestones.push({id:uid(),title:v,done:false}); }); goalDetail(g.id); setTimeout(()=>{ const i=$('#sheet-root input[name=title]'); if(i) i.focus(); },50); },
   'welcome-start':f=>{ const name=($('#w-name').value||'').trim(); const seed=$('#w-seed').checked; state.settings.name=name; state.settings.seeded=true; if(seed) seedSamples(); save(); render(); toast(seed?'أضفنا أمثلة — امسحها من الإعدادات وقت ما تحب':'يلا نبدأ — أضف هدفك الأول'); }
 };
-Object.assign(A,ACT13); Object.assign(SUBMIT,SUB13);
+Object.assign(A,ACT13,ACT13B); Object.assign(SUBMIT,SUB13);
 document.addEventListener('click',e=>{ if(e.target.closest('a[data-stop]')) return; const el=e.target.closest('[data-action]'); if(!el) return; const h=A[el.dataset.action]; if(!h) return; e.preventDefault(); try{ h(el,e); }catch(err){ reportError(err); } });
 document.addEventListener('submit',e=>{ const f=e.target.closest('form[data-submit]'); if(!f) return; e.preventDefault(); const h=SUBMIT[f.dataset.submit]; if(!h) return; try{ h(f); }catch(err){ reportError(err); } });
 document.addEventListener('keydown',e=>{
@@ -3851,6 +3933,7 @@ if(pendingFitSeed){ try{ seedFitSamples(); save(); }catch(e){ reportError(e); } 
 try{ if(!FT().foods||!FT().foods.length){ if(!FT().foods) FT().foods=[]; seedFoods(); save(); } }catch(e){ reportError(e); }
 render();
 checkHash();
+try{ initReminder(); }catch(e){ reportError(e); }
 setInterval(timerTick,1000);
 /* تلميح تثبيت آيفون */
 (function(){ try{
