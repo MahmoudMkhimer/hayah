@@ -449,7 +449,7 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0}
 .avatar{position:absolute;inset:8px;width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid var(--line);background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--text-3)}
 .avatar-ph svg{width:56px;height:56px}
 .aura{position:absolute;inset:0;border-radius:50%;pointer-events:none;box-shadow:0 0 0 2px var(--line)}
-.ring{position:absolute;inset:-6px;border-radius:50%;pointer-events:none;display:none}
+.avatar-wrap .ring{position:absolute;inset:-6px;border-radius:50%;pointer-events:none;display:none}
 .rank-badge{position:absolute;bottom:2px;inset-inline-end:2px;width:34px;height:34px;border-radius:50%;background:var(--surface);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:700;font-size:16px;color:var(--text-2)}
 .r-D .aura{box-shadow:0 0 18px 4px rgba(77,163,255,.45);animation:aura 3s ease-in-out infinite}
 .r-D .rank-badge{color:#4DA3FF;border-color:#4DA3FF}
@@ -460,11 +460,11 @@ h1,h2,h3{font-family:var(--font-display);text-wrap:balance;margin:0}
 .r-B .rank-badge{color:#B69CFF;border-color:#7C5CFF;box-shadow:0 0 8px rgba(124,92,255,.8)}
 .r-A .aura{box-shadow:0 0 34px 11px rgba(124,92,255,.85),0 0 70px 24px rgba(255,200,80,.22);animation:aura 2.2s ease-in-out infinite}
 .r-A .avatar{border-color:#C9A54A}
-.r-A .ring,.r-S .ring{display:block;border:2px dashed rgba(156,203,255,.55);animation:spin 14s linear infinite}
+.r-A .avatar-wrap .ring,.r-S .avatar-wrap .ring{display:block;border:2px dashed rgba(156,203,255,.55);animation:spin 14s linear infinite}
 .r-A .rank-badge{color:#FFD97A;border-color:#C9A54A;box-shadow:0 0 10px rgba(255,200,80,.7)}
 .r-S .aura{box-shadow:0 0 44px 14px rgba(120,60,255,.95),0 0 100px 34px rgba(30,0,60,.9);animation:aura 2s ease-in-out infinite}
 .r-S .avatar{border-color:#8B5CFF;box-shadow:inset 0 0 30px rgba(60,0,120,.6)}
-.r-S .ring{border-color:rgba(180,140,255,.8);border-style:solid;border-width:1px;inset:-10px;box-shadow:0 0 16px rgba(139,92,255,.7)}
+.r-S .avatar-wrap .ring{border-color:rgba(180,140,255,.8);border-style:solid;border-width:1px;inset:-10px;box-shadow:0 0 16px rgba(139,92,255,.7)}
 .r-S .rank-badge{color:#E6D6FF;border-color:#8B5CFF;background:#1A0B33;box-shadow:0 0 14px rgba(139,92,255,.9)}
 @keyframes aura{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.04);opacity:1}}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -811,6 +811,131 @@ input,textarea,select{font-size:16px}
 .ios-tip button.p{background:var(--toast-act);color:var(--toast-bg)}
 .errdet{margin:6px 10px 0;padding:10px;background:var(--surface-2);border-radius:10px;font-size:11px;line-height:1.6;white-space:pre-wrap;word-break:break-all;direction:ltr;text-align:left;max-height:160px;overflow:auto;color:var(--text-2)}
 </style>
+<style>
+/* ===== v13: السنن والذكر والكاليستنكس والجوانب والأصحاب ===== */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(98px,1fr));gap:8px}
+.sbtn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 6px;border-radius:12px;background:var(--surface-2);color:var(--text-2);font-weight:600;font-size:13.5px;border:1px solid transparent;transition:transform .08s}
+.sbtn:active{transform:scale(.97)}
+.sbtn small{font-size:11.5px;font-weight:500;color:var(--text-3)}
+.sbtn.on{background:var(--good-soft);color:var(--good);border-color:var(--good)}
+.sbtn.on small{color:var(--good)}
+.dzgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dzc{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);padding:12px;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0}
+.dzc:active{transform:scale(.98)}
+.dzc.done{border-color:var(--good);background:var(--good-soft)}
+.dz-n{font-size:13.5px;font-weight:600;color:var(--text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dz-v b{font-family:var(--font-display);font-size:22px;font-weight:700}
+.dz-v small{color:var(--text-3);font-size:12px;margin-inline-start:4px}
+.dz-sheet{text-align:center}
+.dz-text{font-size:19px;line-height:1.9;font-weight:600;margin:4px 6px 16px;color:var(--text)}
+.dz-tap{width:230px;height:230px;max-width:72vw;max-height:72vw;border-radius:50%;margin:0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,var(--accent-soft),var(--surface-2));border:3px solid var(--accent);touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .06s}
+.dz-tap:active{transform:scale(.96)}
+.dz-tap b{font-family:var(--font-display);font-size:58px;font-weight:700;line-height:1;color:var(--accent-ink)}
+.dz-tap small{color:var(--text-3);font-size:14px;margin-top:6px}
+.dz-sess{font-size:12px;color:var(--text-3);margin-top:8px}
+.dz-bar{height:8px;margin:18px 0 12px}
+.dz-q{justify-content:center}
+.sbars{display:flex;align-items:flex-end;gap:4px;height:46px;margin-top:6px}
+.sbars i{flex:1;border-radius:4px 4px 0 0;min-height:3px;display:block}
+.sbars i.rest{background:var(--line)!important;opacity:1!important}
+.slabels{display:flex;gap:4px;font-size:10px;color:var(--text-3);margin-top:3px}
+.slabels span{flex:1;text-align:center}
+/* الكاليستنكس */
+.cali-hero{padding:14px}
+.ch-top{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.ch-pts{font-family:var(--font-display);font-size:34px;font-weight:800;line-height:1.1;color:var(--warn)}
+.ch-n{text-align:center;background:var(--bg);border-radius:12px;padding:8px 12px}
+.ch-n b{display:block;font-family:var(--font-display);font-size:22px}
+.ch-n small{font-size:11.5px;color:var(--text-3)}
+.ch-path{margin-top:12px}
+.ch-pl{display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:var(--text-2);margin-bottom:6px}
+.crec{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line-2);cursor:pointer}
+.crec:last-child{border-bottom:0}
+.cr-ln{font-size:20px;flex:none}
+.cr-m{flex:1;min-width:0}
+.cr-m b{display:block;font-size:14.5px}
+.cr-m small{display:block;font-size:12.5px;color:var(--text-3)}
+.cline{margin-top:20px}
+.cline-h{display:flex;align-items:center;justify-content:space-between;margin:0 2px 8px;font-weight:700;font-size:15px}
+.ctree{position:relative;display:flex;flex-direction:column;gap:8px;padding-inline-start:18px}
+.ctree:before{content:'';position:absolute;inset-inline-start:6px;top:12px;bottom:12px;width:2px;background:var(--line)}
+.cnode{position:relative;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line-2);cursor:pointer}
+.cnode:active{transform:scale(.99)}
+.cnode:before{content:'';position:absolute;inset-inline-start:-17px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;background:var(--line);border:2px solid var(--bg)}
+.cnode.st-done:before{background:var(--good)}
+.cnode.st-act:before,.cnode.st-ready:before{background:var(--accent)}
+.cnode.st-act,.cnode.st-ready{border-color:var(--accent)}
+.cnode.st-lock{opacity:.62}
+.cn-ic{flex:none;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;background:var(--surface-2)}
+.st-done .cn-ic{background:var(--good-soft);color:var(--good)}
+.st-act .cn-ic,.st-ready .cn-ic{background:var(--accent-soft);color:var(--accent-ink)}
+.cn-m{flex:1;min-width:0}
+.cn-t{font-weight:600;font-size:14.5px}
+.cn-s{font-size:12px;color:var(--text-3);margin-top:2px;line-height:1.5}
+.cn-m .bar{margin-top:6px;height:5px}
+.cn-p{font-size:12.5px;color:var(--warn);font-weight:700;white-space:nowrap}
+/* الجوانب والفئة */
+.cls-card{padding:16px 14px;text-align:center}
+.cls-h{display:flex;align-items:center;gap:12px;text-align:start}
+.cls-ic{font-size:28px;min-width:56px;height:56px;padding:0 6px;border-radius:16px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;flex:none}
+.cls-h b{display:block;font-size:21px;font-family:var(--font-display)}
+.cls-h small{display:block;color:var(--text-2);font-size:13px;margin-top:2px;line-height:1.5}
+.radar{display:block;margin:8px auto 0;max-width:100%;height:auto;overflow:visible}
+.rd-cur{fill:var(--accent);fill-opacity:.25;stroke:var(--accent);stroke-width:2;stroke-linejoin:round}
+.rd-prev{fill:none;stroke:var(--text-3);stroke-width:1.5;stroke-dasharray:4 3}
+.rd-l{font-size:10.5px;fill:var(--text-2);font-weight:600}
+.rd-leg{display:flex;justify-content:center;gap:16px;font-size:12px;color:var(--text-3);margin-top:2px}
+.rd-leg i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-inline-end:5px;vertical-align:middle}
+.rd-leg i.cur{background:var(--accent)}
+.rd-leg i.prev{background:var(--text-3)}
+.cls-bars{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px}
+.clb{background:var(--bg);border-radius:10px;padding:6px 2px;font-size:11px;color:var(--text-2);display:flex;flex-direction:column;gap:2px}
+.clb b{color:var(--c);font-size:13px}
+.alist{display:flex;flex-direction:column;gap:10px}
+.acard2{background:var(--surface);border:1px solid var(--line-2);border-inline-start:4px solid var(--c);border-radius:var(--r);padding:12px 14px;cursor:pointer}
+.acard2:active{transform:scale(.99)}
+.ac-h{display:flex;align-items:center;gap:10px}
+.ac-ic{font-size:22px;width:40px;height:40px;border-radius:12px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex:none}
+.ac-t{flex:1;min-width:0}
+.ac-t b{display:block;font-size:16px}
+.ac-t small{display:block;font-size:12px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ac-lv{text-align:center;flex:none}
+.ac-lv small{display:block;font-size:10.5px;color:var(--text-3)}
+.ac-lv b{font-family:var(--font-display);font-size:24px;color:var(--c);line-height:1}
+.acard2 .bar{margin:10px 0 8px;height:6px}
+.ac-f{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--text-2);flex-wrap:wrap}
+.acard2 .sbars{height:30px}
+.evc{padding:14px}
+.ev-top{display:flex;align-items:center;gap:14px}
+.ev-grade{width:58px;height:58px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:30px;font-weight:800;background:var(--surface-2);flex:none}
+.ev-grade.sm{width:34px;height:34px;border-radius:10px;font-size:17px}
+.g-S{background:linear-gradient(135deg,#8E5BD0,#E0533D);color:#fff}
+.g-A{background:var(--good-soft);color:var(--good)}
+.g-B{background:var(--accent-soft);color:var(--accent-ink)}
+.g-C{background:var(--warn-soft);color:var(--warn)}
+.g-D,.g-E{background:var(--bad-soft);color:var(--bad)}
+.ev-big b{font-family:var(--font-display);font-size:28px;font-weight:700}
+.ev-big small{color:var(--text-3)}
+.ev-rows{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.evr{display:grid;grid-template-columns:96px 1fr 42px;align-items:center;gap:8px;font-size:13px}
+.evr .bar{height:6px}
+.evr b{text-align:end;font-size:13px}
+.ev-ai{margin-top:12px;padding:12px;border-radius:12px;background:var(--accent-soft);color:var(--text);font-size:14px;line-height:1.85;white-space:pre-wrap}
+/* الأصحاب */
+.fr-h{margin:0;font-size:16px}
+.stars{display:flex;gap:2px}
+.stars button{font-size:26px;line-height:1;color:var(--line);padding:2px 3px}
+.stars button.on{color:#F5B301}
+.mini-stars{color:#F5B301;font-size:13px;letter-spacing:1px;white-space:nowrap}
+.rate-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--line-2);font-size:14px}
+.rate-row:last-child{border-bottom:0}
+.rep-h{text-align:center}
+.rep-n{font-size:22px;font-weight:700;font-family:var(--font-display)}
+.rep-h .metas{justify-content:center;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.rep-a{padding:12px 14px;margin-top:10px;border-inline-start:4px solid var(--c)}
+.rep-a .hint{margin:10px 0 0;font-size:12px}
+.rep-f{margin:10px 0 0;padding-inline-start:18px;font-size:13.5px;line-height:1.8;color:var(--text-2)}
+</style>
 <div id="app" dir="rtl" lang="ar">
   <header class="top">
     <div class="brand"><div class="name" id="brand-name">حياة</div><div class="date" id="hdate"></div></div>
@@ -898,9 +1023,9 @@ function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e
 
 /* ===================== البيانات والتخزين ===================== */
 const KEY='hayah.v1', BKEY='hayah.v1.backup';
-const VERSION=8;
+const VERSION=9;
 let loadNotice='', pendingFinanceSeed=false, pendingBodySeed=false, pendingFitSeed=false;
-function defaultState(){ return { v:VERSION, goals:[], tasks:[], habits:[], journal:[], ai:{key:'',model:'claude-haiku-4-5',limitUSD:3,spent:{month:'',usd:0,inTok:0,outTok:0,calls:0},history:[]}, finance:defaultFinance(), body:{sessions:[],metrics:[],skills:[]}, timer:null, fit:{exercises:[],foods:[],plan:{},logs:{},targets:{kcal:0,protein:0,carbs:0,fat:0},profile:{},height:0,goalWeight:0,restSec:90,samplePlan:false}, deen:{prayers:{},adhkar:{},quran:{wirdPages:4,reads:[],memo:{}},includeInDaily:true}, settings:{name:'',theme:'auto',skin:'calm',avatar:null,show3d:false,dailyDone:[],weekStart:6,seeded:false,lastBackupAt:null,collapsed:{'tasks-done':true,'goals-done':true,'goals-archived':true,'habits-archived':true}}, meta:{createdAt:nowISO(),updatedAt:nowISO(),backupDay:null} }; }
+function defaultState(){ return { v:VERSION, goals:[], tasks:[], habits:[], journal:[], ai:{key:'',model:'claude-haiku-4-5',limitUSD:3,spent:{month:'',usd:0,inTok:0,outTok:0,calls:0},history:[]}, finance:defaultFinance(), body:{sessions:[],metrics:[],skills:[]}, timer:null, fit:{exercises:[],foods:[],plan:{},logs:{},targets:{kcal:0,protein:0,carbs:0,fat:0},profile:{},height:0,goalWeight:0,restSec:90,samplePlan:false}, deen:{prayers:{},adhkar:{},quran:{wirdPages:4,reads:[],memo:{}},includeInDaily:true,sunnah:{},counts:{},dhikrTargets:{},dhikrCustom:[]}, cali:{logs:[]}, areaLogs:[], seasons:[], social:{reports:[],ratingsIn:[],ratingsOut:[]}, evals:{}, settings:{name:'',seasonStart:'',seasonBase:{memo:0},shareAreas:['str','end','spi','int','dis'],theme:'auto',skin:'calm',avatar:null,show3d:false,dailyDone:[],weekStart:6,seeded:false,lastBackupAt:null,collapsed:{'tasks-done':true,'goals-done':true,'goals-archived':true,'habits-archived':true}}, meta:{createdAt:nowISO(),updatedAt:nowISO(),backupDay:null} }; }
 function sanitize(d){
   const def=defaultState();
   if(!d||typeof d!=='object') d={};
@@ -974,7 +1099,7 @@ function sanitize(d){
   const qq=(dd.quran&&typeof dd.quran==='object')?dd.quran:{}; const wp=parseInt(qq.wirdPages,10); dn.quran.wirdPages=(isFinite(wp)&&wp>=0&&wp<=604)?wp:4;
   dn.quran.reads=Array.isArray(qq.reads)?qq.reads.filter(r=>r&&typeof r==='object'&&r.id&&okDate(r.date)&&isFinite(+r.pages)&&+r.pages>0).map(r=>({id:r.id,date:r.date,pages:Math.min(604,Math.round(+r.pages)),note:typeof r.note==='string'?r.note:'',createdAt:r.createdAt||nowISO()})):[];
   if(qq.memo&&typeof qq.memo==='object'){ for(const k in qq.memo){ const n=parseInt(k,10); if(!(n>=1&&n<=114)) continue; const m=qq.memo[k]; if(!m||typeof m!=='object'||!['learning','done'].includes(m.status)) continue; dn.quran.memo[String(n)]={status:m.status,ayahs:Math.max(0,parseInt(m.ayahs,10)||0),level:Math.max(0,Math.min(5,parseInt(m.level,10)||0)),reviews:Math.max(0,parseInt(m.reviews,10)||0),last:okDate(m.last)?m.last:null,next:okDate(m.next)?m.next:null}; } }
-  s.deen=dn; s.settings.show3d=!!s.settings.show3d;
+  sanitize13(d,s,dn); s.deen=dn; s.settings.show3d=!!s.settings.show3d;
   const tm=d.timer; s.timer=(tm&&typeof tm==='object'&&typeof tm.startedAt==='string'&&!isNaN(new Date(tm.startedAt).getTime()))?{startedAt:tm.startedAt,kind:SK.includes(tm.kind)?tm.kind:'study',skillId:(tm.skillId&&sid.has(tm.skillId))?tm.skillId:null}:null;
   s.habits.forEach(h=>{ if(!h.log||typeof h.log!=='object') h.log={}; if(!Array.isArray(h.days)||!h.days.length) h.days=[0,1,2,3,4,5,6]; h.target=Math.max(1,Math.min(99,parseInt(h.target,10)||1)); if(!['build','quit'].includes(h.type)) h.type='build'; if(!h.createdAt) h.createdAt=nowISO(); if(!h.color) h.color=COLORS[0]; if(typeof h.unit!=='string') h.unit=''; if(!h.goalId||!s.goals.some(g=>g.id===h.goalId)) h.goalId=null; });
   return s;
@@ -992,6 +1117,7 @@ function load(){
   if(data&&oldV<6&&s.settings.seeded&&s.tasks.some(t=>t.sample)&&!s.meta.fitSeeded) pendingFitSeed=true;
   return s;
 }
+let xpVer=0;
 let state=load();
 let saveTimer=null, dirty=false, storageBroken=false;
 function persist(){
@@ -999,7 +1125,7 @@ function persist(){
   try{ localStorage.setItem(KEY,JSON.stringify(state)); storageBroken=false; }
   catch(e){ if(!storageBroken){ storageBroken=true; showError('تعذر الحفظ — مساحة التخزين ممتلئة أو محظورة. صدّر نسخة احتياطية من الإعدادات فورًا.'); } }
 }
-function save(){ dirty=true; clearTimeout(saveTimer); saveTimer=setTimeout(persist,120); }
+function save(){ dirty=true; xpVer++; clearTimeout(saveTimer); saveTimer=setTimeout(persist,120); }
 function dailyBackup(){ const d=today(); if(state.meta.backupDay!==d){ try{ localStorage.setItem(BKEY,JSON.stringify(state)); state.meta.backupDay=d; save(); }catch(e){} } }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&dirty){ clearTimeout(saveTimer); persist(); } });
 window.addEventListener('pagehide',()=>{ if(dirty){ clearTimeout(saveTimer); persist(); } });
@@ -1035,7 +1161,7 @@ window.addEventListener('unhandledrejection',ev=>reportError(ev.reason));
 
 /* ===================== الشيت (النافذة السفلية) ===================== */
 let sheetOpen=false, sheetOnClose=null, sheetCtx=null;
-function refreshSheet(){ if(!sheetOpen||!sheetCtx) return; if(sheetCtx.kind==='goal') goalDetail(sheetCtx.id); else if(sheetCtx.kind==='habit') habitDetail(sheetCtx.id); else if(sheetCtx.kind==='bucket') bucketDetail(sheetCtx.id); else if(sheetCtx.kind==='skill') skillDetail(sheetCtx.id); else if(sheetCtx.kind==='surahs') surahsSheet(); else if(sheetCtx.kind==='surah') surahSheet(sheetCtx.id); else if(sheetCtx.kind==='exercise') exerciseDetail(sheetCtx.id); else if(sheetCtx.kind==='weights') weightLogSheet(); else if(sheetCtx.kind==='debt') debtDetail(sheetCtx.id); else if(sheetCtx.kind==='buckethist') bucketHistorySheet(sheetCtx.id); }
+function refreshSheet(){ if(!sheetOpen||!sheetCtx) return; if(sheetCtx.kind==='goal') goalDetail(sheetCtx.id); else if(sheetCtx.kind==='habit') habitDetail(sheetCtx.id); else if(sheetCtx.kind==='bucket') bucketDetail(sheetCtx.id); else if(sheetCtx.kind==='skill') skillDetail(sheetCtx.id); else if(sheetCtx.kind==='surahs') surahsSheet(); else if(sheetCtx.kind==='surah') surahSheet(sheetCtx.id); else if(sheetCtx.kind==='exercise') exerciseDetail(sheetCtx.id); else if(sheetCtx.kind==='weights') weightLogSheet(); else if(sheetCtx.kind==='debt') debtDetail(sheetCtx.id); else if(sheetCtx.kind==='buckethist') bucketHistorySheet(sheetCtx.id); else if(sheetCtx.kind==='cali') caliSheet(sheetCtx.id); else if(sheetCtx.kind==='area') areaSheet(sheetCtx.id); }
 function openSheet(html,o){
   o=o||{}; const r=$('#sheet-root');
   r.innerHTML='<div class="sheet-bg" data-action="close-sheet"></div><div class="sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div>'+(o.title?'<div class="sheet-h"><h3>'+esc(o.title)+'</h3><button class="icon-btn" data-action="close-sheet" aria-label="إغلاق">'+ICON.x+'</button></div>':'')+'<div class="sheet-body">'+html+'</div></div>';
@@ -1052,7 +1178,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&sheetOpen) closeSh
 /* ===================== التوجيه والعرض ===================== */
 let tab='today', lastRenderDay=today();
 const scrollPos={};
-const filters={ tasks:'today', q:'', month:null, txAll:false, sessAll:false, progView:'vitals', surahF:'all', taskView:'tasks', fitView:'train', assistView:'chat', moneyQ:'', readsAll:false, moneyView:'month' };
+const filters={ tasks:'today', q:'', month:null, txAll:false, sessAll:false, progView:'areas', caliAll:false, alogAll:false, surahF:'all', taskView:'tasks', fitView:'train', assistView:'chat', moneyQ:'', readsAll:false, moneyView:'month' };
 let draft=null;
 const TABS=[['today','اليوم',ICON.sun],['tasks','المهام',ICON.list],['fit','الجسد',ICON.dumbbell],['money','المال',ICON.wallet],['deen','العبادة',ICON.mosque],['assist','المساعد',ICON.brain],['progress','التطوّر',ICON.heart]];
 function render(){
@@ -1123,10 +1249,10 @@ function habitsForDate(d){ return state.habits.filter(h=>isHabitScheduled(h,d)).
 function habitStreak(h,d){
   let s=0, cur=d, start=habitStartDay(h);
   if(isHabitScheduled(h,cur)&&!isHabitDone(h,cur)) cur=addDays(cur,-1);
-  for(let i=0;i<4000&&cur>=start;i++){ if(h.days.includes(parseISO(cur).getDay())){ if(isHabitDone(h,cur)) s++; else break; } cur=addDays(cur,-1); }
+  for(let i=0;i<4000&&cur>=start&&(!SS()||cur>=SS());i++){ if(h.days.includes(parseISO(cur).getDay())){ if(isHabitDone(h,cur)) s++; else break; } cur=addDays(cur,-1); }
   return s;
 }
-function habitBest(h,d){ let best=0, run=0, cur=habitStartDay(h); for(let i=0;i<4000&&cur<=d;i++){ if(h.days.includes(parseISO(cur).getDay())){ if(isHabitDone(h,cur)){ run++; if(run>best) best=run; } else if(cur!==d) run=0; } cur=addDays(cur,1); } return best; }
+function habitBest(h,d){ let best=0, run=0, cur=habitStartDay(h); if(SS()&&cur<SS()) cur=SS(); for(let i=0;i<4000&&cur<=d;i++){ if(h.days.includes(parseISO(cur).getDay())){ if(isHabitDone(h,cur)){ run++; if(run>best) best=run; } else if(cur!==d) run=0; } cur=addDays(cur,1); } return best; }
 function habitRate(h,d,n){ let sch=0, done=0; for(let i=0;i<n;i++){ const x=addDays(d,-i); if(x<habitStartDay(h)) break; if(h.days.includes(parseISO(x).getDay())){ sch++; if(isHabitDone(h,x)) done++; } } return sch? Math.round(done/sch*100):0; }
 function habitTotal(h){ let n=0; for(const k in h.log){ if(h.log[k]>=h.target) n++; } return n; }
 function dots7(h,d){ let s='<span class="dots7" style="--c:'+esc(h.color)+'">'; for(let i=6;i>=0;i--){ const x=addDays(d,-i); const sch=h.days.includes(parseISO(x).getDay())&&x>=habitStartDay(h); s+='<i class="'+(isHabitDone(h,x)?'on':(sch?'':'off'))+'"></i>'; } return s+'</span>'; }
@@ -1182,6 +1308,7 @@ function renderToday(){
   out+='<div class="summary"><div class="ring"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="'+R+'" fill="none" stroke="var(--surface-2)" stroke-width="7"/><circle cx="36" cy="36" r="'+R+'" fill="none" stroke="'+(pct===100?'var(--good)':'var(--accent)')+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+(C*pct/100).toFixed(1)+' '+C.toFixed(1)+'"/></svg><div class="pct num">'+pct+'%</div></div>'
     +'<div class="txt"><div class="greet">'+greet+esc(name)+'</div><div class="big">'+big+'</div><div class="sub">'+(tasks.length?'<span>'+nOf(tasks.length,'مهمة واحدة','مهمتان','مهام','مهمة')+'</span>':'')+(habits.length?'<span>'+nOf(habits.length,'عادة واحدة','عادتان','عادات','عادة')+'</span>':'')+(di.inc?'<span>الصلوات '+prayersDone(d)+'/5</span>':'')+(late.length?'<span style="color:var(--bad);font-weight:600">'+nOf(late.length,'مهمة متأخرة','مهمتان متأخرتان','متأخرة','متأخرة')+'</span>':'')+'</div></div></div>';
   out+='<div style="display:flex;justify-content:flex-end;margin-top:6px"><button class="link-btn" data-action="week-review">مراجعة الأسبوع ›</button></div>';
+  out+=todayEvalCard(d);
   out+=todayFitCard(d);
   out+=todayDeenCard(d);
   out+=todayVitalsCard(d);
@@ -1485,7 +1612,7 @@ function saveFinSettings(form){
 }
 
 /* ===================== المستوى والنقاط ===================== */
-function xpBreakdown(){ let tasks=0,habits=0,goals=0,money=0; state.tasks.forEach(t=>{ if(t.repeat) tasks+=10*Object.keys(t.completions||{}).length; else if(t.done) tasks+=10; }); state.habits.forEach(h=>{ for(const k in h.log) if(h.log[k]>=h.target) habits+=5; }); state.goals.forEach(g=>{ goals+=20*g.milestones.filter(x=>x.done).length; if(g.status==='done') goals+=100; }); const cm=curMonth(); activeMonths().forEach(m=>{ if(m<cm){ const s=monthStatus(m); if(s.income>0&&!s.deficits.length) money+=30; } }); const daily=25*(state.settings.dailyDone||[]).length; let body=0; (state.body&&state.body.sessions||[]).forEach(x=>{ body+=sessionXP(x); }); let deen=0; try{ deen=deenXP(); }catch(e){} let fit=0; try{ fit=fitXP(); }catch(e){} return {tasks,habits,goals,money,daily,body,deen,fit,total:tasks+habits+goals+money+daily+body+deen+fit}; }
+function xpBreakdown(){ let X; try{ X=xpLedger(); }catch(e){ reportError(e); return {tasks:0,habits:0,goals:0,money:0,daily:0,body:0,deen:0,fit:0,logs:0,total:0}; } const c=X.cat; return {tasks:c.tasks,habits:c.habits,goals:c.goals,money:c.money,daily:c.daily,body:c.body+c.mind,deen:c.deen+c.dhikr,fit:c.fit+c.cali,logs:c.logs,total:X.total}; }
 function levelFor(xp){ return Math.floor(Math.sqrt(xp/40))+1; }
 function levelInfo(){ const xp=xpBreakdown().total; const L=levelFor(xp); const cur=40*(L-1)*(L-1), next=40*L*L; return {xp,L,cur,next,pct:Math.max(0,Math.min(100,Math.round((xp-cur)/(next-cur)*100))),toNext:next-xp}; }
 
@@ -1522,7 +1649,7 @@ function characterSheet(){
     +'<div class="char-lv"><span class="lv-big num">'+li.L+'</span><span class="lv-word">'+esc(L().level)+'</span></div>'
     +'<div class="bar xpbar"><i style="width:'+li.pct+'%"></i></div><div class="char-xp num">'+li.xp+' / '+li.next+' نقطة · باقي '+li.toNext+' للمستوى '+(li.L+1)+'</div>'
     +'<div class="btn-row" style="justify-content:center;margin-top:12px;flex-wrap:wrap">'+(use3d?'<button type="button" class="btn sm" data-action="avatar-custom">تخصيص المجسم</button>':'<button type="button" class="btn sm" data-action="avatar-pick">'+(state.settings.avatar?'تغيير الصورة':'إضافة صورتك')+'</button>'+(state.settings.avatar?'<button type="button" class="btn sm ghost" data-action="avatar-remove">إزالة</button>':''))+'</div></div>'
-    +'<div class="dsec"><h4><span>الحالة</span><button class="link-btn" data-action="tab" data-tab="progress">التطوّر ›</button></h4><div class="card vmini" style="padding:12px 10px"><div class="vm" data-action="tab" data-tab="progress">'+heartSVG(vs.h,vs.rhr?vs.rhr.rhr:null,44)+'<div><b class="num">'+vs.h+'</b><small>القلب · '+esc(vs.ht.name)+'</small></div></div><div class="vm" data-action="tab" data-tab="progress">'+ringHTML(vs.b,44,'var(--warn)','')+'<div><b class="num">'+vs.b+'</b><small>البنيان · '+esc(vs.bt.name)+'</small></div></div><div class="vm" data-action="tab" data-tab="progress">'+ringHTML(vs.m,44,'var(--accent)','')+'<div><b class="num">'+vs.m+'</b><small>الذكاء · '+esc(vs.mt.name)+'</small></div></div><div class="vm" data-action="tab" data-tab="deen">'+ringHTML(vs.s,44,'var(--good)','')+'<div><b class="num">'+vs.s+'</b><small>الروح · '+esc(vs.st.name)+'</small></div></div></div>'+(topSkills.length?'<div class="qchips" style="margin-top:8px">'+topSkills.map(s=>{ const ma=masteryOf(skillHours(s)); return '<button type="button" data-action="open-skill" data-id="'+s.id+'" style="background:color-mix(in srgb,'+esc(s.color)+' 18%,transparent);color:'+esc(s.color)+'">'+esc(s.name)+' · '+esc(ma.name)+'</button>'; }).join('')+'</div>':'')+'</div>'
+    +charClassBlock()+'<div class="dsec"><h4><span>الحالة</span><button class="link-btn" data-action="tab" data-tab="progress">التطوّر ›</button></h4><div class="card vmini" style="padding:12px 10px"><div class="vm" data-action="tab" data-tab="progress">'+heartSVG(vs.h,vs.rhr?vs.rhr.rhr:null,44)+'<div><b class="num">'+vs.h+'</b><small>القلب · '+esc(vs.ht.name)+'</small></div></div><div class="vm" data-action="tab" data-tab="progress">'+ringHTML(vs.b,44,'var(--warn)','')+'<div><b class="num">'+vs.b+'</b><small>البنيان · '+esc(vs.bt.name)+'</small></div></div><div class="vm" data-action="tab" data-tab="progress">'+ringHTML(vs.m,44,'var(--accent)','')+'<div><b class="num">'+vs.m+'</b><small>الذكاء · '+esc(vs.mt.name)+'</small></div></div><div class="vm" data-action="tab" data-tab="deen">'+ringHTML(vs.s,44,'var(--good)','')+'<div><b class="num">'+vs.s+'</b><small>الروح · '+esc(vs.st.name)+'</small></div></div></div>'+(topSkills.length?'<div class="qchips" style="margin-top:8px">'+topSkills.map(s=>{ const ma=masteryOf(skillHours(s)); return '<button type="button" data-action="open-skill" data-id="'+s.id+'" style="background:color-mix(in srgb,'+esc(s.color)+' 18%,transparent);color:'+esc(s.color)+'">'+esc(s.name)+' · '+esc(ma.name)+'</button>'; }).join('')+'</div>':'')+'</div>'
     +'<div class="dsec"><h4><span>الصفات</span><span style="font-weight:500">تُحسب من إنجازاتك الفعلية</span></h4><div class="card stats-card">'+st.map(s=>'<div class="cstat"><div class="cs-h"><span>'+esc(s.k)+'</span><b class="num">'+s.v+'</b></div><div class="bar cs-bar"><i data-w="'+Math.round(s.v/mx*100)+'"></i></div><small>'+esc(s.hint)+'</small></div>').join('')+'</div></div>'
     +'<div class="dsec"><h4><span>الرتبة</span>'+(nr?'<span style="font-weight:500">الرتبة '+nr[0]+' عند المستوى '+nr[1]+'</span>':'<span style="font-weight:500">أعلى رتبة</span>')+'</h4><div class="ranks">'+RANKS.map(x=>'<div class="rk'+(x[0]===rank?' cur':(li.L>=x[1]?' done':''))+'"><b>'+x[0]+'</b><small class="num">Lv '+x[1]+'</small></div>').join('')+'</div></div>'
     +achievementsHTML()
@@ -1591,7 +1718,9 @@ function vitalsSummary(){ const d=today(); const h=heartScore(d), b=bodyScore(d)
 /* ===================== شاشة التطوّر ===================== */
 function renderProgress(){
   const v=vitalsSummary(), d=today();
-  const seg='<div class="seg" style="margin-bottom:12px"><button type="button" data-action="prog-view" data-v="vitals" class="'+(filters.progView!=='goals'?'on':'')+'">الحالة والمهارات</button><button type="button" data-action="prog-view" data-v="goals" class="'+(filters.progView==='goals'?'on':'')+'">'+esc(L().goals)+'</button></div>';
+  const pv=filters.progView||'areas'; const seg='<div class="seg" style="margin-bottom:12px">'+[['areas','الجوانب'],['vitals','الحالة'],['goals','الأهداف'],['friends','الأصحاب']].map(x=>'<button type="button" data-action="prog-view" data-v="'+x[0]+'" class="'+(pv===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
+  if(pv==='areas') return seg+renderAreas();
+  if(pv==='friends') return seg+renderFriends();
   if(filters.progView==='goals') return seg+renderGoals();
   let out=seg;
   out+='<div class="vital heart"><div class="vh-graphic">'+heartSVG(v.h,v.rhr?v.rhr.rhr:null,118)+'</div><div class="vh-txt"><div class="vh-k">قوة القلب</div><div class="vh-score"><span class="num">'+v.h+'</span><small>/100</small></div><div class="vh-tier" style="color:'+(v.h<40?'var(--bad)':v.h<60?'var(--warn)':'var(--good)')+'">'+v.ht.name+'</div><div class="vh-meta">'+trendChip(v.h,v.h0)+(v.rhr?'<span class="chip num">نبض الراحة '+v.rhr.rhr+'</span>':'<span class="chip warn">سجّل نبض الراحة</span>')+'</div><div class="vh-week"><span>هذا الأسبوع: <b class="num">'+minutesThisWeek(HEART_K)+'</b> دقيقة كارديو</span>'+miniBars(weeklyMinutes(HEART_K,undefined,8),'var(--bad)')+'</div></div></div>';
@@ -1797,7 +1926,7 @@ function memoOf(n){ return DN().quran.memo[String(n)]||null; }
 function memoAyahs(n){ const m=memoOf(n); if(!m) return 0; return m.status==='done'?SURAHS[n-1][1]:Math.min(SURAHS[n-1][1],m.ayahs||0); }
 function memoStats(){ let surahs=0, ayahs=0, learning=0, due=0; const d=today(); for(let n=1;n<=114;n++){ const m=memoOf(n); if(!m) continue; ayahs+=memoAyahs(n); if(m.status==='done'){ surahs++; if(m.next&&m.next<=d) due++; } else if(m.status==='learning'&&(m.ayahs||0)>0) learning++; } return {surahs,ayahs,learning,due,pct:Math.round(ayahs/TOTAL_AYAHS*1000)/10}; }
 function dueReviews(){ const d=today(); const out=[]; for(let n=1;n<=114;n++){ const m=memoOf(n); if(m&&m.status==='done'&&m.next&&m.next<=d) out.push(n); } return out; }
-function prayerStreak(d){ let s=0, cur=d; if(prayersDone(cur)<5) cur=addDays(cur,-1); for(let i=0;i<4000;i++){ if(prayersDone(cur)===5){ s++; cur=addDays(cur,-1); } else break; } return s; }
+function prayerStreak(d){ let s=0, cur=d; if(prayersDone(cur)<5) cur=addDays(cur,-1); for(let i=0;i<4000;i++){ if(SS()&&cur<SS()) break; if(prayersDone(cur)===5){ s++; cur=addDays(cur,-1); } else break; } return s; }
 function spiritScore(ref){ ref=ref||today(); let pp=0, ad=0, wd=0; for(let i=0;i<28;i++){ const x=addDays(ref,-i); const p=dayPrayers(x); PRAYERS.forEach(k=>{ const v=p[k[0]]; if(v==='j'||v==='t') pp+=1; else if(v==='q') pp+=.5; }); if(adhkarCounts(x,'morning').complete) ad++; if(adhkarCounts(x,'evening').complete) ad++; if(wirdTarget()>0&&wirdPages(x)>=wirdTarget()) wd++; }
   const ms=memoStats(); const rev=(ms.surahs>0)?(ms.due===0?10:Math.max(0,10-ms.due*2)):0;
   return Math.round(Math.min(100,5+pp/140*40+ad/56*25+(wirdTarget()>0?wd/28*20:0)+rev)); }
@@ -1811,8 +1940,9 @@ function renderDeen(){
   const d=today(); const sp=spiritScore(d), sp0=spiritScore(addDays(d,-28)), tier=tierOf(sp), streak=prayerStreak(d), ks=khatmaStats(), ms=memoStats(), due=dueReviews(), isFri=parseISO(d).getDay()===5, runs=prayerRuns(d), wp=wirdPages(d), wt=wirdTarget(), eta=khatmaETA();
   let out='<div class="vital heart" style="align-items:center">'+ringHTML(sp,84,'var(--good)','<b class="num" style="font-size:22px">'+sp+'</b>')+'<div class="vh-txt"><div class="vh-k">الروح</div><div class="vh-tier" style="font-size:18px;color:'+(sp<40?'var(--bad)':sp<60?'var(--warn)':'var(--good)')+'">'+esc(tier.name)+'</div><div class="vh-meta">'+trendChip(sp,sp0)+(streak?'<span class="chip warn">'+ICON.flame+' <span class="num">'+streak+'</span> يوم صلوات كاملة</span>':'')+'</div><p class="hint" style="margin:6px 0 0">من الصلوات في وقتها، وأذكار الصباح والمساء، والورد اليومي، ومراجعة المحفوظ.</p></div></div>';
   out+='<div class="section">'+sectionH('صلوات اليوم',prayersDone(d)+'/5','<button class="link-btn" data-action="deen-settings">إعدادات</button>')+'<div class="card" style="padding:10px 10px 8px">'+prayerRow(d)+'<p class="hint" style="margin:6px 4px 0">اضغط للتبديل: في وقتها ← جماعة ← قضاء ← فارغ.</p></div></div>';
+  out+=sunnahSection(d);
   out+='<div class="section">'+sectionH('الأذكار',null,'<span class="chip warn">'+ICON.flame+' صباح <span class="num">'+adhkarStreak('morning',d)+'</span> · مساء <span class="num">'+adhkarStreak('evening',d)+'</span></span>')+'<div class="agrid">'+adhkarCard(d,'morning')+adhkarCard(d,'evening')+'<div class="acard'+(runs>=5?' done':'')+'" role="button" tabindex="0" data-action="open-adhkar" data-set="prayer"><div class="ah"><span>بعد الصلاة</span><span class="chip num'+(runs>=5?' good':'')+'">'+runs+'/5</span></div><div class="bar"><i style="width:'+Math.min(100,runs*20)+'%"></i></div></div>'+adhkarCard(d,'sleep')+adhkarCard(d,'wake')+(isFri?adhkarCard(d,'friday'):'')+'</div>'
-    +'<div class="card tasb" role="button" tabindex="0" data-action="open-tasbih"><div><div class="hint" style="margin:0">المسبحة</div><b class="num">'+(dayAdhkar(d).tasbih||0)+'</b> <small>تسبيحة اليوم</small></div><span class="btn sm primary">افتح</span></div></div>';
+    +'</div>'; out+=dhikrSection(d);
   out+='<div class="section">'+sectionH('القرآن — الورد اليومي',wt?wp+'/'+wt+' صفحة':null,'<button class="link-btn" data-action="add-read">+ قراءة</button>')+'<div class="card" style="padding:12px 14px">'
     +(wt?'<div class="bar" style="height:8px"><i style="width:'+Math.min(100,Math.round(wp/wt*100))+'%;background:'+(wp>=wt?'var(--good)':'var(--accent)')+'"></i></div><div class="hint" style="margin:6px 0 10px">'+(wp>=wt?'أتممت ورد اليوم ✓':'باقي '+(wt-wp)+' '+(wt-wp===1?'صفحة':wt-wp===2?'صفحتان':wt-wp<=10?'صفحات':'صفحة')+' على ورد اليوم')+'</div>':'<p class="hint" style="margin:0 0 10px">حدّد وردًا يوميًا بالصفحات من الإعدادات ليتابعه النظام.</p>')
     +'<div class="qchips">'+[1,2,4,10].map(n=>'<button type="button" data-action="quick-read" data-n="'+n+'">+'+n+' '+(n===1?'صفحة':n===2?'صفحتان':'صفحات')+'</button>').join('')+(wt&&wp<wt?'<button type="button" data-action="quick-read" data-n="'+(wt-wp)+'" class="on">أتمّ الورد</button>':'')+'</div>'
@@ -1824,7 +1954,7 @@ function renderDeen(){
     +(due.length?'<div class="dsec" style="margin-top:12px"><h4>مراجعات اليوم</h4><div class="list">'+due.slice(0,8).map(n=>{ const m=memoOf(n); return '<div class="row" style="min-height:50px"><div class="row-main" data-action="open-surah" data-n="'+n+'"><div class="row-title">'+esc(SURAHS[n-1][0])+' <small class="num" style="color:var(--text-3)">'+SURAHS[n-1][1]+' آية</small></div><div class="row-meta"><span>المستوى '+((m.level||0)+1)+' · '+(m.next<today()?'متأخرة '+nDays(daysBetween(m.next,today())):'اليوم')+'</span></div></div><button class="btn sm primary" data-action="review-ok" data-n="'+n+'">راجعت ✓</button><button class="mini" data-action="review-fail" data-n="'+n+'" aria-label="احتجت مساعدة">↺</button></div>'; }).join('')+'</div></div>':(ms.surahs?'<p class="hint" style="margin:10px 0 0">لا مراجعات مستحقة اليوم — محفوظك ثابت ✓</p>':'<p class="hint" style="margin:10px 0 0">افتح "كل السور" وعلّم ما تحفظه؛ النظام يذكّرك بالمراجعة بفواصل متباعدة (1، 3، 7، 14، 30، 60 يومًا).</p>'))+'</div></div>';
   return out;
 }
-function todayDeenCard(d){ const c1=adhkarCounts(d,'morning'), c2=adhkarCounts(d,'evening'), wp=wirdPages(d), wt=wirdTarget(); return '<div class="section">'+sectionH('العبادة',prayersDone(d)+'/5','<button class="link-btn" data-action="tab" data-tab="deen">الكل</button>')+'<div class="card" style="padding:10px 10px 8px">'+prayerRow(d,true)+'<div class="qchips" style="margin-top:8px"><button type="button" data-action="open-adhkar" data-set="morning" class="'+(c1.complete?'on':'')+'">الصباح '+(c1.complete?'✓':c1.done+'/'+c1.total)+'</button><button type="button" data-action="open-adhkar" data-set="evening" class="'+(c2.complete?'on':'')+'">المساء '+(c2.complete?'✓':c2.done+'/'+c2.total)+'</button>'+(wt?'<button type="button" data-action="tab" data-tab="deen" class="'+(wp>=wt?'on':'')+'">الورد '+wp+'/'+wt+'</button>':'')+'<button type="button" data-action="open-tasbih">المسبحة</button></div></div></div>'; }
+function todayDeenCard(d){ const c1=adhkarCounts(d,'morning'), c2=adhkarCounts(d,'evening'), wp=wirdPages(d), wt=wirdTarget(); return '<div class="section">'+sectionH('العبادة',prayersDone(d)+'/5','<button class="link-btn" data-action="tab" data-tab="deen">الكل</button>')+'<div class="card" style="padding:10px 10px 8px">'+prayerRow(d,true)+'<div class="qchips" style="margin-top:8px"><button type="button" data-action="open-adhkar" data-set="morning" class="'+(c1.complete?'on':'')+'">الصباح '+(c1.complete?'✓':c1.done+'/'+c1.total)+'</button><button type="button" data-action="open-adhkar" data-set="evening" class="'+(c2.complete?'on':'')+'">المساء '+(c2.complete?'✓':c2.done+'/'+c2.total)+'</button>'+(wt?'<button type="button" data-action="tab" data-tab="deen" class="'+(wp>=wt?'on':'')+'">الورد '+wp+'/'+wt+'</button>':'')+'<button type="button" data-action="tab" data-tab="deen" class="'+(sunnahRak(d).rawatib>=12?'on':'')+'">السنن '+sunnahRak(d).rawatib+'/12</button><button type="button" data-action="dz-open" data-id="salawat" class="'+(dhikrTotal(d)>=100?'on':'')+'">الذكر '+fmtNum(dhikrTotal(d))+'</button></div></div></div>'; }
 
 /* ===================== العبادة — النوافذ ===================== */
 let adhkarSet=null;
@@ -1882,8 +2012,8 @@ function setPill(d,it,i){ const s=setsOf(d,it.exId)[i]; const ex=exById(it.exId)
 /* ===================== الجسد — الشاشة ===================== */
 function renderFit(){
   const seg=filters.fitView||'train';
-  let out='<div class="seg seg-top">'+[['train','تمرين'],['food','تغذية'],['body','قياسات']].map(x=>'<button type="button" data-action="fit-view" data-v="'+x[0]+'" class="'+(seg===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
-  try{ out+= seg==='food'?renderNutrition():seg==='body'?renderFitBody():renderFitTrain(); }catch(e){ reportError(e); out+='<div class="card"><p class="hint">حدث خطأ في عرض هذا القسم.</p></div>'; }
+  let out='<div class="seg seg-top">'+[['train','تمرين'],['cali','كاليستنكس'],['food','تغذية'],['body','قياسات']].map(x=>'<button type="button" data-action="fit-view" data-v="'+x[0]+'" class="'+(seg===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
+  try{ out+= seg==='cali'?renderCali():seg==='food'?renderNutrition():seg==='body'?renderFitBody():renderFitTrain(); }catch(e){ reportError(e); out+='<div class="card"><p class="hint">حدث خطأ في عرض هذا القسم.</p></div>'; }
   return out;
 }
 function renderFitTrain(){
@@ -1996,11 +2126,11 @@ function overloadReady(d,it){ const ex=exById(it.exId); if(!ex||ex.unit==='bw') 
 function weekRange(d){ const wd=parseISO(d).getDay(); const back=(wd-6+7)%7; const start=addDays(d,-back); return {start,end:addDays(start,6)}; }
 function trainingWeek(d){ const r=weekRange(d); let planned=0,done=0,minutes=0,volume=0; for(let i=0;i<7;i++){ const x=addDays(r.start,i); if(x>d) break; const p=planFor(x); if(!p.rest&&p.workout.items.length){ planned++; const L=fitLog(x); if(L.workout&&(L.workout.completedAt||workoutProgress(x).complete)) done++; } } B().sessions.forEach(s=>{ if(s.date>=r.start&&s.date<=d&&BODY_K.includes(s.kind)) minutes+=s.minutes; }); for(const k in FT().logs){ if(k>=r.start&&k<=d){ const w=FT().logs[k].workout; if(w&&w.sets) for(const ex in w.sets) w.sets[ex].forEach(s=>{ if(s&&s.done) volume+=(+s.reps||0)*(+s.weight||0); }); } } return Object.assign(r,{planned,done,minutes,volume}); }
 function dailyAllowance(){ const m=curMonth(), d=today(); const b=sortedBuckets().find(x=>x.kind==='personal'); if(!b) return null; const s=bucketState(b,m); const p=parseISO(d); const daysInMonth=new Date(p.getFullYear(),p.getMonth()+1,0).getDate(); const left=daysInMonth-p.getDate()+1; return {bucket:b,available:s.available,perDay:round2(s.available/left),daysLeft:left}; }
-function adhkarStreak(set,d){ let s=0, cur=d; if(!adhkarCounts(cur,set).complete) cur=addDays(cur,-1); for(let i=0;i<2000;i++){ if(adhkarCounts(cur,set).complete){ s++; cur=addDays(cur,-1); } else break; } return s; }
+function adhkarStreak(set,d){ let s=0, cur=d; if(!adhkarCounts(cur,set).complete) cur=addDays(cur,-1); for(let i=0;i<2000;i++){ if(SS()&&cur<SS()) break; if(adhkarCounts(cur,set).complete){ s++; cur=addDays(cur,-1); } else break; } return s; }
 function khatmaETA(){ const ks=khatmaStats(), w=wirdTarget(); if(!w) return null; const left=MUSHAF_PAGES-ks.cur; const days=Math.ceil(left/w); return {left,days,date:addDays(today(),days)}; }
 
 /* ===================== الإنجازات ===================== */
-function achievements(){ const d=today(); const doneTasks=state.tasks.filter(t=>t.done).length+state.tasks.reduce((a,t)=>a+(t.repeat?Object.keys(t.completions||{}).length:0),0); const bestHabit=Math.max(0,...state.habits.map(h=>habitBest(h,d))); const strength=B().sessions.filter(s=>BODY_K.includes(s.kind)).length; const cardio=B().sessions.filter(s=>HEART_K.includes(s.kind)).length; const ms=memoStats(); const ks=khatmaStats(); let cleanMonths=0; activeMonths().forEach(m=>{ if(m<curMonth()){ const s=monthStatus(m); if(s.income>0&&!s.deficits.length) cleanMonths++; } }); const L=levelInfo().L, rank=rankFor(L); const st=weightStats(); const amma=(()=>{ for(let n=78;n<=114;n++){ const m=memoOf(n); if(!m||m.status!=='done') return false; } return true; })(); const skillsMax=Math.max(0,...activeSkills().map(s=>masteryOf(skillHours(s)).idx));
+function achievements(){ const d=today(); const doneTasks=state.tasks.filter(t=>t.done&&!t.repeat&&inS(t.doneAt?isoDay(t.doneAt):(t.due||''))).length+state.tasks.reduce((a,t)=>a+(t.repeat?Object.keys(t.completions||{}).filter(inS).length:0),0); const bestHabit=Math.max(0,...state.habits.map(h=>habitBest(h,d))); const strength=B().sessions.filter(s=>BODY_K.includes(s.kind)&&inS(s.date)).length; const cardio=B().sessions.filter(s=>HEART_K.includes(s.kind)&&inS(s.date)).length; const ms=memoStats(); const ks=khatmaStats(); let cleanMonths=0; activeMonths().forEach(m=>{ if(m<curMonth()&&inS(m+'-31')){ const s=monthStatus(m); if(s.income>0&&!s.deficits.length) cleanMonths++; } }); const L=levelInfo().L, rank=rankFor(L); const st=weightStats(); const amma=(()=>{ for(let n=78;n<=114;n++){ const m=memoOf(n); if(!m||m.status!=='done') return false; } return true; })(); const skillsMax=Math.max(0,...activeSkills().map(s=>masteryOf(skillHours(s)).idx));
   return [
     {k:'t1',name:'البداية',desc:'أنجز أول مهمة',ok:doneTasks>=1,icon:ICON.check},{k:'t10',name:'منتج',desc:'10 مهام منجزة',ok:doneTasks>=10,icon:ICON.list},{k:'t100',name:'آلة إنجاز',desc:'100 مهمة منجزة',ok:doneTasks>=100,icon:ICON.list},
     {k:'h7',name:'أسبوع التزام',desc:'سلسلة عادة 7 أيام',ok:bestHabit>=7,icon:ICON.flame},{k:'h30',name:'شهر حديدي',desc:'سلسلة عادة 30 يومًا',ok:bestHabit>=30,icon:ICON.flame},
@@ -2009,7 +2139,7 @@ function achievements(){ const d=today(); const doneTasks=state.tasks.filter(t=>
     {k:'q1',name:'خاتم',desc:'أول ختمة للقرآن',ok:ks.done>=1,icon:ICON.target},{k:'m10',name:'حافظ',desc:'10 سور محفوظة',ok:ms.surahs>=10,icon:ICON.brain},{k:'amma',name:'جزء عمّ',desc:'حفظ جزء عمّ كاملًا',ok:amma,icon:ICON.brain},
     {k:'f1',name:'منضبط ماليًا',desc:'شهر مالي بلا عجز',ok:cleanMonths>=1,icon:ICON.wallet},{k:'f3',name:'مستثمر',desc:'3 شهور مالية سليمة',ok:cleanMonths>=3,icon:ICON.wallet},
     {k:'sk',name:'ممارس',desc:'مهارة بمستوى ممارس (50 ساعة)',ok:skillsMax>=2,icon:ICON.timer},{k:'gw',name:'الوزن المستهدف',desc:'الوصول لوزن الهدف',ok:!!(st&&st.goal&&Math.abs(st.last.weight-st.goal)<0.05),icon:ICON.user},
-    {k:'rD',name:'الرتبة D',desc:'المستوى 5',ok:L>=5,icon:ICON.target},{k:'rC',name:'الرتبة C',desc:'المستوى 10',ok:L>=10,icon:ICON.target},{k:'rB',name:'الرتبة B',desc:'المستوى 20',ok:L>=20,icon:ICON.target},{k:'rS',name:'ملك الظلال',desc:'الرتبة S — المستوى 50',ok:rank==='S',icon:ICON.target}
+    ...achV13(d),{k:'rD',name:'الرتبة D',desc:'المستوى 5',ok:L>=5,icon:ICON.target},{k:'rC',name:'الرتبة C',desc:'المستوى 10',ok:L>=10,icon:ICON.target},{k:'rB',name:'الرتبة B',desc:'المستوى 20',ok:L>=20,icon:ICON.target},{k:'rS',name:'ملك الظلال',desc:'الرتبة S — المستوى 50',ok:rank==='S',icon:ICON.target}
   ]; }
 function achievementsHTML(){ const a=achievements(); const n=a.filter(x=>x.ok).length; return '<div class="dsec"><h4><span>الإنجازات</span><span class="num" style="font-weight:500">'+n+'/'+a.length+'</span></h4><div class="ach">'+a.map(x=>'<div class="achi'+(x.ok?' ok':'')+'" title="'+esc(x.desc)+'"><span class="ai">'+x.icon+'</span><b>'+esc(x.name)+'</b><small>'+esc(x.desc)+'</small></div>').join('')+'</div></div>'; }
 
@@ -2212,8 +2342,8 @@ function AI(){ return state.ai; }
 const AI_PRICE={'claude-haiku-4-5':{i:1,o:5},'claude-sonnet-5':{i:2,o:10}};
 const AI_MODELS=[['claude-haiku-4-5','سريع واقتصادي'],['claude-sonnet-5','أدق وأغلى 4×']];
 const MOODS=[[1,'سيئ','😞'],[2,'تعبان','😕'],[3,'عادي','😐'],[4,'كويس','🙂'],[5,'ممتاز','😄']];
-const ACT_LABEL={food:'أكل',expense:'مصروف',income:'دخل',workout:'تمرين',task_add:'مهمة',task_done:'إنجاز مهمة',habit_done:'عادة',goal_add:'هدف جديد',prayer:'صلاة',adhkar:'أذكار',quran:'قرآن',metric:'قياس',journal:'يوميات'};
-const ACT_ICON={food:'🍽️',expense:'💸',income:'💰',workout:'🏋️',task_add:'✅',task_done:'✅',habit_done:'🔁',goal_add:'🎯',prayer:'🕌',adhkar:'📿',quran:'📖',metric:'⚖️',journal:'📓'};
+const ACT_LABEL={food:'أكل',expense:'مصروف',income:'دخل',workout:'تمرين',task_add:'مهمة',task_done:'إنجاز مهمة',habit_done:'عادة',goal_add:'هدف جديد',prayer:'صلاة',adhkar:'أذكار',quran:'قرآن',metric:'قياس',journal:'يوميات',dhikr:'ذكر',sunnah:'سنة',cali:'كاليستنكس',area_log:'إنجاز'};
+const ACT_ICON={food:'🍽️',expense:'💸',income:'💰',workout:'🏋️',task_add:'✅',task_done:'✅',habit_done:'🔁',goal_add:'🎯',prayer:'🕌',adhkar:'📿',quran:'📖',metric:'⚖️',journal:'📓',dhikr:'📿',sunnah:'🕌',cali:'🤸',area_log:'⭐'};
 function aiReady(){ return !!(AI().key&&AI().key.length>20); }
 function curMonthKey(){ return today().slice(0,7); }
 function aiSpent(){ const s=AI().spent||{}; if(s.month!==curMonthKey()) return {month:curMonthKey(),usd:0,inTok:0,outTok:0,calls:0}; return s; }
@@ -2241,6 +2371,7 @@ function aiContext(){
   const sk=activeSkills().slice(0,12);
   if(sk.length) L.push('المهارات: '+sk.map(s=>s.id+'|'+s.name).join(' ; '));
   const pr=dayPrayers(d); L.push('صلوات اليوم: '+PRAYERS.map(p=>p[0]+'|'+p[1]+'|'+(pr[p[0]]==='t'?'في وقتها':pr[p[0]]==='j'?'جماعة':pr[p[0]]==='l'?'متأخرة':'لم تُسجّل')).join(' ; '));
+  aiCtx13(L);
   const tg=targets(); if(tg.kcal) L.push('أهداف التغذية: '+tg.kcal+' سعرة، بروتين '+tg.protein+'، كارب '+tg.carbs+'، دهون '+tg.fat);
   return L.join('\n');
 }
@@ -2258,6 +2389,10 @@ const AI_SYS='أنت مساعد داخل تطبيق "حياة" — نظام شخ
 +'- adhkar: أذكار. set إما morning أو evening.\n'
 +'- quran: قراءة قرآن. pages عدد الصفحات.\n'
 +'- metric: قياس جسم. weight بالكيلو، rhr نبض الراحة، waist الخصر بالسنتيمتر.\n'
++'- dhikr: ذكر قاله وعدّه. id من قائمة الأذكار المعدودة، و qty العدد. مثال: صليت على النبي ١٠٠٠ مرة → id salawat و qty 1000. استغفرت ١٠٠ → istighfar.\n'
++'- sunnah: سنة راتبة أو نافلة صلاها — إجراء لكل واحدة. id من: fajr_b (قبل الفجر)، dhuhr_b (قبل الظهر)، dhuhr_a (بعد الظهر)، maghrib_a (بعد المغرب)، isha_a (بعد العشاء)، asr_b (قبل العصر)، duha (الضحى)، witr (الوتر)، qiyam (قيام الليل). "صليت السنن كلها" = الخمس رواتب.\n'
++'- cali: تمرين كاليستنكس بوزن الجسم (ضغط، دايموند، عقلة، غطس، سكوات، بلانك، وقوف على اليدين...). id من قائمة مهارات الكاليستنكس، و sets مصفوفة بالعدّات لكل جولة (أو الثواني للثابت). مثال: لعبت ٣ جولات ضغط ١٥ و١٢ و١٠ → id pushup و sets [15,12,10]. ١٠٠ ضغطة متفرقين → sets بجولات ٢٠. الكارديو والجيم بأوزان → workout.\n'
++'- area_log: إنجاز أو نشاط مالوش نوع من اللي فوق (ساعدت حد، اتصدقت، بريت والديّ، قعدت يوم من غير سوشيال، ادّخرت، اتعلمت حاجة جديدة). area واحد من str (القوة) / end (التحمّل) / spi (الروح) / int (العقل) / dis (الانضباط)، و pts من 1 لـ 30 حسب المجهود والأثر (كن متحفّظ)، و text وصف قصير.\n'
 +'- journal: تدوينة يوميات. text ملخص كلامه ومشاعره بصيغة الغائب المختصرة، و mood من 1 (سيئ) إلى 5 (ممتاز). أضف واحدة كلما عبّر عن مشاعر أو حكى عن يومه.\n\n'
 +'قواعد مهمة:\n'
 +'- كل إجراء لازم يكون له label: وصف عربي قصير جدًا (٣-٦ كلمات) يظهر للمستخدم قبل التطبيق.\n'
@@ -2266,7 +2401,7 @@ const AI_SYS='أنت مساعد داخل تطبيق "حياة" — نظام شخ
 +'- الأرقام تقديرية مقبولة، لكن كن واقعيًا في السعرات.\n'
 +'- reply: من ٢ إلى ٤ جمل بالعامية المصرية — اعترف بما أنجزه، وانصحه بنصيحة واحدة عملية لو في حاجة تستاهل. لا تكرر قائمة الإجراءات.';
 const AI_SCHEMA={type:'object',properties:{reply:{type:'string'},actions:{type:'array',items:{type:'object',properties:{
-  type:{type:'string',enum:['food','expense','income','workout','task_add','task_done','habit_done','goal_add','prayer','adhkar','quran','metric','journal']},
+  type:{type:'string',enum:['food','expense','income','workout','task_add','task_done','habit_done','goal_add','prayer','adhkar','quran','metric','journal','dhikr','sunnah','cali','area_log']},sets:{type:'array',items:{type:'number'}},pts:{type:'number'},
   label:{type:'string'},id:{type:'string'},title:{type:'string'},amount:{type:'number'},qty:{type:'number'},
   slot:{type:'string'},kcal:{type:'number'},protein:{type:'number'},carbs:{type:'number'},fat:{type:'number'},
   category:{type:'string'},bucketId:{type:'string'},kind:{type:'string'},minutes:{type:'number'},intensity:{type:'number'},skillId:{type:'string'},
@@ -2320,10 +2455,14 @@ function applyAction(a,d){
     case 'task_done':{ const t=state.tasks.find(x=>x.id===a.id); if(!t) break; if(t.repeat) t.completions[d]=true; else { t.done=true; t.doneAt=nowISO(); } break; }
     case 'habit_done':{ const h=state.habits.find(x=>x.id===a.id); if(!h) break; h.log[d]=Math.min(h.target,Math.max(1,Math.round(n(a.qty))||h.target)); break; }
     case 'goal_add':{ const t=(a.title||a.label||'').trim(); if(!t) break; const id=uid(); state.goals.push({id,title:t.slice(0,120),why:a.why||'',area:AREAS[a.area]?a.area:'personal',color:COLORS[state.goals.length%COLORS.length],deadline:/^\d{4}-\d{2}-\d{2}$/.test(a.deadline||'')?a.deadline:'',status:'active',createdAt:nowISO(),doneAt:null,milestones:(Array.isArray(a.milestones)?a.milestones:[]).slice(0,8).filter(x=>typeof x==='string'&&x.trim()).map(x=>({id:uid(),title:x.trim().slice(0,100),done:false}))}); break; }
-    case 'prayer':{ const k=PRAYERS.find(p=>p[0]===a.id||p[1]===a.title||p[1]===a.label); if(!k) break; if(!DN().prayers[d]) DN().prayers[d]={}; DN().prayers[d][k[0]]=['t','j','l'].includes(a.status)?a.status:'t'; break; }
+    case 'prayer':{ const k=PRAYERS.find(p=>p[0]===a.id||p[1]===a.title||p[1]===a.label); if(!k) break; if(!DN().prayers[d]) DN().prayers[d]={}; DN().prayers[d][k[0]]=a.status==='j'?'j':(a.status==='l'||a.status==='q')?'q':'t'; break; }
     case 'adhkar':{ const set=a.set==='evening'?'evening':'morning'; if(!DN().adhkar[d]) DN().adhkar[d]={}; const o=DN().adhkar[d][set]||(DN().adhkar[d][set]={}); ADHKAR[set].items.forEach((it,i)=>{ o[i]=it.n; }); break; }
     case 'quran':{ const p=Math.round(n(a.pages)); if(!(p>0)) break; DN().quran.reads.push({id:uid(),date:d,pages:Math.min(60,p),note:a.note||'',createdAt:nowISO()}); break; }
     case 'metric':{ const m={id:uid(),date:d,weight:null,rhr:null,note:a.note||'',createdAt:nowISO()}; if(n(a.weight)>0) m.weight=round2(n(a.weight)); if(n(a.rhr)>0) m.rhr=Math.round(n(a.rhr)); if(n(a.waist)>0) m.waist=round2(n(a.waist)); if(m.weight==null&&m.rhr==null&&m.waist==null) break; B().metrics.push(m); break; }
+    case 'dhikr':{ const x=dhikrById(a.id)||dhikrList().find(z=>z.n===a.title); const q=Math.round(n(a.qty)); if(!x||!(q>0)) break; if(!DN().counts) DN().counts={}; const c=ensureDay(DN().counts,d); c[x.id]=(c[x.id]||0)+Math.min(100000,q); break; }
+    case 'sunnah':{ const z=SUNNAH.find(q=>q.id===a.id); if(!z) break; if(!DN().sunnah) DN().sunnah={}; ensureDay(DN().sunnah,d)[z.id]=1; break; }
+    case 'cali':{ const sk=CALI_BY[a.id]; const sets=(Array.isArray(a.sets)&&a.sets.length?a.sets:[a.qty]).map(v=>Math.round(n(v))).filter(v=>v>0&&v<=10000).slice(0,12); if(!sk||!sets.length) break; state.cali.logs.push({id:uid(),date:d,sk:sk.id,sets,note:a.note||'',createdAt:nowISO()}); break; }
+    case 'area_log':{ const t=(a.text||a.title||a.label||'').trim(); if(!t||!AREA_MAP[a.area]) break; state.areaLogs.push({id:uid(),date:d,area:a.area,text:t.slice(0,200),pts:Math.max(1,Math.min(30,Math.round(n(a.pts))||5)),reason:a.note||'',source:'ai',createdAt:nowISO()}); break; }
     case 'journal':{ const t=(a.text||a.title||'').trim(); if(!t) break; state.journal.push({id:uid(),date:d,text:t.slice(0,4000),mood:[1,2,3,4,5].includes(a.mood)?a.mood:3,source:'ai',createdAt:nowISO()}); break; }
   }
 }
@@ -2400,6 +2539,7 @@ function revDetail(a){
   if(a.minutes) p.push(a.minutes+' دقيقة'); if(a.pages) p.push(a.pages+' صفحة'); if(a.weight) p.push(fmtNum(a.weight)+' كجم');
   if(a.due&&a.type==='task_add') p.push(dueLabel(a.due,today())); if(a.done) p.push('تمت');
   if(a.milestones&&a.milestones.length) p.push(a.milestones.length+' مراحل'); if(a.mood) p.push('مزاج '+a.mood+'/5');
+  if(a.type==='dhikr'&&a.qty) p.push(fmtNum(a.qty)+' مرة'); if(a.type==='cali'&&Array.isArray(a.sets)) p.push((CALI_BY[a.id]?CALI_BY[a.id].n+': ':'')+a.sets.join(' · ')); if(a.type==='area_log'&&AREA_MAP[a.area]) p.push(AREA_MAP[a.area].n+' +'+(Math.round(+a.pts)||0)); if(a.type==='sunnah'){ const z=SUNNAH.find(q=>q.id===a.id); if(z) p.push(z.n); }
   return p.length?' · '+p.map(esc).join(' · '):'';
 }
 function journalSheet(x){
@@ -2856,8 +2996,8 @@ function openSettings(sub){
     +'<div class="dsec" id="s-backup"><h4>النسخ الاحتياطي</h4><p class="hint" style="margin:0 0 10px">بياناتك على هذا الجهاز فقط. خُذ نسخة أسبوعيًا واحفظها في Google Drive أو أرسلها لنفسك على واتساب.</p><div class="btn-row"><button type="button" class="btn primary" data-action="backup-share">مشاركة ملف النسخة</button><button type="button" class="btn" data-action="backup-copy">نسخ النص</button></div><p class="hint">آخر نسخة: <span id="s-last">'+esc(fmtDateTime(s.lastBackupAt))+'</span> · <button type="button" class="link-btn" style="font-size:12.5px;padding:0 4px" data-action="backup-show">عرض النص</button></p><textarea class="inp export-box" id="s-export" readonly hidden></textarea></div>'
     +'<div class="dsec"><h4>استيراد نسخة</h4><textarea class="inp export-box" id="s-import" placeholder="الصق نص النسخة هنا"></textarea><div class="btn-row"><button type="button" class="btn" data-action="import-merge">دمج مع الحالي</button><button type="button" class="btn danger" data-action="import-replace">استبدال الكل</button></div><p class="hint" id="s-import-msg">الدمج يضيف العناصر الجديدة ويحدّث المتطابقة. الاستبدال يمسح الحالي ويضع النسخة مكانه (مع إمكانية التراجع).</p></div>'
     +(samples?'<div class="dsec"><h4>بيانات المثال</h4><button type="button" class="btn block" data-action="remove-samples">حذف كل الأمثلة (<span class="num">'+samples+'</span>)</button></div>':'')
-    +'<div class="dsec"><h4>حذف كل البيانات</h4><p class="hint" style="margin:0 0 8px">اكتب كلمة <b>مسح</b> ثم اضغط الزر. يمكن التراجع خلال ثوانٍ فقط.</p><div class="addline"><input class="inp" type="text" id="s-wipe" placeholder="مسح" autocomplete="off"><button type="button" class="btn danger" style="width:auto;padding:0 14px" data-action="wipe">حذف الكل</button></div></div>'
-    +'<div class="dsec"><h4>عن التطبيق</h4><div class="kv"><span>الأهداف / المهام / العادات</span><span class="num">'+state.goals.length+' / '+state.tasks.length+' / '+state.habits.length+'</span></div><div class="kv"><span>آخر حفظ</span><span>'+esc(fmtDateTime(state.meta.updatedAt))+'</span></div><div class="kv"><span>النسخة</span><span>1.0 — الأساس</span></div><div class="kv"><span>التخزين</span><span>'+(storageBroken?'متعطل':'محلي على الجهاز')+'</span></div></div>';
+    +seasonSettingsHTML()+'<div class="dsec"><h4>حذف كل البيانات</h4><p class="hint" style="margin:0 0 8px">اكتب كلمة <b>مسح</b> ثم اضغط الزر. يمكن التراجع خلال ثوانٍ فقط.</p><div class="addline"><input class="inp" type="text" id="s-wipe" placeholder="مسح" autocomplete="off"><button type="button" class="btn danger" style="width:auto;padding:0 14px" data-action="wipe">حذف الكل</button></div></div>'
+    +'<div class="dsec"><h4>عن التطبيق</h4><div class="kv"><span>الأهداف / المهام / العادات</span><span class="num">'+state.goals.length+' / '+state.tasks.length+' / '+state.habits.length+'</span></div><div class="kv"><span>آخر حفظ</span><span>'+esc(fmtDateTime(state.meta.updatedAt))+'</span></div><div class="kv"><span>النسخة</span><span>13 — الجوانب والكاليستنكس</span></div><div class="kv"><span>التخزين</span><span>'+(storageBroken?'متعطل':'محلي على الجهاز')+'</span></div></div>';
   openSheet(html,{title:'الإعدادات',focus:false});
   if(sub==='backup'){ setTimeout(()=>{ const el=$('#s-backup'); if(el) el.scrollIntoView({block:'start'}); },80); }
 }
@@ -2934,6 +3074,482 @@ function seedFitSamples(){
 }
 
 /* ===================== البداية وبيانات المثال ===================== */
+/* ===================== v13 — الموسم والجوانب والفئات ===================== */
+let xpCache=null, xpCacheKey='', caliCache=null, caliKey='';
+function SS(){ return (state.settings&&state.settings.seasonStart)||''; }
+function inS(d){ const s=SS(); return !s||(!!d&&d>=s); }
+function isoDay(iso){ if(!iso) return ''; try{ const t=new Date(iso); return isNaN(t.getTime())?'':isoDate(t); }catch(e){ return ''; } }
+function SOC(){ return state.social; }
+const AREA5=[
+  {k:'str',n:'القوة',cls:'مهاجم',ic:'⚔️',c:'#E0533D',d:'تمارين القوة والكاليستنكس',tip:'تمارين الجيم، والكاليستنكس (ضغط، عقلة، غطس، وقوف على اليدين)، وجلسات القوة.'},
+  {k:'end',n:'التحمّل',cls:'مدافع',ic:'🛡️',c:'#2E86C1',d:'الكارديو والمشي والأرجل والتغذية',tip:'الكارديو والمشي والرياضة، تمارين الأرجل والبطن، والالتزام بأهداف الأكل والبروتين.'},
+  {k:'spi',n:'الروح',cls:'معالج',ic:'✨',c:'#2C9A58',d:'الصلاة والسنن والذكر والقرآن',tip:'الصلوات في وقتها وجماعة، السنن الرواتب، الأذكار والتسبيح، والورد والحفظ.'},
+  {k:'int',n:'العقل',cls:'ساحر',ic:'🔮',c:'#8E5BD0',d:'المذاكرة والقراءة والمهارات واليوميات',tip:'المذاكرة والقراءة والتدريب على المهارات، واليوميات، ومراحل أهداف التعلّم.'},
+  {k:'dis',n:'الانضباط',cls:'متلاعب',ic:'🎭',c:'#BF8418',d:'المهام والعادات والأهداف والفلوس',tip:'المهام والعادات والمهمة اليومية، ومراحل الأهداف، والشهور المالية بلا عجز.'}];
+const AREA_MAP={}; AREA5.forEach(a=>{ AREA_MAP[a.k]=a; });
+const CLASS_DESC={str:'هجومك قوي — جسمك هو سلاحك الأول.',end:'صلب وصبور — بتتحمّل وتكمّل لآخر الطريق.',spi:'قلبك عامر — بتداوي نفسك واللي حواليك بالقرب من ربنا.',int:'عقل متّقد — بتتعلم وتبني مهارات بتفرق.',dis:'سيد الخطط — متحكم في وقتك وفلوسك وأهدافك.'};
+const CAT_N={tasks:'المهام',habits:'العادات',goals:'مراحل وأهداف',money:'شهور مالية سليمة',daily:'المهمة اليومية',body:'جلسات النشاط',deen:'الصلاة والقرآن والسنن',dhikr:'الذكر والتسبيح',fit:'الجيم والوجبات',cali:'الكاليستنكس',mind:'اليوميات',logs:'إنجازات سجّلتها'};
+function goalArea(gid){ const g=gid&&goalById(gid); if(!g) return 'dis'; return {health:'end',faith:'spi',learn:'int'}[g.area]||'dis'; }
+function sessArea(k){ return HEART_K.includes(k)?'end':BODY_K.includes(k)?'str':MIND_K.includes(k)?'int':'dis'; }
+function lastDayOfMonth(m){ const p=m.split('-').map(Number); return isoDate(new Date(p[0],p[1],0)); }
+function areaLevel(x){ return Math.floor(Math.sqrt(Math.max(0,x)/20))+1; }
+function areaLvInfo(x){ const lv=areaLevel(x), cur=20*(lv-1)*(lv-1), next=20*lv*lv; return {lv,cur,next,pct:Math.max(0,Math.min(100,Math.round((x-cur)/(next-cur)*100))),toNext:next-x}; }
+function memoXPTotal(){ let mx=0; for(let n=1;n<=114;n++){ const m=memoOf(n); if(m) mx+=memoAyahs(n)*2+(m.reviews||0)*5; } return mx; }
+
+/* سجل النقاط الموحّد: كل مصدر نقاط بتاريخه وجانبه */
+function xpLedger(){
+  const key=xpVer+'|'+today()+'|'+SS(); if(xpCache&&xpCacheKey===key) return xpCache;
+  const days={}, area={str:0,end:0,spi:0,int:0,dis:0}, cat={}, ca={}, tca={}, td=today(); Object.keys(CAT_N).forEach(c=>{ cat[c]=0; }); AREA5.forEach(a=>{ ca[a.k]={}; tca[a.k]={}; });
+  const add=(d,a,c,x)=>{ if(!x||!d||!inS(d)) return; if(!area.hasOwnProperty(a)) a='dis'; const o=days[d]||(days[d]={str:0,end:0,spi:0,int:0,dis:0}); o[a]+=x; area[a]+=x; cat[c]+=x; ca[a][c]=(ca[a][c]||0)+x; if(d===td) tca[a][c]=(tca[a][c]||0)+x; };
+  state.tasks.forEach(t=>{ const a=goalArea(t.goalId); if(t.repeat){ for(const k in (t.completions||{})) if(t.completions[k]) add(k,a,'tasks',10); } else if(t.done) add(t.doneAt?isoDay(t.doneAt):(t.due||isoDay(t.createdAt)),a,'tasks',10); });
+  state.habits.forEach(h=>{ const a=goalArea(h.goalId); for(const k in h.log) if(h.log[k]>=h.target) add(k,a,'habits',5); });
+  state.goals.forEach(g=>{ const a=goalArea(g.id); g.milestones.forEach(m=>{ if(m.done) add(m.doneAt?isoDay(m.doneAt):isoDay(g.createdAt),a,'goals',20); }); if(g.status==='done') add(g.doneAt?isoDay(g.doneAt):isoDay(g.createdAt),a,'goals',100); });
+  try{ const cm=curMonth(); activeMonths().forEach(m=>{ if(m<cm){ const s=monthStatus(m); if(s.income>0&&!s.deficits.length) add(lastDayOfMonth(m),'dis','money',30); } }); }catch(e){}
+  (state.settings.dailyDone||[]).forEach(d=>add(d,'dis','daily',25));
+  B().sessions.forEach(x=>add(x.date,sessArea(x.kind),'body',sessionXP(x)));
+  const P=DN().prayers; for(const d in P){ let x=0; PRAYERS.forEach(k=>{ x+=prayerXP(P[d][k[0]]); }); add(d,'spi','deen',x); }
+  const AD=DN().adhkar; for(const d in AD){ let x=0; ['morning','evening','sleep','wake','friday'].forEach(s=>{ if(adhkarCounts(d,s).complete) x+=10; }); x+=(AD[d].prayerRuns||0)*4; add(d,'spi','deen',x); }
+  const rdays={}; DN().quran.reads.forEach(r=>{ add(r.date,'spi','deen',r.pages); rdays[r.date]=(rdays[r.date]||0)+r.pages; }); const wt=wirdTarget(); if(wt>0) for(const d in rdays){ if(rdays[d]>=wt) add(d,'spi','deen',10); }
+  const memoX=Math.max(0,memoXPTotal()-(SS()?(+(state.settings.seasonBase||{}).memo||0):0)); if(memoX){ area.spi+=memoX; cat.deen+=memoX; ca.spi.deen=(ca.spi.deen||0)+memoX; }
+  const SN=DN().sunnah||{}; for(const d in SN) add(d,'spi','deen',sunnahXP(d));
+  const CN=DN().counts||{}; for(const d in CN) add(d,'spi','dhikr',dhikrXP(d));
+  for(const d in FT().logs){ const L=FT().logs[d]; let s=0, m=0; if(L.workout&&L.workout.sets){ for(const k in L.workout.sets){ (L.workout.sets[k]||[]).forEach(z=>{ if(z&&z.done) s++; }); } } if(L.meals){ m=Object.keys(L.meals).filter(k=>L.meals[k]).length*2; } add(d,'str','fit',s); add(d,'end','fit',m); }
+  caliLedger().forEach(e=>add(e.date,e.area,'cali',e.xp));
+  const jd={}; state.journal.forEach(j=>{ jd[j.date]=1; }); for(const d in jd) add(d,'int','mind',3);
+  (state.areaLogs||[]).forEach(l=>add(l.date,l.area,'logs',Math.max(0,Math.min(50,+l.pts||0))));
+  const sb=state.settings.seasonBase||{}; if(SS()&&sb.date===SS()&&sb.ca){ for(const a in sb.ca){ if(!ca[a]) continue; for(const c in sb.ca[a]){ const sub=Math.min(+sb.ca[a][c]||0,ca[a][c]||0); if(sub<=0) continue; ca[a][c]-=sub; cat[c]-=sub; area[a]-=sub; if(days[SS()]) days[SS()][a]=Math.max(0,days[SS()][a]-sub); } } }
+  const total=area.str+area.end+area.spi+area.int+area.dis;
+  xpCache={days,area,cat,ca,tca,total}; xpCacheKey=key; return xpCache;
+}
+function areaWeeks(k,n){ const X=xpLedger(), d=today(), out=[]; for(let w=n-1;w>=0;w--){ const to=addDays(d,-w*7); let s=0; for(let i=0;i<7;i++){ const o=X.days[addDays(to,-i)]; if(o) s+=o[k]; } out.push(s); } return out; }
+function areaPast(k,daysBack){ const X=xpLedger(), d=today(); let s=0; for(let i=0;i<daysBack;i++){ const o=X.days[addDays(d,-i)]; if(o) s+=o[k]; } return Math.max(0,X.area[k]-s); }
+function classOf(){ const X=xpLedger(); const arr=AREA5.map(a=>({k:a.k,x:X.area[a.k]})).sort((a,b)=>b.x-a.x); const top=arr[0], sec=arr[1], low=arr[4];
+  if(X.total<150||top.x<60) return {k:null,name:'لم تتحدد بعد',sub:'الفئة بتتحدد من أقوى جانب عندك — كمّل تسجيل وهتبان قريب.',ic:'❔'};
+  if(low.x>=top.x*0.7&&X.total>=800) return {k:'all',name:'الشامل',sub:'كل جوانبك قريبة من بعض — فئة نادرة.',ic:'👑'};
+  const A1=AREA_MAP[top.k]; if(sec.x>=top.x*0.85){ const A2=AREA_MAP[sec.k]; return {k:top.k,k2:sec.k,name:A1.cls+' · '+A2.cls,sub:'فئة مزدوجة: '+A1.n+' و'+A2.n+' متقاربين جدًا.',ic:A1.ic+A2.ic}; }
+  return {k:top.k,name:A1.cls,sub:CLASS_DESC[top.k],ic:A1.ic}; }
+function radarSVG(vals,prev,size){ const cx=120,cy=112,R=78; const pt=(i,r)=>{ const an=-Math.PI/2+i*2*Math.PI/5; return [cx+r*Math.cos(an),cy+r*Math.sin(an)]; }; const P=v=>v.map(n=>n.toFixed(1)).join(',');
+  let g=''; [0.25,0.5,0.75,1].forEach(f=>{ g+='<polygon points="'+AREA5.map((a,i)=>P(pt(i,R*f))).join(' ')+'" fill="none" stroke="var(--line)" stroke-width="1"/>'; });
+  AREA5.forEach((a,i)=>{ const p=pt(i,R); g+='<line x1="'+cx+'" y1="'+cy+'" x2="'+p[0].toFixed(1)+'" y2="'+p[1].toFixed(1)+'" stroke="var(--line)" stroke-width="1"/>'; });
+  const poly=(v,cls)=>'<polygon class="'+cls+'" points="'+v.map((x,i)=>P(pt(i,R*Math.max(0.05,Math.min(1,x||0))))).join(' ')+'"/>';
+  if(prev) g+=poly(prev,'rd-prev'); g+=poly(vals,'rd-cur');
+  AREA5.forEach((a,i)=>{ const p=pt(i,R+22); g+='<text x="'+p[0].toFixed(1)+'" y="'+(p[1]+4).toFixed(1)+'" text-anchor="middle" class="rd-l">'+a.ic+' '+esc(a.n)+'</text>'; });
+  return '<svg class="radar" viewBox="0 0 240 224" style="width:'+size+'px">'+g+'</svg>'; }
+function sBars(vals,color,labels){ const mx=Math.max(1,...vals.map(v=>v==null||v<0?0:v)); return '<div class="sbars">'+vals.map((v,i)=>{ const rest=v==null||v<0; return '<i class="'+(rest?'rest':'')+'" style="height:'+(rest?8:Math.max(4,Math.round(v/mx*100)))+'%;background:'+color+';opacity:'+(i===vals.length-1?1:.6)+'" title="'+(rest?'راحة':v)+'"></i>'; }).join('')+'</div>'+(labels?'<div class="slabels">'+labels.map(l=>'<span>'+esc(l)+'</span>').join('')+'</div>':''); }
+function gradeOf(s){ return s>=90?'S':s>=75?'A':s>=60?'B':s>=45?'C':s>=30?'D':'E'; }
+const GRADE_T={S:'يوم أسطوري',A:'يوم ممتاز',B:'يوم كويس',C:'يوم متوسط',D:'يوم ضعيف',E:'يوم محتاج تعويض'};
+
+/* ===================== السنن الرواتب والنوافل ===================== */
+const SUNNAH=[{id:'fajr_b',n:'قبل الفجر',r:2,rw:1},{id:'dhuhr_b',n:'قبل الظهر',r:4,rw:1},{id:'dhuhr_a',n:'بعد الظهر',r:2,rw:1},{id:'maghrib_a',n:'بعد المغرب',r:2,rw:1},{id:'isha_a',n:'بعد العشاء',r:2,rw:1},
+  {id:'asr_b',n:'قبل العصر',r:4,rw:0},{id:'duha',n:'الضحى',r:2,rw:0},{id:'witr',n:'الوتر',r:1,rw:0},{id:'qiyam',n:'قيام الليل',r:2,rw:0}];
+function rakLabel(x){ if(x.id==='witr') return 'ركعة أو أكثر'; if(x.id==='qiyam') return 'ركعتان أو أكثر'; return x.r===2?'ركعتان':x.r+' ركعات'; }
+function daySunnah(d){ return (DN().sunnah||{})[d]||{}; }
+function sunnahRak(d){ const s=daySunnah(d); let rw=0, n=0; SUNNAH.forEach(x=>{ if(s[x.id]){ n++; if(x.rw) rw+=x.r; } }); return {rawatib:rw,count:n,witr:!!s.witr,duha:!!s.duha,qiyam:!!s.qiyam,asr:!!s.asr_b}; }
+function sunnahXP(d){ const s=daySunnah(d); let x=0; SUNNAH.forEach(z=>{ if(s[z.id]) x+= z.id==='witr'?5:z.id==='qiyam'?10:z.id==='duha'?5:z.r*2; }); if(sunnahRak(d).rawatib===12) x+=10; return x; }
+function sunnahStreak(d){ let s=0, cur=d; if(sunnahRak(cur).rawatib<12) cur=addDays(cur,-1); for(let i=0;i<4000;i++){ if(SS()&&cur<SS()) break; if(sunnahRak(cur).rawatib===12){ s++; cur=addDays(cur,-1); } else break; } return s; }
+function sunnahSection(d){ const s=daySunnah(d), r=sunnahRak(d), stk=sunnahStreak(d);
+  const btn=x=>'<button type="button" class="sbtn'+(s[x.id]?' on':'')+'" data-action="sunnah-toggle" data-id="'+x.id+'" data-date="'+d+'"><span>'+esc(x.n)+'</span><small>'+rakLabel(x)+'</small></button>';
+  return '<div class="section">'+sectionH('السنن الرواتب والنوافل',r.rawatib+'/12 ركعة',stk?'<span class="chip warn">'+ICON.flame+' <span class="num">'+stk+'</span> يوم كامل</span>':'')+'<div class="card" style="padding:12px">'
+    +'<div class="sgrid">'+SUNNAH.filter(x=>x.rw).map(btn).join('')+'</div><div class="bar" style="margin:10px 2px 4px;height:6px"><i style="width:'+Math.round(r.rawatib/12*100)+'%;background:var(--good)"></i></div>'
+    +'<div class="hint" style="margin:10px 2px 6px;font-weight:600">النوافل</div><div class="sgrid">'+SUNNAH.filter(x=>!x.rw).map(btn).join('')+'</div>'
+    +'<p class="hint" style="margin:10px 2px 0">«مَن صلّى اثنتي عشرة ركعة في يومٍ وليلة بُني له بهنّ بيتٌ في الجنة» — رواه مسلم.</p></div></div>'; }
+
+/* ===================== الأذكار المعدودة ===================== */
+const DHIKR=[
+  {id:'salawat',n:'الصلاة على النبي ﷺ',t:'اللهم صلِّ وسلِّم وبارِك على سيدنا محمد',def:100},
+  {id:'istighfar',n:'الاستغفار',t:'أستغفر الله العظيم الذي لا إله إلا هو الحيّ القيّوم وأتوب إليه',def:100},
+  {id:'tasbih',n:'التسبيح',t:'سبحان الله وبحمده، سبحان الله العظيم',def:100},
+  {id:'tahlil',n:'التهليل',t:'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد، وهو على كل شيء قدير',def:100},
+  {id:'baqiyat',n:'الباقيات الصالحات',t:'سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر',def:100},
+  {id:'hawqala',n:'الحوقلة',t:'لا حول ولا قوة إلا بالله',def:100},
+  {id:'subhan',n:'المسبحة الحرّة',t:'سبحان الله',def:33}];
+function dhikrTarget(id){ const t=(DN().dhikrTargets||{})[id]; if(t>0) return t; const b=DHIKR.find(x=>x.id===id); if(b) return b.def; const c=(DN().dhikrCustom||[]).find(x=>x.id===id); return c?c.target:100; }
+function dhikrList(){ return DHIKR.map(x=>({id:x.id,n:x.n,t:x.t,target:dhikrTarget(x.id),custom:false})).concat((DN().dhikrCustom||[]).map(c=>({id:c.id,n:c.n,t:c.t,target:dhikrTarget(c.id),custom:true}))); }
+function dhikrById(id){ return dhikrList().find(x=>x.id===id)||null; }
+function dhikrCount(d,id){ const c=(DN().counts||{})[d]; return (c&&c[id])||0; }
+function dhikrTotal(d){ const c=(DN().counts||{})[d]; if(!c) return 0; let s=0; for(const k in c) s+=c[k]; return s; }
+function dhikrXP(d){ const c=(DN().counts||{})[d]; if(!c) return 0; let x=Math.min(40,Math.floor(dhikrTotal(d)/10)); for(const k in c){ if(c[k]>=dhikrTarget(k)) x+=3; } return x; }
+function dhikrSection(d){ const L=dhikrList(), tot=dhikrTotal(d);
+  let wk=0; for(let i=0;i<7;i++) wk+=dhikrTotal(addDays(d,-i));
+  return '<div class="section">'+sectionH('الذكر والتسبيح',tot?fmtNum(tot)+' اليوم':null,'<button class="link-btn" data-action="dz-add">+ ذكر</button>')+'<div class="dzgrid">'+L.map(x=>{ const c=dhikrCount(d,x.id), p=Math.min(100,Math.round(c/x.target*100)); return '<div class="dzc'+(c>=x.target?' done':'')+'" role="button" tabindex="0" data-action="dz-open" data-id="'+x.id+'"><div class="dz-n">'+esc(x.n)+'</div><div class="dz-v"><b class="num">'+fmtNum(c)+'</b><small class="num">/ '+x.target+'</small></div><div class="bar"><i style="width:'+p+'%;background:var(--good)"></i></div></div>'; }).join('')+'</div>'
+    +'<p class="hint" style="margin:8px 2px 0">آخر ٧ أيام: <b class="num">'+fmtNum(wk)+'</b> ذكر · اضغط على أي ذكر عشان تعدّ.</p></div>'; }
+function dhikrSheet(id){ const x=dhikrById(id); if(!x) return; const d=today(); const c=dhikrCount(d,id); draft={kind:'dhikr',id,session:0};
+  const last=[]; const lab=[]; for(let i=6;i>=0;i--){ const dd=addDays(d,-i); last.push(dhikrCount(dd,id)); lab.push(WD_S[parseISO(dd).getDay()]); }
+  const html='<div class="dz-sheet"><p class="dz-text">'+esc(x.t||x.n)+'</p>'
+    +'<button type="button" class="dz-tap" data-action="dz-tap" data-n="1" aria-label="عدّ"><b class="num" id="dz-n">'+fmtNum(c)+'</b><small>من <span class="num" id="dz-t">'+x.target+'</span></small><span class="dz-sess" id="dz-s">اضغط للعدّ</span></button>'
+    +'<div class="bar dz-bar"><i id="dz-bar" style="width:'+Math.min(100,Math.round(c/x.target*100))+'%;background:var(--good)"></i></div>'
+    +'<div class="qchips dz-q">'+[10,33,100].map(n=>'<button type="button" data-action="dz-tap" data-n="'+n+'">+'+n+'</button>').join('')+'<button type="button" data-action="dz-tap" data-n="-1">−1</button></div>'
+    +'<div class="dsec" style="text-align:start"><h4>آخر ٧ أيام</h4>'+sBars(last,'var(--good)',lab)+'</div>'
+    +'<div class="dsec" style="text-align:start"><h4>الهدف اليومي</h4><div class="qchips">'+[33,100,300,1000].map(n=>'<button type="button" data-action="dz-target" data-v="'+n+'" class="'+(x.target===n?'on':'')+'">'+n+'</button>').join('')+'</div>'
+    +'<div class="addline" style="margin-top:10px"><input class="inp num" type="text" inputmode="numeric" id="dz-set" placeholder="عدد اليوم يدويًا"><button type="button" class="btn" style="width:auto;padding:0 14px" data-action="dz-setcount">حفظ العدد</button></div><p class="hint">لو عدّيت على مسبحة عادية اكتب العدد هنا.</p></div>'
+    +(x.custom?'<div class="btn-row" style="margin-top:12px"><button type="button" class="btn" data-action="dz-edit" data-id="'+x.id+'">تعديل الذكر</button><button type="button" class="btn danger" data-action="dz-del" data-id="'+x.id+'">حذف</button></div>':'')+'</div>';
+  openSheet(html,{title:x.n,focus:false,onClose:()=>render()}); }
+function dhikrTap(n){ if(!draft||draft.kind!=='dhikr') return; const d=today(), id=draft.id, x=dhikrById(id); if(!x) return; if(!DN().counts) DN().counts={}; const c=ensureDay(DN().counts,d); const before=c[id]||0; const v=Math.max(0,before+n); if(v) c[id]=v; else delete c[id]; if(!Object.keys(c).length) delete DN().counts[d]; draft.session=Math.max(0,draft.session+n); save();
+  const e=$('#dz-n'); if(e) e.textContent=fmtNum(v); const b=$('#dz-bar'); if(b) b.style.width=Math.min(100,Math.round(v/x.target*100))+'%'; const s=$('#dz-s'); if(s) s.textContent='الجلسة دي: '+draft.session;
+  vibrate(n===1?6:12); if(before<x.target&&v>=x.target){ vibrate([30,40,30]); showSysWindow({head:'[ الذكر ]',title:x.n+' — '+x.target+' مرة',sub:'تقبّل الله. <b>+3 نقاط</b> للروح',ms:2600}); } }
+function dhikrFormSheet(id){ const c=id?(DN().dhikrCustom||[]).find(x=>x.id===id):null; draft={kind:'dzform',id:c?c.id:null};
+  const html='<form data-submit="dz-save" novalidate><div class="field" style="margin-top:4px"><label for="dz-fn">اسم الذكر</label><input id="dz-fn" type="text" name="n" maxlength="40" value="'+esc(c?c.n:'')+'" placeholder="مثال: الصلاة الإبراهيمية" autofocus></div><div class="field"><label for="dz-ft">نص الذكر (اختياري)</label><textarea id="dz-ft" name="t" maxlength="300" placeholder="النص اللي هيظهر وانت بتعدّ">'+esc(c?c.t:'')+'</textarea></div><div class="field"><label for="dz-fg">الهدف اليومي</label><input id="dz-fg" class="inp num" type="text" inputmode="numeric" name="g" value="'+(c?c.target:100)+'"></div><p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><div class="form-actions"><button type="submit" class="btn primary">حفظ</button></div></form>';
+  openSheet(html,{title:c?'تعديل الذكر':'ذكر جديد'}); }
+function saveDhikrForm(f){ const n=f.n.value.trim(), t=f.t.value.trim(); const g=Math.round(parseAmount(f.g.value)); if(!n) return formErr('اكتب اسم الذكر.'); if(!(g>0)) return formErr('اكتب هدف يومي صحيح.'); const id=draft&&draft.id;
+  commit(id?'اتعدّل الذكر':'اتضاف الذكر',()=>{ if(!DN().dhikrCustom) DN().dhikrCustom=[]; if(id){ const c=DN().dhikrCustom.find(x=>x.id===id); if(c){ c.n=n.slice(0,40); c.t=t.slice(0,300); c.target=Math.min(100000,g); } if(!DN().dhikrTargets) DN().dhikrTargets={}; DN().dhikrTargets[id]=Math.min(100000,g); } else DN().dhikrCustom.push({id:'c'+uid(),n:n.slice(0,40),t:t.slice(0,300),target:Math.min(100000,g)}); }); closeSheet(); }
+
+/* ===================== الكاليستنكس ===================== */
+const CALI_LINES=[['push','الدفع','💪'],['pull','السحب','🧗'],['dips','الغطس','⬇️'],['legs','الأرجل','🦵'],['core','البطن والجذع','🔥'],['hs','الوقوف على اليدين','🤸']];
+const CALI=[
+  {id:'wall_pu',ln:'push',n:'ضغط الحائط',ty:'r',g:20,p:10,pre:[],tip:'إيدك على الحيطة بعرض الكتف، جسمك خط مستقيم، وقرّب صدرك من الحيطة.'},
+  {id:'incline_pu',ln:'push',n:'ضغط مائل (ترابيزة/كنبة)',ty:'r',g:15,p:20,pre:[['wall_pu',20]],tip:'كل ما السطح يوطى التمرين يصعب. البطن مشدودة والكوع ٤٥ درجة من الجسم.'},
+  {id:'knee_pu',ln:'push',n:'ضغط على الركب',ty:'r',g:15,p:25,pre:[['incline_pu',12]],tip:'خط مستقيم من الراس للركبة، وانزل لحد ما صدرك يقرب من الأرض.'},
+  {id:'pushup',ln:'push',n:'ضغط عادي',ty:'r',g:20,p:50,pre:[['knee_pu',12]],tip:'جسم خط مستقيم، صدرك يقرب من الأرض، الكوع ٤٥ درجة، واطلع لفرد كامل.'},
+  {id:'diamond_pu',ln:'push',n:'ضغط دايموند',ty:'r',g:15,p:70,pre:[['pushup',15]],tip:'الإبهامين والسبابتين بيعملوا شكل ماسة تحت صدرك — تركيز على الترايسبس.'},
+  {id:'decline_pu',ln:'push',n:'ضغط والرجلين مرفوعة',ty:'r',g:15,p:70,pre:[['pushup',15]],tip:'رجليك على كرسي أو سرير — تركيز على أعلى الصدر والكتف.'},
+  {id:'pseudo_pl',ln:'push',n:'ضغط بلانش وهمي',ty:'r',g:12,p:100,pre:[['diamond_pu',10]],tip:'إيدك عند الوسط والصوابع لبرّه، واميل لقدّام لحد ما كتفك يعدّي إيدك.'},
+  {id:'archer_pu',ln:'push',n:'ضغط آرتشر',ty:'r',g:8,p:130,pre:[['diamond_pu',12],['decline_pu',10]],tip:'إيد بتشتغل والتانية مفرودة على الجنب. العدد لكل جنب.'},
+  {id:'oap',ln:'push',n:'ضغط بإيد واحدة',ty:'r',g:5,p:300,pre:[['archer_pu',8]],tip:'رجليك مفتوحة أوسع من الكتف، الإيد التانية ورا ضهرك، وجسمك ما يلفّش.'},
+  {id:'dead_hang',ln:'pull',n:'التعلّق في البار',ty:'s',g:60,p:10,pre:[],tip:'اتعلّق بقبضة كاملة. أساس قوة القبضة وصحة الكتف.'},
+  {id:'scap_pull',ln:'pull',n:'سحب لوح الكتف',ty:'r',g:12,p:20,pre:[['dead_hang',30]],tip:'وانت متعلّق ودراعك مفرود، نزّل لوح الكتف لتحت من غير ما تثني الكوع.'},
+  {id:'aus_row',ln:'pull',n:'سحب أسترالي (أفقي)',ty:'r',g:15,p:30,pre:[['dead_hang',30]],tip:'تحت ترابيزة متينة أو بار واطي، جسمك مستقيم، واسحب صدرك للبار.'},
+  {id:'neg_pu',ln:'pull',n:'عقلة سلبية (نزول بطيء)',ty:'r',g:6,p:40,pre:[['aus_row',12],['scap_pull',10]],tip:'اطلع فوق البار بكرسي، وانزل ببطء في ٥ ثواني. أسرع طريق لأول عقلة.'},
+  {id:'chinup',ln:'pull',n:'عقلة بقبضة عكسية (تشن أب)',ty:'r',g:10,p:70,pre:[['neg_pu',5]],tip:'الكفوف ناحيتك — أسهل من العقلة لأن البايسبس بيساعد.'},
+  {id:'pullup',ln:'pull',n:'عقلة',ty:'r',g:12,p:100,pre:[['neg_pu',6]],tip:'كفوفك لبرّه، ابدأ من فرد كامل، والدقن تعدّي البار من غير مرجحة.'},
+  {id:'c2b',ln:'pull',n:'عقلة للصدر',ty:'r',g:8,p:140,pre:[['pullup',10]],tip:'اسحب لحد ما صدرك يلمس البار — تحضير مهم للمسل أب.'},
+  {id:'archer_pull',ln:'pull',n:'عقلة آرتشر',ty:'r',g:5,p:180,pre:[['pullup',12]],tip:'قبضة واسعة، اسحب ناحية إيد والتانية تتفرد. العدد لكل جنب.'},
+  {id:'muscle_up',ln:'pull',n:'مسل أب',ty:'r',g:3,p:250,pre:[['c2b',8],['sb_dip',8]],tip:'سحب انفجاري للصدر، ولفّ الكوع فوق البار، وادفع لفوق.'},
+  {id:'oapu',ln:'pull',n:'عقلة بإيد واحدة',ty:'r',g:1,p:400,pre:[['archer_pull',5]],tip:'ابدأ بنزول سلبي بإيد واحدة، وبعدها سحب بمساعدة صباع من الإيد التانية.'},
+  {id:'bench_dip',ln:'dips',n:'غطس على كرسي',ty:'r',g:20,p:15,pre:[],tip:'إيدك على كرسي وراك، وانزل لحد ما الكوع ٩٠ درجة.'},
+  {id:'dips',ln:'dips',n:'غطس متوازي',ty:'r',g:15,p:70,pre:[['bench_dip',20],['pushup',12]],tip:'على متوازي أو ضهر كرسيين ثابتين. اميل لقدّام شوية وانزل لحد ٩٠ درجة.'},
+  {id:'sb_dip',ln:'dips',n:'غطس على بار مستقيم',ty:'r',g:10,p:110,pre:[['dips',12]],tip:'على بار واحد قدّام جسمك — النص التاني من المسل أب.'},
+  {id:'squat',ln:'legs',n:'سكوات',ty:'r',g:30,p:15,pre:[],tip:'رجليك بعرض الكتف، انزل كأنك هتقعد على كرسي، والكعب على الأرض.'},
+  {id:'lunge',ln:'legs',n:'طعن (لانج)',ty:'r',g:15,p:25,pre:[['squat',20]],tip:'خطوة لقدّام والركبة اللي ورا تقرب من الأرض. العدد لكل رجل.'},
+  {id:'bss',ln:'legs',n:'سكوات بلغاري',ty:'r',g:12,p:50,pre:[['lunge',12]],tip:'الرجل اللي ورا على كرسي، وانزل على اللي قدّام. العدد لكل رجل.'},
+  {id:'shrimp',ln:'legs',n:'سكوات الجمبري',ty:'r',g:6,p:110,pre:[['bss',10]],tip:'امسك رجلك اللي ورا بإيدك، وانزل لحد ما الركبة تلمس الأرض.'},
+  {id:'pistol',ln:'legs',n:'سكوات رجل واحدة (بيستول)',ty:'r',g:5,p:130,pre:[['bss',10]],tip:'رجل مفرودة قدّامك وانزل على التانية لآخر مدى. ابدأ بالنزول على كرسي.'},
+  {id:'plank',ln:'core',n:'بلانك',ty:'s',g:60,p:10,pre:[],tip:'على الكوع، جسمك خط مستقيم، واقفل البطن والمؤخرة.'},
+  {id:'hollow',ln:'core',n:'هولو هولد',ty:'s',g:45,p:25,pre:[['plank',45]],tip:'على ضهرك، أسفل الضهر لازق في الأرض، والرجلين والكتف مرفوعين — أساس مهارات الجمباز.'},
+  {id:'knee_raise',ln:'core',n:'رفع الركب وانت متعلّق',ty:'r',g:15,p:30,pre:[['dead_hang',30],['plank',45]],tip:'اتعلّق وارفع ركبك لصدرك من غير مرجحة.'},
+  {id:'hang_lr',ln:'core',n:'رفع الرجلين مفرودة متعلّق',ty:'r',g:12,p:70,pre:[['knee_raise',12],['hollow',30]],tip:'رجليك مفرودة لحد ما توصل ٩٠ درجة.'},
+  {id:'lsit',ln:'core',n:'إل سيت (L-sit)',ty:'s',g:15,p:110,pre:[['hang_lr',8],['dips',8]],tip:'على الأرض أو كرسيين، ادفع بإيدك وارفع رجليك مفرودة قدّامك.'},
+  {id:'t2b',ln:'core',n:'أصابع للبار',ty:'r',g:10,p:120,pre:[['hang_lr',12]],tip:'ارفع رجليك مفرودة لحد ما تلمس البار.'},
+  {id:'dragon',ln:'core',n:'دراجون فلاج',ty:'r',g:5,p:180,pre:[['t2b',8],['lsit',10]],tip:'على بنش، امسك وراك وارفع جسمك كله خط مستقيم من الكتف، وانزل ببطء.'},
+  {id:'pike_pu',ln:'hs',n:'ضغط بايك',ty:'r',g:12,p:40,pre:[['pushup',10]],tip:'الوسط لفوق على شكل V، وانزل بالراس قدّام إيدك — أول خطوة لضغط الوقوف على اليدين.'},
+  {id:'crow',ln:'hs',n:'وضعية الغراب',ty:'s',g:20,p:40,pre:[['plank',45]],tip:'ركبك على ضهر دراعك، واميل لقدّام لحد ما رجليك تترفع — أول توازن على الإيد.'},
+  {id:'wall_walk',ln:'hs',n:'المشي على الحائط',ty:'r',g:5,p:40,pre:[['pike_pu',8]],tip:'ضهرك للحيطة، اطلع برجليك عليها وقرّب إيدك لحد ما صدرك يقرب يلمسها.'},
+  {id:'c2w_hs',ln:'hs',n:'وقوف على اليدين — صدرك للحائط',ty:'s',g:60,p:80,pre:[['wall_walk',5]],tip:'بطنك ناحية الحيطة، جسم مستقيم، وادفع الأرض بكتفك لفوق.'},
+  {id:'elev_pike',ln:'hs',n:'ضغط بايك ورجليك مرفوعة',ty:'r',g:10,p:90,pre:[['pike_pu',12]],tip:'رجليك على كرسي — حمل أكبر على الكتف.'},
+  {id:'wall_hspu',ln:'hs',n:'ضغط وقوف على اليدين على الحائط',ty:'r',g:5,p:150,pre:[['elev_pike',10],['c2w_hs',45]],tip:'انزل لحد ما راسك تقرب من الأرض واطلع. ابدأ بمدى قصير.'},
+  {id:'fs_hs',ln:'hs',n:'وقوف على اليدين حر',ty:'s',g:60,p:200,pre:[['c2w_hs',60]],tip:'كيك أب خفيف، والتوازن بصوابع إيدك. اتعلّم الخروج الآمن (لفّة جانبية) الأول.'},
+  {id:'press_hs',ln:'hs',n:'بريس هاندستاند',ty:'r',g:3,p:250,pre:[['fs_hs',30],['lsit',15]],tip:'اطلع للوقوف على اليدين بالضغط من غير قفزة — رجليك مفتوحة في الأول.'},
+  {id:'fs_hspu',ln:'hs',n:'ضغط وقوف على اليدين حر',ty:'r',g:3,p:300,pre:[['wall_hspu',8],['fs_hs',45]],tip:'من أصعب مهارات الدفع — قوة وتوازن مع بعض.'},
+  {id:'oah_prep',ln:'hs',n:'تحضير الإيد الواحدة (نقل الوزن)',ty:'s',g:20,p:300,pre:[['fs_hs',60]],tip:'في الوقوف على اليدين افتح رجليك، وانقل وزنك على إيد، وارفع صوابع التانية.'},
+  {id:'oah',ln:'hs',n:'وقوف على اليدين بإيد واحدة',ty:'s',g:10,p:1000,pre:[['oah_prep',20]],tip:'القمّة. سنين من الشغل — كل ثانية فيها إنجاز.'}];
+const CALI_BY={}; { const tiers={}; CALI.forEach(s=>{ tiers[s.ln]=(tiers[s.ln]||0)+1; s.tier=tiers[s.ln]; CALI_BY[s.id]=s; }); }
+const CALI_LINE_N={}; CALI_LINES.forEach(l=>{ CALI_LINE_N[l[0]]=l; });
+function caliArea(s){ return (s&&(s.ln==='legs'||s.ln==='core'))?'end':'str'; }
+function caliUnit(s){ return s.ty==='s'?'ث':'عدّة'; }
+function caliInfo(){ const k=String(xpVer); if(caliCache&&caliKey===k) return caliCache;
+  const best={}, mAt={}, first={}, by={}; const logs=state.cali.logs.slice().sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:((a.createdAt||'')<(b.createdAt||'')?-1:1));
+  logs.forEach(l=>{ const s=CALI_BY[l.sk]; if(!s) return; const m=Math.max(0,...l.sets); (by[l.sk]=by[l.sk]||[]).push(l); if(!first[l.sk]) first[l.sk]=l.date; if(m>(best[l.sk]||0)) best[l.sk]=m; if(!mAt[l.sk]&&m>=s.g) mAt[l.sk]=l.date; });
+  const implied={}; const walk=(id,dt,seen)=>{ const s=CALI_BY[id]; if(!s) return; s.pre.forEach(p=>{ if(seen[p[0]]) return; seen[p[0]]=1; if(!first[p[0]]&&(!mAt[p[0]]||mAt[p[0]]>dt)){ mAt[p[0]]=dt; implied[p[0]]=1; } walk(p[0],dt,seen); }); };
+  for(const id in first) walk(id,first[id],{});
+  caliCache={best,mAt,first,by,implied}; caliKey=k; return caliCache; }
+function caliMet(p){ const I=caliInfo(); return (I.best[p[0]]||0)>=p[1]||!!I.mAt[p[0]]; }
+function caliStatus(s){ const I=caliInfo(); if(I.mAt[s.id]) return 'done'; const b=I.best[s.id]||0; if(s.pre.every(caliMet)) return b>0?'act':'ready'; return b>0?'act':'lock'; }
+function caliLedger(){ const I=caliInfo(), out=[]; state.cali.logs.forEach(l=>{ const s=CALI_BY[l.sk]; if(!s) return; out.push({date:l.date,area:caliArea(s),xp:Math.min(12,l.sets.length)*(1+Math.ceil(s.tier/2))}); }); for(const id in I.mAt){ const s=CALI_BY[id]; if(s) out.push({date:I.mAt[id],area:caliArea(s),xp:s.p}); } return out; }
+function caliDaySets(d){ const o={str:0,end:0}; state.cali.logs.forEach(l=>{ if(l.date!==d) return; const s=CALI_BY[l.sk]; if(s) o[caliArea(s)]+=l.sets.length; }); return o; }
+function caliPathIds(id){ const out=new Set(); const go=x=>{ const s=CALI_BY[x]; if(!s||out.has(x)) return; out.add(x); s.pre.forEach(p=>go(p[0])); }; go(id); return Array.from(out); }
+function caliPoints(){ const I=caliInfo(); let pts=0, n=0; CALI.forEach(s=>{ if(I.mAt[s.id]){ pts+=s.p; n++; } }); return {pts,n,total:CALI.reduce((a,s)=>a+s.p,0)}; }
+function caliRx(s){ const b=caliInfo().best[s.id]||0; if(!b) return s.ty==='s'?'3 جولات × أطول ثبات بفورم نظيف':'3 جولات × أقصى عدد بفورم نظيف'; const t=Math.max(1,Math.round(b*0.8)); return (s.ty==='s'?'3':'4')+' × '+t+(s.ty==='s'?' ث':'')+' — راحة 90 ث'; }
+function caliRxSets(s){ const b=caliInfo().best[s.id]||0; if(!b) return null; const t=Math.max(1,Math.round(b*0.8)); return s.ty==='s'?[t,t,t]:[t,t,t,t]; }
+function caliFrontier(){ const out=[]; CALI_LINES.forEach(L=>{ const xs=CALI.filter(s=>s.ln===L[0]); const act=xs.filter(s=>caliStatus(s)==='act'&&s.pre.every(caliMet)); const rdy=xs.filter(s=>caliStatus(s)==='ready'); if(act.length) out.push(act[act.length-1]); else if(rdy.length) out.push(rdy[0]); }); return out; }
+function caliUnlockText(s){ const I=caliInfo(); const miss=s.pre.filter(p=>!caliMet(p)); if(!miss.length) return ''; return 'يفتح لما توصل: '+miss.map(p=>CALI_BY[p[0]].n+' '+p[1]+' '+caliUnit(CALI_BY[p[0]])+' (عندك '+(I.best[p[0]]||0)+')').join(' + '); }
+function parseSets(v){ const s=String(v||'').replace(/[٠-٩]/g,c=>String('٠١٢٣٤٥٦٧٨٩'.indexOf(c))); return s.split(/[^0-9]+/).filter(Boolean).map(Number).filter(n=>n>0&&n<=10000).slice(0,12); }
+function caliNode(s,st){ const I=caliInfo(), b=I.best[s.id]||0; const ic=st==='done'?'✓':st==='lock'?'🔒':'▶';
+  return '<div class="cnode st-'+st+'" data-action="cali-open" data-id="'+s.id+'"><span class="cn-ic">'+ic+'</span><div class="cn-m"><div class="cn-t">'+esc(s.n)+'</div><div class="cn-s">'+(st==='lock'?esc(caliUnlockText(s)):'الهدف '+s.g+' '+caliUnit(s)+' · أفضل رقم <span class="num">'+b+'</span>'+(I.implied[s.id]&&!(b>=s.g)?' · اتحسبت من مستواك':''))+'</div>'+(st!=='lock'&&st!=='done'?'<div class="bar"><i style="width:'+Math.min(100,Math.round(b/s.g*100))+'%"></i></div>':'')+'</div><b class="cn-p num">'+s.p+'</b></div>'; }
+function renderCali(){ const I=caliInfo(), P=caliPoints(); const st={}; CALI.forEach(s=>{ st[s.id]=caliStatus(s); });
+  const path=caliPathIds('oah'); const pTot=path.reduce((a,id)=>a+CALI_BY[id].p,0), pGot=path.filter(id=>st[id]==='done').reduce((a,id)=>a+CALI_BY[id].p,0); const pPct=Math.round(pGot/pTot*100);
+  const logs=state.cali.logs; let out='';
+  out+='<div class="card cali-hero"><div class="ch-top"><div><div class="hint" style="margin:0">نقاط الكاليستنكس</div><b class="num ch-pts">'+fmtNum(P.pts)+'</b><small class="num"> / '+fmtNum(P.total)+'</small></div><div class="ch-n"><b class="num">'+P.n+'</b><small>مهارة من '+CALI.length+'</small></div></div>'
+    +'<div class="ch-path"><div class="ch-pl"><span>رحلتك لوقوف اليدين بإيد واحدة</span><b class="num">'+pPct+'%</b></div><div class="bar" style="height:8px"><i style="width:'+pPct+'%;background:linear-gradient(90deg,var(--accent),var(--warn))"></i></div></div>'
+    +'<div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" data-action="cali-test">'+(logs.length?'اختبار مستوى جديد':'حدّد مستواك')+'</button><button type="button" class="btn" data-action="cali-guide">إزاي أتمرن؟</button></div></div>';
+  if(!logs.length) out+='<div class="banner"><span>ابدأ بـ «حدّد مستواك»: اكتب أقصى عدد ضغط وعقلة وغطس وسكوات وثبات بلانك — والنظام هيحدد مكانك في الشجرة ويرشّحلك تمارينك.</span></div>';
+  const fr=caliFrontier();
+  if(fr.length) out+='<div class="section">'+sectionH('تمرين النهارده المقترح',null,'')+'<div class="card">'+fr.map(s=>'<div class="crec" data-action="cali-open" data-id="'+s.id+'"><span class="cr-ln">'+CALI_LINE_N[s.ln][2]+'</span><div class="cr-m"><b>'+esc(s.n)+'</b><small>'+esc(caliRx(s))+'</small></div><span class="btn sm primary">سجّل</span></div>').join('')+'</div><p class="hint" style="margin:6px 2px 0">لما تخلّص الهدف في أي تمرين، اللي بعده بيتفتح تلقائيًا. خلّي يوم راحة بين كل يومين تمرين لنفس العضلة.</p></div>';
+  CALI_LINES.forEach(L=>{ const xs=CALI.filter(s=>s.ln===L[0]); const dn=xs.filter(s=>st[s.id]==='done').length; out+='<div class="cline"><div class="cline-h"><span>'+L[2]+' '+esc(L[1])+'</span><span class="chip'+(dn===xs.length?' good':'')+' num">'+dn+'/'+xs.length+'</span></div><div class="ctree">'+xs.map(s=>caliNode(s,st[s.id])).join('')+'</div></div>'; });
+  const rec=logs.slice().sort((a,b)=>a.date===b.date?((b.createdAt||'')<(a.createdAt||'')?-1:1):(a.date<b.date?1:-1)); const show=filters.caliAll?rec.slice(0,200):rec.slice(0,8);
+  out+='<div class="section">'+sectionH('سجل الكاليستنكس',rec.length||null)+(rec.length?'<div class="list">'+show.map(l=>{ const s=CALI_BY[l.sk]; return '<div class="tx" data-action="cali-log-edit" data-id="'+l.id+'"><span class="ti">'+(s?CALI_LINE_N[s.ln][2]:'•')+'</span><div class="tm"><div class="tt">'+esc(s?s.n:l.sk)+' — <span class="num">'+l.sets.join(' · ')+'</span> '+(s?caliUnit(s):'')+'</div><div class="ts"><span>'+esc(agoLabel(l.date))+(l.note?' · '+esc(l.note):'')+'</span><span class="tap-hint">✎ تعديل/حذف</span></div></div></div>'; }).join('')+'</div>'+(rec.length>8?'<button class="collapse" data-action="cali-all">'+(filters.caliAll?'عرض أقل':'عرض الكل ('+rec.length+')')+'</button>':''):'<div class="card">'+emptyBlock(ICON.dumbbell,'لسه مفيش تسجيلات','افتح أي مهارة من الشجرة وسجّل جولاتك.','')+'</div>')+'</div>';
+  return out; }
+function caliSheet(id,o){ const s=CALI_BY[id]; if(!s) return; o=o||{}; const I=caliInfo(), stt=caliStatus(s), b=I.best[id]||0; const L=CALI_LINE_N[s.ln];
+  const next=CALI.filter(x=>x.pre.some(p=>p[0]===id)); const hist=(I.by[id]||[]).slice().reverse(); const rx=caliRxSets(s);
+  draft={kind:'cali',sk:id};
+  const stName={done:'متقنة ✓',act:'شغّال عليها',ready:'جاهز تبدأها',lock:'مقفولة'}[stt];
+  const html='<div class="detail-h"><div class="metas"><span class="chip">'+L[2]+' '+esc(L[1])+'</span><span class="chip '+(stt==='done'?'good':stt==='lock'?'':'acc')+'">'+stName+'</span><span class="chip warn num">'+s.p+' نقطة</span></div></div>'
+    +'<div class="card" style="padding:12px 14px"><p style="margin:0;line-height:1.8">'+esc(s.tip)+'</p><div class="kv" style="margin-top:6px"><span>الهدف للإتقان</span><span class="num">'+s.g+' '+caliUnit(s)+' في جولة واحدة</span></div><div class="kv"><span>أفضل رقم ليك</span><span class="num">'+b+' '+caliUnit(s)+'</span></div><div class="kv"><span>المقترح دلوقتي</span><span>'+esc(caliRx(s))+'</span></div><div class="bar" style="margin-top:8px;height:7px"><i style="width:'+Math.min(100,Math.round(b/s.g*100))+'%;background:'+(stt==='done'?'var(--good)':'var(--accent)')+'"></i></div></div>'
+    +(s.pre.length?'<div class="dsec"><h4>المتطلبات</h4><div class="card" style="padding:4px 14px">'+s.pre.map(p=>{ const q=CALI_BY[p[0]]; const ok=caliMet(p); return '<div class="kv" data-action="cali-open" data-id="'+q.id+'" style="cursor:pointer"><span>'+(ok?'✓ ':'🔒 ')+esc(q.n)+'</span><span class="num" style="color:'+(ok?'var(--good)':'var(--bad)')+'">'+((I.best[q.id]||0)<p[1]&&ok?'اتحسبت من مستواك':(I.best[q.id]||0)+' / '+p[1])+'</span></div>'; }).join('')+'</div></div>':'')
+    +(next.length?'<div class="dsec"><h4>بيفتح بعدها</h4><div class="qchips">'+next.map(x=>'<button type="button" data-action="cali-open" data-id="'+x.id+'">'+esc(x.n)+'</button>').join('')+'</div></div>':'')
+    +'<form data-submit="cali-save" novalidate class="dsec"><h4>سجّل جولاتك</h4>'+(stt==='lock'?'<p class="hint" style="margin:0 0 8px;color:var(--warn)">المهارة دي لسه مقفولة — لو بتقدر تعملها فعلًا سجّلها عادي وهتتفتح.</p>':'')
+    +'<div class="field" style="margin-top:0"><label for="cl-sets">'+(s.ty==='s'?'الثواني في كل جولة':'العدّات في كل جولة')+'</label>'+(rx?'<div class="qchips" style="margin-bottom:8px"><button type="button" data-action="cali-fill" data-v="'+rx.join(' ')+'">'+rx.join(' · ')+'</button><button type="button" data-action="cali-fill" data-v="'+(b)+'">جولة '+b+'</button><button type="button" data-action="cali-fill" data-v="'+(b+1)+'">رقم قياسي '+(b+1)+'</button></div>':'')+'<input id="cl-sets" class="inp num" type="text" inputmode="numeric" name="sets" placeholder="مثال: 12 10 8" autocomplete="off"'+(o.focus?' autofocus':'')+'><p class="hint">افصل بين الجولات بمسافة.</p></div>'
+    +'<div class="two"><div class="field"><label for="cl-date">التاريخ</label><input id="cl-date" type="date" name="date" value="'+today()+'"></div><div class="field"><label for="cl-note">ملاحظة</label><input id="cl-note" type="text" name="note" maxlength="120" placeholder="اختياري"></div></div>'
+    +'<p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><div class="form-actions"><button type="submit" class="btn primary">حفظ</button></div></form>'
+    +(hist.length?'<div class="dsec"><h4>سجلّك في المهارة دي <span class="num">'+hist.length+'</span></h4><div class="list">'+hist.slice(0,60).map(l=>'<div class="tx" data-action="cali-log-edit" data-id="'+l.id+'"><div class="tm"><div class="tt num">'+l.sets.join(' · ')+' '+caliUnit(s)+(Math.max(...l.sets)>=s.g?' ✓':'')+'</div><div class="ts"><span>'+esc(fmtDate(l.date))+(l.note?' · '+esc(l.note):'')+'</span><span class="tap-hint">✎</span></div></div></div>').join('')+'</div></div>':'');
+  openSheet(html,{title:s.n,focus:!!o.focus,ctx:{kind:'cali',id}}); }
+function caliMasterDiff(before){ const I=caliInfo(); const neu=Object.keys(I.mAt).filter(k=>!before[k]&&CALI_BY[k]); if(!neu.length) return; const pts=neu.reduce((a,k)=>a+CALI_BY[k].p,0); const top=neu.map(k=>CALI_BY[k]).sort((a,b)=>b.p-a.p);
+  showSysWindow({head:'[ الكاليستنكس ]',title:neu.length===1?'أتقنت: '+top[0].n:'أتقنت '+neu.length+' مهارات',sub:(neu.length>1?esc(top.slice(0,4).map(s=>s.n).join('، '))+'<br>':'')+'<b>+'+pts+' نقطة</b>',ms:5200,vib:[40,60,40,60,120]}); }
+function saveCali(f){ const sets=parseSets(f.sets.value); if(!sets.length) return formErr('اكتب جولة واحدة على الأقل.'); const date=f.date.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return formErr('اختار تاريخ صحيح.'); const sk=draft&&draft.sk; if(!CALI_BY[sk]) return;
+  const before=Object.assign({},caliInfo().mAt); commit('اتسجّل التمرين',()=>{ state.cali.logs.push({id:uid(),date,sk,sets,note:f.note.value.trim().slice(0,120),createdAt:nowISO()}); }); caliMasterDiff(before); caliSheet(sk); }
+function caliLogSheet(id){ const l=state.cali.logs.find(x=>x.id===id); if(!l) return; const s=CALI_BY[l.sk]; draft={kind:'calilog',id};
+  const html='<form data-submit="cali-log-save" novalidate><p class="hint" style="margin:0">'+esc(s?s.n:l.sk)+'</p><div class="field"><label for="cl-sets">الجولات</label><input id="cl-sets" class="inp num" type="text" inputmode="numeric" name="sets" value="'+l.sets.join(' ')+'"></div><div class="two"><div class="field"><label for="cl-date">التاريخ</label><input id="cl-date" type="date" name="date" value="'+l.date+'"></div><div class="field"><label for="cl-note">ملاحظة</label><input id="cl-note" type="text" name="note" maxlength="120" value="'+esc(l.note||'')+'"></div></div><p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><div class="form-actions"><button type="submit" class="btn primary">حفظ</button><button type="button" class="btn danger" data-action="cali-log-del" data-id="'+l.id+'">حذف</button></div></form>';
+  openSheet(html,{title:'تعديل التسجيل'}); }
+function saveCaliLog(f){ const sets=parseSets(f.sets.value); if(!sets.length) return formErr('اكتب جولة واحدة على الأقل.'); const date=f.date.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return formErr('اختار تاريخ صحيح.'); const id=draft&&draft.id;
+  commit('اتعدّل',()=>{ const l=state.cali.logs.find(x=>x.id===id); if(l){ l.sets=sets; l.date=date; l.note=f.note.value.trim().slice(0,120); } }); closeSheet(); }
+const CALI_TEST=[['pushup','ضغط عادي — أقصى عدد'],['knee_pu','لو الضغط العادي صعب: ضغط على الركب'],['pullup','عقلة — أقصى عدد'],['dead_hang','تعلّق في البار — ثواني'],['dips','غطس متوازي — أقصى عدد'],['bench_dip','غطس على كرسي'],['squat','سكوات — أقصى عدد'],['plank','بلانك — ثواني'],['pike_pu','ضغط بايك (اختياري)']];
+function caliTestSheet(){ draft={kind:'calitest'}; const html='<form data-submit="cali-test-save" novalidate><p class="hint" style="margin:0 0 4px">اعمل كل تمرين مرة واحدة بأقصى مجهود وبفورم نظيف، وارتاح دقيقتين بين كل واحد. سيب اللي مش هتعمله فاضي.</p>'+CALI_TEST.map(t=>'<div class="field"><label for="ct-'+t[0]+'">'+esc(t[1])+'</label><input id="ct-'+t[0]+'" class="inp num" type="text" inputmode="numeric" name="'+t[0]+'" placeholder="'+(CALI_BY[t[0]].ty==='s'?'ثواني':'عدد')+'"></div>').join('')+'<p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><div class="form-actions"><button type="submit" class="btn primary">حدّد مستوايا</button></div></form>'; openSheet(html,{title:'اختبار المستوى'}); }
+function saveCaliTest(f){ const d=today(); const rows=[]; CALI_TEST.forEach(t=>{ const v=parseSets(f[t[0]].value)[0]; if(v>0) rows.push([t[0],v]); }); if(!rows.length) return formErr('اكتب رقم واحد على الأقل.');
+  const before=Object.assign({},caliInfo().mAt); commit('اتحدد مستواك',()=>{ rows.forEach(r=>state.cali.logs.push({id:uid(),date:d,sk:r[0],sets:[r[1]],note:'اختبار المستوى',createdAt:nowISO()})); }); closeSheet(); filters.fitView='cali'; render(); caliMasterDiff(before); }
+function caliGuideSheet(){ const html='<div class="card" style="padding:12px 14px;line-height:1.9"><b>النظام الأساسي (3–4 أيام في الأسبوع)</b><br>• يوم دفع + سحب + بطن، ويوم أرجل + وقوف على اليدين + بطن، وكرر.<br>• من كل خط في الشجرة اختار المهارة المفتوحة اللي عليها الدور (المقترح فوق).<br>• 3–4 جولات، وكل جولة تقف قبل ما الفورم يبوظ بعدّة أو اتنين.<br>• لما توصل الهدف في جولة واحدة = المهارة اتقنت، واللي بعدها يتفتح.<br>• التمارين الثابتة (بلانك، وقوف على اليدين): ٣ جولات بأطول ثبات.<br><br><b>الوقوف على اليدين بإيد واحدة</b><br>طريق طويل: ضغط بايك ← المشي على الحيطة ← وقوف صدرك للحيطة دقيقة ← وقوف حر دقيقة ← نقل الوزن ← إيد واحدة. اتمرّن على التوازن ٥–١٠ دقايق كل يوم تقريبًا، لأنه مهارة جهاز عصبي مش بس قوة.<br><br><b>الأمان</b><br>سخّن معصمك وكتفك ٥ دقايق قبل أي تمرين على الإيد، واتعلّم الخروج الآمن من الوقوف على اليدين قبل ما تبعد عن الحيطة. أي ألم حاد = وقف.</div>'; openSheet(html,{title:'إزاي أتمرن كاليستنكس',focus:false}); }
+
+/* ===================== التقييم اليومي ===================== */
+function didStrength(d){ const L=fitLog(d); if(L.workout&&L.workout.sets){ for(const k in L.workout.sets) if((L.workout.sets[k]||[]).some(z=>z&&z.done)) return true; } if(caliDaySets(d).str>0) return true; return B().sessions.some(x=>x.date===d&&BODY_K.includes(x.kind)); }
+function dayEval(d){ const r={};
+  const p=dayPrayers(d); let pr=0; PRAYERS.forEach(k=>{ const v=p[k[0]]; pr+=v==='j'?10:v==='t'?9:v==='q'?4:0; });
+  const sr=sunnahRak(d); const sn=Math.min(15,Math.round(sr.rawatib/12*15))+(sr.witr?3:0)+(sr.qiyam?3:0)+(sr.duha?2:0);
+  const ad=(adhkarCounts(d,'morning').complete?5:0)+(adhkarCounts(d,'evening').complete?5:0); const dz=Math.min(10,Math.round(dhikrTotal(d)/30));
+  const wp=wirdPages(d), wt=wirdTarget(); const qr=wt>0?Math.min(15,Math.round(wp/wt*15)):Math.min(15,Math.round(wp/4*15));
+  r.spi=Math.min(100,pr+sn+ad+dz+qr);
+  const L=fitLog(d); let sets=0; if(L.workout&&L.workout.sets) for(const k in L.workout.sets) (L.workout.sets[k]||[]).forEach(z=>{ if(z&&z.done) sets++; });
+  const cs=caliDaySets(d); const smin=B().sessions.filter(x=>x.date===d&&BODY_K.includes(x.kind)).reduce((a,x)=>a+x.minutes,0);
+  let st=Math.min(100,sets*6+cs.str*7+Math.round(smin/45*60)); try{ if(workoutProgress(d).complete) st=Math.max(st,85); }catch(e){}
+  if(st===0&&(planFor(d).rest||didStrength(addDays(d,-1)))) st=null; r.str=st;
+  const cmin=B().sessions.filter(x=>x.date===d&&HEART_K.includes(x.kind)).reduce((a,x)=>a+x.minutes,0);
+  let en=Math.min(55,Math.round(cmin/30*45))+Math.min(15,cs.end*4); const tg=targets(); const nt=eatenTotals(d);
+  if(nt.kcal>0){ if(tg.kcal>0){ const dev=Math.abs(nt.kcal-tg.kcal)/tg.kcal; en+=dev<=0.12?20:dev<=0.25?12:5; if(tg.protein>0) en+=nt.protein>=tg.protein*0.9?10:Math.round(nt.protein/tg.protein*8); } else en+=18; }
+  r.end=Math.min(100,en);
+  const mmin=B().sessions.filter(x=>x.date===d&&MIND_K.includes(x.kind)).reduce((a,x)=>a+x.minutes,0);
+  let it=Math.min(70,Math.round(mmin/60*55)); if(state.journal.some(j=>j.date===d)) it+=15; const lg=state.goals.filter(g=>g.area==='learn').reduce((a,g)=>a+g.milestones.filter(m=>m.done&&m.doneAt&&isoDay(m.doneAt)===d).length,0); it+=Math.min(15,lg*10);
+  r.int=Math.min(100,it);
+  const di=dailyItems(d); let ds=di.total?Math.round(di.done/di.total*80):40; if((state.settings.dailyDone||[]).includes(d)) ds+=20; r.dis=Math.min(100,ds);
+  (state.areaLogs||[]).forEach(l=>{ if(l.date!==d) return; r[l.area]=Math.min(100,(r[l.area]||0)+Math.round(l.pts)); });
+  const vals=AREA5.map(a=>r[a.k]).filter(v=>v!=null); r.all=vals.length?Math.round(vals.reduce((a,b)=>a+b,0)/vals.length):0; return r; }
+function evalCard(d,full){ const ev=dayEval(d), g=gradeOf(ev.all); const E=state.evals[d];
+  let h='<div class="section">'+sectionH(d===today()?'تقييم اليوم':'تقييم '+fmtDate(d),null,full?'<button class="link-btn" data-action="eval-hist">السجل</button>':'<button class="link-btn" data-action="open-areas">الجوانب ›</button>')+'<div class="card evc"><div class="ev-top"><div class="ev-grade g-'+g+'">'+g+'</div><div style="flex:1"><div class="ev-big"><b class="num">'+ev.all+'</b><small>/100</small></div><small class="hint" style="margin:0">'+GRADE_T[g]+' · بيتحدّث مع كل تسجيل</small></div></div>'
+    +'<div class="ev-rows">'+AREA5.map(a=>'<div class="evr"><span>'+a.ic+' '+esc(a.n)+'</span><div class="bar"><i style="width:'+(ev[a.k]||0)+'%;background:'+a.c+'"></i></div><b class="num">'+(ev[a.k]==null?'راحة':ev[a.k])+'</b></div>').join('')+'</div>';
+  if(full){ const vals=[], lab=[]; for(let i=13;i>=0;i--){ const x=addDays(d,-i); vals.push(dayEval(x).all); lab.push(i%2?'':String(parseISO(x).getDate())); } h+='<div class="dsec" style="margin-top:14px"><h4><span>آخر ١٤ يوم</span><span class="num">متوسط '+Math.round(vals.reduce((a,b)=>a+b,0)/vals.length)+'</span></h4>'+sBars(vals,'var(--accent)',lab)+'</div>';
+    h+=(E?'<div class="ev-ai">'+esc(E.t)+'</div>':'')+'<button type="button" class="btn sm'+(E?'':' primary')+'" style="margin-top:10px" data-action="eval-ai">'+(E?'قيّمني تاني':'اطلب تقييم النظام (AI)')+'</button>'; }
+  else if(E) h+='<div class="ev-ai" style="font-size:13px">'+esc(E.t.length>220?E.t.slice(0,220)+'…':E.t)+'</div>';
+  return h+'</div></div>'; }
+function evalHistSheet(){ const d=today(); let rows=''; for(let i=0;i<30;i++){ const x=addDays(d,-i); if(SS()&&x<SS()&&i>0) break; const e=dayEval(x), g=gradeOf(e.all); rows+='<div class="row" style="min-height:52px"><span class="ev-grade sm g-'+g+'">'+g+'</span><div class="row-main" style="cursor:default"><div class="row-title" style="font-size:14px">'+esc(agoLabel(x))+' — <b class="num">'+e.all+'</b></div><div class="row-meta">'+AREA5.map(a=>'<span>'+a.ic+' <span class="num">'+(e[a.k]==null?'—':e[a.k])+'</span></span>').join('')+'</div></div></div>'; }
+  openSheet('<p class="hint" style="margin:0 0 8px">التقييم بيتحسب من تسجيلاتك الفعلية في كل جانب (0–100)، والكلي متوسطهم. يوم الراحة في القوة مش بيتحسب ضدك.</p><div class="list">'+rows+'</div>',{title:'سجل التقييم اليومي',focus:false}); }
+function periodFacts(from,to){ const inR=x=>x>=from&&x<=to; const F={str:[],end:[],spi:[],int:[],dis:[]}; const nd=daysBetween(from,to)+1; const I=caliInfo();
+  let sets=0; for(const d in FT().logs){ if(!inR(d)) continue; const L=FT().logs[d]; if(L.workout&&L.workout.sets) for(const k in L.workout.sets) (L.workout.sets[k]||[]).forEach(z=>{ if(z&&z.done) sets++; }); }
+  if(sets) F.str.push(sets+' جولة في تمارين الجيم');
+  const cl=state.cali.logs.filter(l=>inR(l.date)&&CALI_BY[l.sk]); const cs=cl.filter(l=>caliArea(CALI_BY[l.sk])==='str'), ce=cl.filter(l=>caliArea(CALI_BY[l.sk])==='end');
+  if(cs.length) F.str.push(cs.reduce((a,l)=>a+l.sets.length,0)+' جولة كاليستنكس ('+Array.from(new Set(cs.map(l=>CALI_BY[l.sk].n))).slice(0,3).join('، ')+')');
+  [['pushup','ضغط'],['pullup','عقلة'],['dips','غطس']].forEach(x=>{ if(I.best[x[0]]) F.str.push('أفضل '+x[1]+': '+I.best[x[0]]); });
+  if(ce.length) F.end.push(ce.reduce((a,l)=>a+l.sets.length,0)+' جولة أرجل وبطن');
+  const ms=CALI.filter(s=>I.mAt[s.id]&&inR(I.mAt[s.id])&&!I.implied[s.id]); ['str','end'].forEach(ar=>{ const m2=ms.filter(s=>caliArea(s)===ar); if(m2.length) F[ar].push('أتقن: '+m2.slice(0,4).map(s=>s.n).join('، ')); });
+  const smin=B().sessions.filter(x=>inR(x.date)&&BODY_K.includes(x.kind)).reduce((a,x)=>a+x.minutes,0); if(smin) F.str.push(smin+' دقيقة تمارين قوة');
+  const car=B().sessions.filter(x=>inR(x.date)&&HEART_K.includes(x.kind)); if(car.length) F.end.push(car.reduce((a,x)=>a+x.minutes,0)+' دقيقة كارديو/مشي ('+car.length+' جلسة)');
+  let fd=0, okd=0; const tg=targets(); for(let i=0;i<nd;i++){ const x=addDays(from,i); const t=eatenTotals(x); if(t.kcal>0){ fd++; if(tg.kcal>0&&Math.abs(t.kcal-tg.kcal)/tg.kcal<=0.15) okd++; } } if(fd) F.end.push('سجّل أكله '+fd+' من '+nd+' أيام'+(tg.kcal?' · منضبط في '+okd:''));
+  let pd=0, pj=0, rak=0, dz=0, am=0, pg=0; for(let i=0;i<nd;i++){ const x=addDays(from,i); const p=dayPrayers(x); PRAYERS.forEach(k=>{ if(p[k[0]]) pd++; if(p[k[0]]==='j') pj++; }); rak+=sunnahRak(x).rawatib; dz+=dhikrTotal(x); if(adhkarCounts(x,'morning').complete) am++; if(adhkarCounts(x,'evening').complete) am++; pg+=wirdPages(x); }
+  F.spi.push('الصلوات '+pd+'/'+(nd*5)+(pj?' · منها '+pj+' جماعة':'')); if(rak) F.spi.push('السنن الرواتب '+rak+' ركعة'); if(dz) F.spi.push('الذكر '+fmtNum(dz)+' مرة'); if(am) F.spi.push('أذكار الصباح والمساء '+am+'/'+(nd*2)); if(pg) F.spi.push('قرأ '+pg+' صفحة قرآن');
+  const mm=B().sessions.filter(x=>inR(x.date)&&MIND_K.includes(x.kind)).reduce((a,x)=>a+x.minutes,0); if(mm) F.int.push(Math.round(mm/6)/10+' ساعة مذاكرة وقراءة وتدريب'); const jn=state.journal.filter(j=>inR(j.date)).length; if(jn) F.int.push(jn+' تدوينة يوميات');
+  let td=0, tt=0, dq=0; for(let i=0;i<nd;i++){ const x=addDays(from,i); const di=dailyItems(x); td+=di.done; tt+=di.total; if((state.settings.dailyDone||[]).includes(x)) dq++; } if(tt) F.dis.push('أنجز '+td+' من '+tt+' (مهام وعادات ويومي)'); if(dq) F.dis.push('المهمة اليومية كاملة '+dq+' من '+nd+' أيام');
+  (state.areaLogs||[]).filter(l=>inR(l.date)).slice(-12).forEach(l=>{ F[l.area].push('«'+l.text.slice(0,60)+'» +'+l.pts); });
+  return F; }
+
+/* ===================== شاشة الجوانب ===================== */
+function charClassBlock(){ const X=xpLedger(), cl=classOf(); const mx=Math.max(1,...AREA5.map(a=>X.area[a.k]));
+  return '<div class="dsec"><h4><span>الفئة والجوانب</span><button class="link-btn" data-action="open-areas">التفاصيل ›</button></h4><div class="card cls-card"><div class="cls-h"><span class="cls-ic">'+cl.ic+'</span><div><b>'+esc(cl.name)+'</b><small>'+esc(cl.sub)+'</small></div></div>'+radarSVG(AREA5.map(a=>X.area[a.k]/mx),null,210)+'<div class="cls-bars">'+AREA5.map(a=>'<div class="clb" style="--c:'+a.c+'"><span>'+a.ic+' '+esc(a.n)+'</span><b class="num">Lv '+areaLevel(X.area[a.k])+'</b></div>').join('')+'</div></div></div>'; }
+function areaCard(a,X,ev){ const x=X.area[a.k], li=areaLvInfo(x), w=areaWeeks(a.k,8), tw=w[7], lw=w[6]; const tr=tw>lw?'<span style="color:var(--good)">▲</span>':tw<lw?'<span style="color:var(--bad)">▼</span>':'';
+  return '<div class="acard2" style="--c:'+a.c+'" role="button" tabindex="0" data-action="area-open" data-k="'+a.k+'"><div class="ac-h"><span class="ac-ic">'+a.ic+'</span><div class="ac-t"><b>'+esc(a.n)+' <small style="display:inline;color:var(--c)">· '+esc(a.cls)+'</small></b><small>'+esc(a.d)+'</small></div><div class="ac-lv"><small>Lv</small><b class="num">'+li.lv+'</b></div></div><div class="bar"><i style="width:'+li.pct+'%;background:var(--c)"></i></div><div class="ac-f"><span class="num">'+fmtNum(x)+' نقطة · باقي '+li.toNext+'</span><span>اليوم '+(ev[a.k]==null?'راحة':'<b class="num">'+ev[a.k]+'</b>')+'</span><span>الأسبوع <b class="num">'+tw+'</b> '+tr+'</span></div>'+sBars(w,a.c)+'</div>'; }
+function renderAreas(){ const X=xpLedger(), d=today(), cl=classOf(), ev=dayEval(d); const mx=Math.max(1,...AREA5.map(a=>X.area[a.k]));
+  let out='<div class="card cls-card"><div class="cls-h"><span class="cls-ic">'+cl.ic+'</span><div><div class="hint" style="margin:0">فئتك الحالية</div><b>'+esc(cl.name)+'</b><small>'+esc(cl.sub)+'</small></div></div>'+radarSVG(AREA5.map(a=>X.area[a.k]/mx),AREA5.map(a=>areaPast(a.k,28)/mx),250)+'<div class="rd-leg"><span><i class="cur"></i>دلوقتي</span><span><i class="prev"></i>من ٤ أسابيع</span></div>'+(SS()?'<p class="hint" style="margin:6px 0 0">الموسم الحالي بدأ '+esc(fmtDateFull(SS()))+'</p>':'')+'</div>';
+  out+=evalCard(d,true);
+  out+='<div class="section">'+sectionH('الجوانب الخمسة',null,'<button class="link-btn" data-action="alog-add">+ سجّل إنجاز</button>')+'<div class="alist">'+AREA5.map(a=>areaCard(a,X,ev)).join('')+'</div><p class="hint" style="margin:8px 2px 0">كل جانب ليه مستوى خاص بيه، وأقوى جانب بيحدد فئتك: القوة ← مهاجم، التحمّل ← مدافع، الروح ← معالج، العقل ← ساحر، الانضباط ← متلاعب.</p></div>';
+  const lg=(state.areaLogs||[]).slice().sort((a,b)=>a.date===b.date?(b.createdAt<a.createdAt?-1:1):(a.date<b.date?1:-1));
+  out+='<div class="section">'+sectionH('إنجازات سجّلتها',lg.length||null,'<button class="link-btn" data-action="alog-add">+ جديد</button>')+(lg.length?'<div class="list">'+lg.slice(0,filters.alogAll?300:6).map(alogRow).join('')+'</div>'+(lg.length>6?'<button class="collapse" data-action="alog-all">'+(filters.alogAll?'عرض أقل':'عرض الكل ('+lg.length+')')+'</button>':''):'<div class="card">'+emptyBlock('⭐','سجّل أي حاجة عملتها','مشيت كتير؟ ساعدت حد؟ قريت فصل؟ اكتبها والـAI يقيّمها بالنقاط في الجانب المناسب.','<button class="btn primary sm" data-action="alog-add">سجّل إنجاز</button>')+'</div>')+'</div>';
+  const SZ=state.seasons||[]; out+='<div class="section">'+sectionH('المواسم',SZ.length?SZ.length+1:null,'<button class="link-btn" data-action="season-new">موسم جديد</button>')+'<div class="card" style="padding:4px 14px"><div class="kv"><span><b>الموسم الحالي</b> · من '+esc(SS()?fmtDate(SS()):'البداية')+'</span><span class="num">Lv '+levelInfo().L+' · '+fmtNum(X.total)+' نقطة</span></div>'+SZ.map(s=>'<div class="kv"><span>'+esc(fmtDate(s.start))+' ← '+esc(fmtDate(s.end))+(s.cls?' · '+esc(s.cls):'')+'</span><span class="num">Lv '+s.L+' · '+s.rk+' · '+fmtNum(s.xp)+'</span></div>').join('')+'</div></div>';
+  return out; }
+function alogRow(l){ const a=AREA_MAP[l.area]; return '<div class="tx" data-action="alog-edit" data-id="'+l.id+'"><span class="ti">'+a.ic+'</span><div class="tm"><div class="tt">'+esc(l.text)+'</div><div class="ts"><span>'+esc(agoLabel(l.date))+' · '+esc(a.n)+(l.source==='ai'?' · قيّمه الـAI':'')+'</span><span class="tap-hint">✎</span></div></div><b class="num" style="color:'+a.c+'">+'+l.pts+'</b></div>'; }
+function areaSheet(k){ const a=AREA_MAP[k]; if(!a) return; const X=xpLedger(), li=areaLvInfo(X.area[k]); const src=X.ca[k]||{}; const keys=Object.keys(src).filter(c=>src[c]>0).sort((p,q)=>src[q]-src[p]);
+  const vals=[], lab=[], d=today(); for(let i=13;i>=0;i--){ const x=addDays(d,-i); vals.push(dayEval(x)[k]); lab.push(i%2?'':String(parseISO(x).getDate())); }
+  const lg=(state.areaLogs||[]).filter(l=>l.area===k).sort((p,q)=>p.date<q.date?1:-1); const F=periodFacts(addDays(d,-6),d)[k];
+  const html='<div class="detail-h" style="text-align:center"><div style="font-size:34px">'+a.ic+'</div><h3>'+esc(a.n)+' — '+esc(a.cls)+'</h3><div class="metas" style="justify-content:center"><span class="chip acc">Lv '+li.lv+'</span><span class="chip num">'+fmtNum(X.area[k])+' نقطة</span><span class="chip num">باقي '+li.toNext+' للمستوى '+(li.lv+1)+'</span></div></div><div class="bar" style="height:8px"><i style="width:'+li.pct+'%;background:'+a.c+'"></i></div>'
+    +'<div class="dsec"><h4><span>تقييمك اليومي (آخر ١٤ يوم)</span></h4>'+sBars(vals,a.c,lab)+'</div>'
+    +'<div class="dsec"><h4>النقاط الأسبوعية (٨ أسابيع)</h4>'+sBars(areaWeeks(k,8),a.c)+'</div>'
+    +(F.length?'<div class="dsec"><h4>آخر ٧ أيام</h4><div class="card" style="padding:4px 14px">'+F.map(t=>'<div class="kv"><span>'+esc(t)+'</span></div>').join('')+'</div></div>':'')
+    +'<div class="dsec"><h4>جاية منين النقاط</h4><div class="card" style="padding:4px 14px">'+(keys.length?keys.map(c=>'<div class="kv"><span>'+esc(CAT_N[c]||c)+'</span><span class="num">'+fmtNum(src[c])+'</span></div>').join(''):'<p class="hint">لسه مفيش نقاط في الجانب ده.</p>')+'</div></div>'
+    +'<div class="dsec"><h4>إزاي تكبّره</h4><p class="hint" style="margin:0">'+esc(a.tip)+'</p></div>'
+    +'<button type="button" class="btn primary block" style="margin-top:14px" data-action="alog-add" data-area="'+k+'">+ سجّل إنجاز في '+esc(a.n)+'</button>'
+    +(lg.length?'<div class="dsec"><h4>إنجازاتك المسجّلة <span class="num">'+lg.length+'</span></h4><div class="list">'+lg.slice(0,100).map(alogRow).join('')+'</div></div>':'');
+  openSheet(html,{title:a.n,focus:false,ctx:{kind:'area',id:k}}); }
+function alogSheet(id,area){ const l=id?(state.areaLogs||[]).find(x=>x.id===id):null; draft={kind:'alog',id:l?l.id:null,area:l?l.area:(area||''),pts:l?l.pts:0,reason:l?l.reason:'',source:l?l.source:'me'};
+  const html='<form data-submit="alog-save" novalidate><div class="field" style="margin-top:4px"><label for="al-text">عملت إيه؟</label><textarea id="al-text" name="text" maxlength="200" placeholder="مثال: مشيت ١٠ كيلو — ساعدت جاري — قريت فصل من كتاب — قعدت يوم من غير سوشيال" autofocus>'+esc(l?l.text:'')+'</textarea></div>'
+    +'<button type="button" class="btn block" style="margin-top:10px" data-action="alog-ai">✨ قيّمها بالـAI</button><p class="hint" id="al-reason" style="margin:6px 2px 0">'+esc(draft.reason||'')+'</p>'
+    +'<div class="field"><span class="lbl">الجانب</span><div class="qchips" id="al-areas">'+AREA5.map(a=>'<button type="button" data-action="alog-area" data-k="'+a.k+'" class="'+(draft.area===a.k?'on':'')+'">'+a.ic+' '+esc(a.n)+'</button>').join('')+'</div></div>'
+    +'<div class="field"><label for="al-pts">النقاط (1–30)</label><div class="qchips" id="al-ptsq" style="margin-bottom:8px">'+[3,5,10,15,20,30].map(n=>'<button type="button" data-action="alog-pts" data-v="'+n+'" class="'+(draft.pts===n?'on':'')+'">'+n+'</button>').join('')+'</div><input id="al-pts" class="inp num" type="text" inputmode="numeric" name="pts" value="'+(draft.pts||'')+'" placeholder="أو سيبها للـAI"></div>'
+    +'<div class="field"><label for="al-date">التاريخ</label><input id="al-date" type="date" name="date" value="'+(l?l.date:today())+'"></div>'
+    +'<p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><div class="form-actions"><button type="submit" class="btn primary">حفظ</button>'+(l?'<button type="button" class="btn danger" data-action="alog-del" data-id="'+l.id+'">حذف</button>':'')+'</div></form>';
+  openSheet(html,{title:l?'تعديل الإنجاز':'سجّل إنجاز'}); }
+function saveAlog(f){ const text=f.text.value.trim(); if(!text) return formErr('اكتب عملت إيه.'); if(!AREA_MAP[draft.area]) return formErr('اختار الجانب (أو قيّمها بالـAI).'); let pts=Math.round(parseAmount(f.pts.value)); if(!(pts>0)) return formErr('حدد النقاط (أو قيّمها بالـAI).'); pts=Math.min(30,pts); const date=f.date.value; if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) return formErr('اختار تاريخ صحيح.');
+  const id=draft.id, area=draft.area, reason=draft.reason||'', src=draft.source||'me'; commit(id?'اتعدّل':'اتسجّل — +'+pts+' '+AREA_MAP[area].n,()=>{ if(id){ const l=state.areaLogs.find(x=>x.id===id); if(l) Object.assign(l,{text:text.slice(0,200),area,pts,date,reason}); } else state.areaLogs.push({id:uid(),date,area,text:text.slice(0,200),pts,reason,source:src,createdAt:nowISO()}); }); closeSheet(); }
+const SCORE_SCHEMA={type:'object',properties:{area:{type:'string',enum:['str','end','spi','int','dis']},pts:{type:'integer'},reason:{type:'string'}},required:['area','pts','reason'],additionalProperties:false};
+const SCORE_SYS='أنت "النظام" في تطبيق حياة (مستوحى من Solo Leveling) لشخص مصري. هيكتبلك حاجة عملها، وانت تقيّمها بالنقاط وتحدد الجانب:\n'
++'- str القوة: تمارين قوة، ضغط، عقلة، أوزان، مجهود عضلي.\n- end التحمّل: جري، مشي، عجل، سباحة، صيام، أكل صحي، نوم مظبوط، صبر بدني.\n- spi الروح: عبادة، ذكر، صدقة، بر الوالدين، صلة رحم، مساعدة الناس، أخلاق.\n- int العقل: مذاكرة، قراءة، تعلّم مهارة، كورس، تفكير وتخطيط عميق.\n- dis الانضباط: التزام صعب، تنظيم، إنجاز شغل، ادخار فلوس، بُعد عن عادة سيئة.\n'
++'النقاط من 1 لـ 30 حسب المجهود والصعوبة والأثر: 1–5 حاجة بسيطة، 6–12 كويسة، 13–20 قوية، 21–30 استثنائية. كن عادل ومتحفّظ. reason جملة واحدة قصيرة بالعامية المصرية.';
+async function aiSmall(system,user,schema,maxTok){ if(!aiReady()) throw new Error('ضيف مفتاح Claude من إعدادات المساعد الأول.'); if(aiLeft()<=0) throw new Error('وصلت حد الميزانية الشهرية للمساعد.'); const model=AI().model||'claude-haiku-4-5';
+  const base={model,max_tokens:maxTok||600,system,messages:[{role:'user',content:user}]}; let r;
+  if(schema){ r=await aiFetch(Object.assign({},base,{output_config:{format:{type:'json_schema',schema}}})); if(!r.ok&&r.status===400) r=await aiFetch(Object.assign({},base,{system:system+'\n\nأخرج JSON فقط بالشكل: {"area":"...","pts":0,"reason":"..."} بدون أي نص تاني.'})); }
+  else r=await aiFetch(base);
+  if(!r.ok) throw new Error(aiErrMsg(r)); const msg=r.json||{}; aiTrack(model,msg.usage); save(); const txt=(msg.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+  if(schema){ const j=extractJSON(txt); if(!j) throw new Error('الرد وصل بشكل غير متوقع — جرّب تاني.'); return j; } return txt.trim(); }
+async function alogAI(btn){ const t=($('#al-text')||{}).value||''; if(!t.trim()){ toast('اكتب عملت إيه الأول'); return; } btn.disabled=true; const old=btn.textContent; btn.textContent='بيقيّم…';
+  try{ const j=await aiSmall(SCORE_SYS,t.trim().slice(0,400),SCORE_SCHEMA,300); if(!draft||draft.kind!=='alog') return; if(AREA_MAP[j.area]) draft.area=j.area; draft.pts=Math.max(1,Math.min(30,Math.round(+j.pts)||5)); draft.reason=String(j.reason||'').slice(0,200); draft.source='ai';
+    $$('#al-areas button').forEach(b=>b.classList.toggle('on',b.dataset.k===draft.area)); const p=$('#al-pts'); if(p) p.value=draft.pts; $$('#al-ptsq button').forEach(b=>b.classList.toggle('on',+b.dataset.v===draft.pts)); const r=$('#al-reason'); if(r) r.textContent=AREA_MAP[draft.area].ic+' '+AREA_MAP[draft.area].n+' · +'+draft.pts+' — '+draft.reason; vibrate(10);
+  }catch(e){ toast(e.message||'فشل التقييم'); } finally{ btn.disabled=false; btn.textContent=old; } }
+async function evalAI(btn){ const d=today(), ev=dayEval(d), F=periodFacts(d,d); if(btn){ btn.disabled=true; btn.textContent='النظام بيقيّم يومك…'; }
+  const user='تقييم يوم '+d+' ('+WD[parseISO(d).getDay()]+')\nالكلي: '+ev.all+'/100\n'+AREA5.map(a=>a.n+': '+(ev[a.k]==null?'يوم راحة':ev[a.k]+'/100')+' — '+(F[a.k].join('، ')||'مفيش تسجيل')).join('\n');
+  const sys='أنت "النظام" في تطبيق حياة (مستوحى من Solo Leveling) لشخص مصري. قيّم يومه بالعامية المصرية في 3 لـ 5 جمل قصيرة: حكم عام صريح ومشجّع، أقوى جانب، أضعف جانب، ومهمة واحدة محددة لبكرة. متكررش كل الأرقام ومتستخدمش قوائم أو نجوم.';
+  try{ const t=await aiSmall(sys,user,null,500); commit(null,()=>{ state.evals[d]={t:String(t).slice(0,1500),at:nowISO()}; },{noUndo:true}); }catch(e){ toast(e.message||'فشل التقييم'); if(btn){ btn.disabled=false; btn.textContent='جرّب تاني'; } } }
+
+/* ===================== الموسم الجديد ===================== */
+function seasonSettingsHTML(){ const SZ=state.seasons||[]; return '<div class="dsec"><h4>موسم جديد (تصفير العدّادات)</h4><p class="hint" style="margin:0 0 8px">بيرجّع المستوى والنقاط والسلاسل والإنجازات والفئة للصفر ويبدأ الحساب من النهارده — كأنك لسه منزّل التطبيق ودخلت بياناتك. <b>المهام والفلوس وكل السجلات بتفضل زي ما هي.</b> الموسم الحالي بيتحفظ في الأرشيف.</p><button type="button" class="btn block" data-action="season-new">ابدأ موسم جديد</button>'+(SS()?'<p class="hint">الموسم الحالي بدأ '+esc(fmtDate(SS()))+' · مواسم سابقة: <span class="num">'+SZ.length+'</span></p>':'')+'</div>'; }
+function seasonSheet(){ const li=levelInfo(), cl=classOf(), X=xpLedger();
+  const html='<div class="card" style="padding:12px 14px"><div class="kv"><span>المستوى الحالي</span><span class="num">Lv '+li.L+' · '+rankFor(li.L)+'</span></div><div class="kv"><span>النقاط</span><span class="num">'+fmtNum(X.total)+'</span></div><div class="kv"><span>الفئة</span><span>'+esc(cl.name)+'</span></div></div>'
+    +'<p style="line-height:1.9;margin:14px 2px">هيحصل إيه:<br>• المستوى يرجع 1، والنقاط وجوانبك الخمسة تبدأ من الصفر.<br>• السلاسل (الصلوات، العادات، الأذكار، السنن) تبدأ من النهارده.<br>• الإنجازات تتحسب من جديد.<br>• <b>مفيش أي بيانات بتتمسح</b>: المهام والأهداف والفلوس والتمارين والسجلات كلها زي ما هي.<br>• أرقام الحالة (القلب والبنيان والروح) بتفضل لأنها بتقيس آخر ٤ أسابيع.</p>'
+    +'<div class="form-actions"><button type="button" class="btn primary" data-action="season-confirm">ابدأ الموسم الجديد</button><button type="button" class="btn" data-action="close-sheet">إلغاء</button></div>';
+  openSheet(html,{title:'موسم جديد',focus:false}); }
+function startSeason(){ const d=today(), li=levelInfo(), cl=classOf(), X=xpLedger(); const stamp=addDays(d,-1)+'T12:00:00.000Z';
+  commit('بدأ موسم جديد — بياناتك كلها محفوظة',()=>{ const st=state.settings; state.seasons.unshift({id:uid(),start:st.seasonStart||isoDay(state.meta.createdAt)||d,end:d,xp:X.total,L:li.L,rk:rankFor(li.L),cls:cl.name,area:Object.assign({},X.area)}); state.seasons=state.seasons.slice(0,50);
+    state.tasks.forEach(t=>{ if(t.done&&!t.doneAt) t.doneAt=stamp; }); state.goals.forEach(g=>{ g.milestones.forEach(m=>{ if(m.done&&!m.doneAt) m.doneAt=stamp; }); if(g.status==='done'&&!g.doneAt) g.doneAt=stamp; });
+    st.seasonBase={memo:memoXPTotal(),date:d,ca:JSON.parse(JSON.stringify(X.tca))}; st.seasonStart=d; },{ms:9000});
+  closeSheet(); showSysWindow({head:'[ النظام ]',title:'موسم جديد',sub:'المستوى رجع <b>1</b> والعدّادات اتصفّرت.<br>بياناتك كلها زي ما هي — يلا نبدأ.',ms:5000,vib:[40,60,40]}); }
+function achV13(d){ const I=caliInfo(); const m=id=>!!(I.mAt[id]&&inS(I.mAt[id])); let best12=false, dz1k=false; const from=SS()||'0000'; for(const x in (DN().sunnah||{})){ if(x>=from&&sunnahRak(x).rawatib===12){ best12=true; break; } } for(const x in (DN().counts||{})){ if(x>=from&&dhikrTotal(x)>=1000){ dz1k=true; break; } }
+  return [{k:'sn12',name:'بيت في الجنة',desc:'الـ 12 ركعة الرواتب في يوم',ok:best12,icon:ICON.mosque},{k:'sn7',name:'مداوم',desc:'الرواتب كاملة 7 أيام متتالية',ok:sunnahStreak(d)>=7,icon:ICON.mosque},{k:'dz1k',name:'ذاكر كثير',desc:'1000 ذكر في يوم',ok:dz1k,icon:ICON.sun},
+    {k:'cpu',name:'20 ضغطة',desc:'إتقان الضغط العادي',ok:m('pushup'),icon:ICON.dumbbell},{k:'cpl',name:'أول عقلة',desc:'إتقان العقلة السلبية',ok:m('neg_pu'),icon:ICON.dumbbell},{k:'cmu',name:'مسل أب',desc:'إتقان المسل أب',ok:m('muscle_up'),icon:ICON.dumbbell},{k:'chs',name:'على إيدي',desc:'وقوف حر على اليدين دقيقة',ok:m('fs_hs'),icon:ICON.user},{k:'coah',name:'الأسطورة',desc:'وقوف على اليدين بإيد واحدة',ok:m('oah'),icon:ICON.user}]; }
+
+/* ===================== المشاركة مع الأصحاب ===================== */
+const SHARE_BASE='https://mahmoudmkhimer.github.io/hayah/';
+function b64e(o){ const bytes=new TextEncoder().encode(JSON.stringify(o)); let bin=''; for(let i=0;i<bytes.length;i++) bin+=String.fromCharCode(bytes[i]); return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64d(t){ t=String(t).replace(/-/g,'+').replace(/_/g,'/'); while(t.length%4) t+='='; const bin=atob(t); const bytes=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); return JSON.parse(new TextDecoder().decode(bytes)); }
+function buildSnap(areas){ const d=today(), from=addDays(d,-6), X=xpLedger(), li=levelInfo(), cl=classOf(), F=periodFacts(from,d); const evs=[]; for(let i=6;i>=0;i--) evs.push(dayEval(addDays(d,-i)));
+  const a={}; areas.forEach(k=>{ a[k]={l:areaLevel(X.area[k]),x:X.area[k],w:areaWeeks(k,8),s:evs.map(e=>e[k]==null?-1:e[k]),f:F[k].slice(0,6)}; });
+  return {k:'hs',v:1,id:uid(),n:state.settings.name||'صديق',at:d,L:li.L,rk:rankFor(li.L),c:(cl.k&&(areas.includes(cl.k)||cl.k==='all'))?cl.name:'',a,o:evs.map(e=>{ const v=areas.map(k=>e[k]).filter(x=>x!=null); return v.length?Math.round(v.reduce((p,q)=>p+q,0)/v.length):0; })}; }
+function cleanSnap(o){ if(!o||typeof o!=='object'||o.k!=='hs') return null; const AK=['str','end','spi','int','dis']; const str=(v,n)=>typeof v==='string'?v.slice(0,n):''; const num=(v,a,b)=>{ v=Math.round(+v); return isFinite(v)?Math.max(a,Math.min(b,v)):a; };
+  const a={}; if(o.a&&typeof o.a==='object') AK.forEach(k=>{ const x=o.a[k]; if(!x||typeof x!=='object') return; a[k]={l:num(x.l,1,999),x:num(x.x,0,1e8),w:Array.isArray(x.w)?x.w.slice(-8).map(v=>num(v,0,1e7)):[],s:Array.isArray(x.s)?x.s.slice(-7).map(v=>num(v,-1,100)):[],f:Array.isArray(x.f)?x.f.filter(t=>typeof t==='string').slice(0,8).map(t=>t.slice(0,100)):[]}; });
+  if(!Object.keys(a).length) return null;
+  return {k:'hs',v:1,id:str(o.id,30)||('x'+Date.now().toString(36)),n:str(o.n,40)||'صديق',at:/^\d{4}-\d{2}-\d{2}$/.test(o.at)?o.at:'',L:num(o.L,1,999),rk:['E','D','C','B','A','S'].includes(o.rk)?o.rk:'E',c:str(o.c,40),a,o:Array.isArray(o.o)?o.o.slice(-7).map(v=>num(v,0,100)):[],got:typeof o.got==='string'?o.got.slice(0,30):''}; }
+function cleanRating(o){ if(!o||typeof o!=='object'||o.k!=='hr') return null; const AK=['str','end','spi','int','dis']; const str=(v,n)=>typeof v==='string'?v.slice(0,n):''; const num=(v,a,b)=>{ v=Math.round(+v); return isFinite(v)?Math.max(a,Math.min(b,v)):a; };
+  const st={}; if(o.st&&typeof o.st==='object') AK.forEach(k=>{ const v=num(o.st[k],0,5); if(v>0) st[k]=v; }); const ov=num(o.o,0,5); if(!ov&&!Object.keys(st).length) return null;
+  return {k:'hr',v:1,id:str(o.id,30)||('x'+Date.now().toString(36)),to:str(o.to,30),toN:str(o.toN,40),n:str(o.n,40)||'صديق',at:/^\d{4}-\d{2}-\d{2}$/.test(o.at)?o.at:'',st,o:ov,c:str(o.c,500),got:typeof o.got==='string'?o.got.slice(0,30):''}; }
+async function shareLink(kind,obj,text){ const url=SHARE_BASE+'#'+kind+'='+b64e(obj);
+  if(navigator.share){ try{ await navigator.share({title:'حياة',text,url}); return; }catch(e){ if(e&&e.name==='AbortError') return; } }
+  try{ await navigator.clipboard.writeText(text+'\n'+url); toast('اتنسخ اللينك — ابعته لصاحبك واتساب أو أي مكان',{ms:4000}); }catch(e){ openSheet('<p class="hint" style="margin:0 0 8px">انسخ اللينك ده وابعته:</p><textarea class="inp export-box" readonly onclick="this.select()">'+esc(text+'\n'+url)+'</textarea>',{title:'اللينك',focus:false}); } }
+function stars(v){ v=Math.round(v||0); return '<span class="mini-stars">'+'★'.repeat(v)+'<span style="opacity:.3">'+'★'.repeat(Math.max(0,5-v))+'</span></span>'; }
+function starsHTML(k,v){ return '<div class="stars">'+[1,2,3,4,5].map(i=>'<button type="button" class="'+(i<=v?'on':'')+'" data-action="rate-star" data-k="'+k+'" data-v="'+i+'" aria-label="'+i+' نجوم">★</button>').join('')+'</div>'; }
+function reportHTML(s){ let h='<div class="rep-h"><div class="rep-n">'+esc(s.n)+'</div><div class="metas"><span class="chip acc">Lv '+s.L+' · '+esc(s.rk)+'</span>'+(s.c?'<span class="chip">'+esc(s.c)+'</span>':'')+(s.at?'<span class="chip">'+esc(fmtDate(s.at))+'</span>':'')+'</div></div>';
+  if(s.o&&s.o.length){ const av=Math.round(s.o.reduce((a,b)=>a+b,0)/s.o.length); h+='<div class="dsec"><h4><span>التقييم الكلي — آخر ٧ أيام</span><span><b class="num">'+av+'</b> · '+gradeOf(av)+'</span></h4>'+sBars(s.o,'var(--accent)')+'</div>'; }
+  AREA5.forEach(a=>{ const x=s.a[a.k]; if(!x) return; const av=x.s.filter(v=>v>=0); h+='<div class="card rep-a" style="--c:'+a.c+'"><div class="ac-h"><span class="ac-ic">'+a.ic+'</span><div class="ac-t"><b>'+esc(a.n)+'</b><small>'+esc(a.cls)+(av.length?' · متوسط الأسبوع '+Math.round(av.reduce((p,q)=>p+q,0)/av.length):'')+'</small></div><div class="ac-lv"><small>Lv</small><b class="num">'+x.l+'</b></div></div>'+(x.s.length?'<div class="hint">تقييم الأيام</div>'+sBars(x.s.map(v=>v<0?null:v),a.c):'')+(x.w.length?'<div class="hint">النقاط الأسبوعية</div>'+sBars(x.w,a.c):'')+(x.f.length?'<ul class="rep-f">'+x.f.map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul>':'')+'</div>'; });
+  return h; }
+function reportSheet(id,preview){ const s=preview||SOC().reports.find(x=>x.id===id); if(!s) return; let html=reportHTML(s);
+  if(!preview){ draft={kind:'rate',sid:s.id,st:{},o:0}; const mine=SOC().ratingsOut.filter(r=>r.to===s.id);
+    html+='<div class="dsec"><h4>قيّم '+esc(s.n)+'</h4><div class="card" style="padding:4px 14px">'+AREA5.filter(a=>s.a[a.k]).map(a=>'<div class="rate-row"><span>'+a.ic+' '+esc(a.n)+'</span>'+starsHTML(a.k,0)+'</div>').join('')+'<div class="rate-row"><b>التقييم الكلي</b>'+starsHTML('o',0)+'</div></div>'
+      +'<div class="field"><label for="r-c">كلمة ليه (تشجيع أو نصيحة)</label><textarea id="r-c" maxlength="500" placeholder="اختياري"></textarea></div><div class="field"><label for="r-n">اسمك</label><input id="r-n" type="text" maxlength="40" value="'+esc(state.settings.name||'')+'"></div>'
+      +'<button type="button" class="btn primary block" style="margin-top:14px" data-action="rate-send">ابعت تقييمك</button>'+(mine.length?'<p class="hint">بعتّله '+nOf(mine.length,'تقييم','تقييمين','تقييمات','تقييم')+' على التقرير ده قبل كده.</p>':'')+'</div>'
+      +'<div class="btn-row" style="margin-top:10px"><button type="button" class="btn" data-action="share-make">ابعتله تقريرك انت</button><button type="button" class="btn danger" data-action="report-del" data-id="'+s.id+'">حذف التقرير</button></div>'; }
+  else html+='<p class="hint" style="text-align:center">ده اللي صاحبك هيشوفه.</p>';
+  openSheet(html,{title:preview?'معاينة تقريرك':'تقرير '+s.n,focus:false}); }
+function ratingSheet(id){ const r=SOC().ratingsIn.find(x=>x.id===id); if(!r) return;
+  const html='<div class="rep-h"><div class="rep-n">'+esc(r.n)+'</div><div class="metas"><span class="chip">قيّمك '+(r.at?esc(agoLabel(r.at)):'')+'</span></div></div>'+(r.o?'<div style="text-align:center;margin-top:10px;font-size:28px">'+stars(r.o)+'</div>':'')
+    +'<div class="card" style="padding:4px 14px;margin-top:12px">'+AREA5.filter(a=>r.st[a.k]).map(a=>'<div class="rate-row"><span>'+a.ic+' '+esc(a.n)+'</span>'+stars(r.st[a.k])+'</div>').join('')+'</div>'+(r.c?'<div class="ev-ai">'+esc(r.c)+'</div>':'')
+    +'<div class="btn-row" style="margin-top:14px"><button type="button" class="btn primary" data-action="share-make">ابعتله تقرير جديد</button><button type="button" class="btn danger" data-action="rin-del" data-id="'+r.id+'">حذف</button></div>';
+  openSheet(html,{title:'تقييم من '+r.n,focus:false}); }
+function handleIncoming(kind,payload){ let o; try{ o=b64d(payload); }catch(e){ toast('اللينك ده مش سليم أو ناقص'); return false; } const now=nowISO();
+  if(kind==='s'){ const s=cleanSnap(o); if(!s){ toast('اللينك ده مش تقرير صالح'); return false; } s.got=now; commit(null,()=>{ const R=SOC().reports; const i=R.findIndex(x=>x.id===s.id); if(i>=0) R.splice(i,1); R.unshift(s); SOC().reports=R.slice(0,60); },{noUndo:true}); reportSheet(s.id); return true; }
+  const r=cleanRating(o); if(!r){ toast('اللينك ده مش تقييم صالح'); return false; } r.got=now; commit(null,()=>{ const R=SOC().ratingsIn; const i=R.findIndex(x=>x.id===r.id); if(i>=0) R.splice(i,1); R.unshift(r); SOC().ratingsIn=R.slice(0,200); },{noUndo:true}); ratingSheet(r.id); return true; }
+function parseShareText(t){ const m=String(t||'').match(/#([sr])=([A-Za-z0-9_-]{20,})/); return m?[m[1],m[2]]:null; }
+function checkHash(){ try{ const m=parseShareText(location.hash); if(!m) return; try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTimeout(()=>{ try{ handleIncoming(m[0],m[1]); }catch(e){ reportError(e); } },350); }catch(e){ reportError(e); } }
+window.addEventListener('hashchange',checkHash);
+function renderFriends(){ const S=SOC(), sa=state.settings.shareAreas; let out='';
+  out+='<div class="card" style="padding:14px"><h3 class="fr-h">شارك تقدّمك مع حد</h3><p class="hint" style="margin:4px 0 10px">اختار الجوانب اللي عايزه يشوفها. هيوصله لينك فيه مستواك وتقييم أيامك وأهم أرقامك آخر ٧ أيام، ويقدر يقيّمك ويبعتلك تقييمه بلينك.</p><div class="qchips">'+AREA5.map(a=>'<button type="button" data-action="share-area" data-k="'+a.k+'" class="'+(sa.includes(a.k)?'on':'')+'">'+a.ic+' '+esc(a.n)+'</button>').join('')+'</div><div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" data-action="share-make">ابعت لينك</button><button type="button" class="btn" data-action="share-preview">معاينة</button></div><p class="hint" style="margin:8px 0 0">مفيش سيرفر ولا حسابات: البيانات جوّه اللينك نفسه. المصاريف والفلوس مش بتتبعت. كل ما تحب تحدّث ابعت لينك جديد.</p></div>';
+  out+='<div class="section">'+sectionH('وصلك لينك؟')+'<div class="card" style="padding:12px"><textarea class="inp" id="sh-paste" rows="2" placeholder="الصق اللينك هنا (تقرير أو تقييم من صاحبك)"></textarea><button type="button" class="btn block" style="margin-top:8px" data-action="share-paste">افتح</button><p class="hint" style="margin:6px 0 0">على الآيفون والمتصفح اللينك بيفتح التطبيق لوحده. على تطبيق الأندرويد: انسخ الرسالة والصقها هنا.</p></div></div>';
+  if(S.ratingsIn.length){ const agg={}; AREA5.forEach(a=>{ const v=S.ratingsIn.slice(0,20).map(r=>r.st[a.k]).filter(Boolean); if(v.length) agg[a.k]=v.reduce((p,q)=>p+q,0)/v.length; }); const ov=S.ratingsIn.slice(0,20).map(r=>r.o).filter(Boolean);
+    out+='<div class="section">'+sectionH('أصحابك شايفينك إزاي',S.ratingsIn.length)+'<div class="card" style="padding:4px 14px">'+(ov.length?'<div class="rate-row"><b>الكلي</b><span>'+stars(ov.reduce((p,q)=>p+q,0)/ov.length)+' <small class="num">'+(Math.round(ov.reduce((p,q)=>p+q,0)/ov.length*10)/10)+'</small></span></div>':'')+AREA5.filter(a=>agg[a.k]).map(a=>'<div class="rate-row"><span>'+a.ic+' '+esc(a.n)+'</span><span>'+stars(agg[a.k])+' <small class="num">'+(Math.round(agg[a.k]*10)/10)+'</small></span></div>').join('')+'</div>'
+      +'<div class="list" style="margin-top:10px">'+S.ratingsIn.slice(0,30).map(r=>'<div class="tx" data-action="rin-open" data-id="'+r.id+'"><span class="ti">⭐</span><div class="tm"><div class="tt">'+esc(r.n)+(r.o?' — '+stars(r.o):'')+'</div><div class="ts"><span>'+(r.at?esc(agoLabel(r.at)):'')+(r.c?' · '+esc(r.c.slice(0,50)):'')+'</span><span class="tap-hint">افتح</span></div></div></div>').join('')+'</div></div>'; }
+  if(S.reports.length){ out+='<div class="section">'+sectionH('تقارير أصحابك',S.reports.length)+'<div class="list">'+S.reports.map(s=>{ const av=s.o.length?Math.round(s.o.reduce((a,b)=>a+b,0)/s.o.length):null; return '<div class="tx" data-action="report-open" data-id="'+s.id+'"><span class="ti">👤</span><div class="tm"><div class="tt">'+esc(s.n)+' · Lv '+s.L+' '+esc(s.rk)+(s.c?' · '+esc(s.c):'')+'</div><div class="ts"><span>'+(s.at?esc(agoLabel(s.at)):'')+(av!=null?' · متوسط '+av:'')+' · '+Object.keys(s.a).map(k=>AREA_MAP[k].ic).join('')+'</span><span class="tap-hint">افتح وقيّم</span></div></div></div>'; }).join('')+'</div></div>'; }
+  if(S.ratingsOut.length) out+='<div class="section">'+sectionH('تقييمات بعتها',S.ratingsOut.length)+'<div class="list">'+S.ratingsOut.slice(0,30).map(r=>'<div class="tx"><span class="ti">📤</span><div class="tm"><div class="tt">لـ '+esc(r.toN||'صديق')+(r.o?' — '+stars(r.o):'')+'</div><div class="ts"><span>'+(r.at?esc(agoLabel(r.at)):'')+'</span><button type="button" class="link-btn" style="font-size:12px" data-action="rout-del" data-id="'+r.id+'">حذف</button></div></div></div>').join('')+'</div></div>';
+  if(!S.reports.length&&!S.ratingsIn.length) out+='<div class="card" style="margin-top:16px">'+emptyBlock('🤝','لسه مفيش أصحاب','ابعت لينك تقدّمك لحد بتثق فيه يتابعك ويقيّمك، واطلب منه يبعتلك تقريره عشان تقيّمه انت كمان.','')+'</div>';
+  return out; }
+
+/* ===================== المساعد — إضافات ===================== */
+function aiCtx13(L){ const d=today(); L.push('الأذكار المعدودة (id|اسم|عدد اليوم): '+dhikrList().map(x=>x.id+'|'+x.n+'|'+dhikrCount(d,x.id)).join(' ; ')); L.push('السنن (id|اسم): '+SUNNAH.map(x=>x.id+'|'+x.n+(daySunnah(d)[x.id]?'|تمت':'')).join(' ; ')); L.push('مهارات الكاليستنكس (id|اسم): '+CALI.map(s=>s.id+'|'+s.n).join(' ; ')); }
+function todayEvalCard(d){ try{ return evalCard(d,false); }catch(e){ reportError(e); return ''; } }
+
+/* ===================== أحداث v13 ===================== */
+const ACT13={
+  'open-tasbih':()=>dhikrSheet('subhan'),
+  'dz-open':el=>dhikrSheet(el.dataset.id),
+  'dz-tap':el=>dhikrTap(parseInt(el.dataset.n,10)||1),
+  'dz-target':el=>{ if(!draft||draft.kind!=='dhikr') return; const v=parseInt(el.dataset.v,10); if(!(v>0)) return; const id=draft.id; if(!DN().dhikrTargets) DN().dhikrTargets={}; DN().dhikrTargets[id]=v; const c=(DN().dhikrCustom||[]).find(x=>x.id===id); if(c) c.target=v; save(); dhikrSheet(id); },
+  'dz-setcount':()=>{ if(!draft||draft.kind!=='dhikr') return; const v=Math.round(parseAmount(($('#dz-set')||{}).value)); if(!(v>=0)) return toast('اكتب رقم صحيح'); const cur=dhikrCount(today(),draft.id); dhikrTap(v-cur); const i=$('#dz-set'); if(i) i.value=''; toast('اتحفظ العدد',{ms:1500}); },
+  'dz-add':()=>dhikrFormSheet(null),
+  'dz-edit':el=>dhikrFormSheet(el.dataset.id),
+  'dz-del':el=>{ const id=el.dataset.id; commit('اتحذف الذكر',()=>{ DN().dhikrCustom=(DN().dhikrCustom||[]).filter(x=>x.id!==id); }); closeSheet(); },
+  'sunnah-toggle':el=>{ const id=el.dataset.id, d=el.dataset.date||today(); const was=sunnahRak(d).rawatib; commit(null,()=>{ if(!DN().sunnah) DN().sunnah={}; const s=ensureDay(DN().sunnah,d); if(s[id]) delete s[id]; else s[id]=1; if(!Object.keys(s).length) delete DN().sunnah[d]; }); vibrate(8); if(was<12&&sunnahRak(d).rawatib===12) showSysWindow({head:'[ السنن ]',title:'الـ 12 ركعة كاملة',sub:'«بُني له بهنّ بيتٌ في الجنة». <b>+10 نقاط</b>',ms:4000}); },
+  'cali-open':el=>caliSheet(el.dataset.id),
+  'cali-fill':el=>{ const i=$('#cl-sets'); if(i){ i.value=el.dataset.v; i.focus(); } },
+  'cali-log-edit':el=>caliLogSheet(el.dataset.id),
+  'cali-log-del':el=>{ const id=el.dataset.id; commit('اتحذف التسجيل',()=>{ state.cali.logs=state.cali.logs.filter(x=>x.id!==id); }); closeSheet(); },
+  'cali-test':()=>caliTestSheet(),
+  'cali-guide':()=>caliGuideSheet(),
+  'cali-all':()=>{ filters.caliAll=!filters.caliAll; render(); },
+  'open-areas':()=>{ if(sheetOpen) closeSheet(); filters.progView='areas'; if(tab==='progress') render(); switchTab('progress'); },
+  'area-open':el=>areaSheet(el.dataset.k),
+  'alog-add':el=>alogSheet(null,el.dataset.area||''),
+  'alog-edit':el=>alogSheet(el.dataset.id),
+  'alog-del':el=>{ const id=el.dataset.id; commit('اتحذف',()=>{ state.areaLogs=state.areaLogs.filter(x=>x.id!==id); }); closeSheet(); },
+  'alog-area':el=>{ if(!draft||draft.kind!=='alog') return; draft.area=el.dataset.k; $$('#al-areas button').forEach(b=>b.classList.toggle('on',b===el)); },
+  'alog-pts':el=>{ if(!draft||draft.kind!=='alog') return; draft.pts=+el.dataset.v; const p=$('#al-pts'); if(p) p.value=draft.pts; $$('#al-ptsq button').forEach(b=>b.classList.toggle('on',b===el)); },
+  'alog-ai':el=>{ alogAI(el); },
+  'alog-all':()=>{ filters.alogAll=!filters.alogAll; render(); },
+  'eval-ai':el=>{ evalAI(el); },
+  'eval-hist':()=>evalHistSheet(),
+  'season-new':()=>seasonSheet(),
+  'season-confirm':()=>startSeason(),
+  'share-area':el=>{ const k=el.dataset.k; const sa=state.settings.shareAreas; if(sa.includes(k)){ if(sa.length===1) return toast('لازم جانب واحد على الأقل'); state.settings.shareAreas=sa.filter(x=>x!==k); } else state.settings.shareAreas=AREA5.map(a=>a.k).filter(x=>x===k||sa.includes(x)); save(); render(); },
+  'share-make':()=>{ const snap=buildSnap(state.settings.shareAreas); shareLink('s',snap,(state.settings.name?state.settings.name+' بيشاركك':'بشاركك')+' تقدّمه في «حياة» — افتح اللينك وقيّمه:'); },
+  'share-preview':()=>reportSheet(null,cleanSnap(buildSnap(state.settings.shareAreas))),
+  'share-paste':()=>{ const v=($('#sh-paste')||{}).value||''; const m=parseShareText(v); if(!m) return toast('ملقيتش لينك صالح في النص ده'); if(handleIncoming(m[0],m[1])){ const t=$('#sh-paste'); if(t) t.value=''; } },
+  'report-open':el=>reportSheet(el.dataset.id),
+  'report-del':el=>{ const id=el.dataset.id; commit('اتحذف التقرير',()=>{ SOC().reports=SOC().reports.filter(x=>x.id!==id); }); closeSheet(); },
+  'rate-star':el=>{ if(!draft||draft.kind!=='rate') return; const k=el.dataset.k, v=+el.dataset.v; if(k==='o') draft.o=v; else draft.st[k]=v; $$('#sheet-root [data-action="rate-star"][data-k="'+k+'"]').forEach(b=>b.classList.toggle('on',+b.dataset.v<=v)); vibrate(6); },
+  'rate-send':()=>{ if(!draft||draft.kind!=='rate') return; const s=SOC().reports.find(x=>x.id===draft.sid); if(!s) return; const name=(($('#r-n')||{}).value||'').trim().slice(0,40)||state.settings.name||'صديق'; const r=cleanRating({k:'hr',v:1,id:uid(),to:s.id,toN:s.n,n:name,at:today(),st:draft.st,o:draft.o,c:(($('#r-c')||{}).value||'').trim()}); if(!r) return toast('اختار نجوم الأول');
+    if(!state.settings.name&&name!=='صديق') state.settings.name=name; commit(null,()=>{ SOC().ratingsOut.unshift(r); SOC().ratingsOut=SOC().ratingsOut.slice(0,200); },{noUndo:true}); closeSheet(); shareLink('r',r,name+' قيّمك في «حياة» — افتح اللينك تشوف التقييم:'); },
+  'rin-open':el=>ratingSheet(el.dataset.id),
+  'rin-del':el=>{ const id=el.dataset.id; commit('اتحذف',()=>{ SOC().ratingsIn=SOC().ratingsIn.filter(x=>x.id!==id); }); closeSheet(); },
+  'rout-del':el=>{ const id=el.dataset.id; commit('اتحذف',()=>{ SOC().ratingsOut=SOC().ratingsOut.filter(x=>x.id!==id); }); }
+};
+const SUB13={ 'dz-save':f=>saveDhikrForm(f), 'cali-save':f=>saveCali(f), 'cali-log-save':f=>saveCaliLog(f), 'cali-test-save':f=>saveCaliTest(f), 'alog-save':f=>saveAlog(f) };
+
+/* تنظيف بيانات v13 — بيتنادى من sanitize قبل ما ثوابت الموديول تتعرّف، فممنوع يستخدمها */
+function sanitize13(d,s,dn){
+  const okD=x=>/^\d{4}-\d{2}-\d{2}$/.test(String(x)); const okId=x=>typeof x==='string'&&/^[a-z0-9_]{2,24}$/i.test(x); const AK=['str','end','spi','int','dis'];
+  const dd=(d.deen&&typeof d.deen==='object')?d.deen:{};
+  const SN=['fajr_b','dhuhr_b','dhuhr_a','maghrib_a','isha_a','asr_b','duha','witr','qiyam'];
+  dn.sunnah={}; if(dd.sunnah&&typeof dd.sunnah==='object') for(const k in dd.sunnah){ if(!okD(k)) continue; const v=dd.sunnah[k]; if(!v||typeof v!=='object') continue; const o={}; SN.forEach(x=>{ if(v[x]) o[x]=1; }); if(Object.keys(o).length) dn.sunnah[k]=o; }
+  dn.counts={}; if(dd.counts&&typeof dd.counts==='object') for(const k in dd.counts){ if(!okD(k)) continue; const v=dd.counts[k]; if(!v||typeof v!=='object') continue; const o={}; for(const id in v){ if(!okId(id)) continue; const n=parseInt(v[id],10); if(n>0) o[id]=Math.min(1000000,n); } if(Object.keys(o).length) dn.counts[k]=o; }
+  for(const k in dn.adhkar){ const a=dn.adhkar[k]; if(a&&a.tasbih>0){ const c=dn.counts[k]||(dn.counts[k]={}); c.subhan=Math.max(c.subhan||0,a.tasbih); delete a.tasbih; if(!Object.keys(a).length) delete dn.adhkar[k]; } }
+  dn.dhikrTargets={}; if(dd.dhikrTargets&&typeof dd.dhikrTargets==='object') for(const id in dd.dhikrTargets){ const n=parseInt(dd.dhikrTargets[id],10); if(okId(id)&&n>0) dn.dhikrTargets[id]=Math.min(100000,n); }
+  dn.dhikrCustom=Array.isArray(dd.dhikrCustom)?dd.dhikrCustom.filter(x=>x&&typeof x==='object'&&okId(x.id)&&typeof x.n==='string'&&x.n.trim()).map(x=>({id:x.id,n:x.n.trim().slice(0,40),t:typeof x.t==='string'?x.t.trim().slice(0,300):'',target:Math.max(1,Math.min(100000,parseInt(x.target,10)||100))})).slice(0,30):[];
+  const cl=(d.cali&&typeof d.cali==='object')?d.cali:{};
+  s.cali={logs:Array.isArray(cl.logs)?cl.logs.filter(l=>l&&typeof l==='object'&&l.id&&okD(l.date)&&okId(l.sk)&&Array.isArray(l.sets)).map(l=>({id:String(l.id),date:l.date,sk:l.sk,sets:l.sets.map(v=>Math.round(+v)).filter(v=>v>0&&v<=10000).slice(0,20),note:typeof l.note==='string'?l.note.slice(0,120):'',createdAt:typeof l.createdAt==='string'?l.createdAt:nowISO()})).filter(l=>l.sets.length).slice(-5000):[]};
+  s.areaLogs=Array.isArray(d.areaLogs)?d.areaLogs.filter(l=>l&&typeof l==='object'&&l.id&&okD(l.date)&&AK.includes(l.area)&&typeof l.text==='string'&&l.text.trim()).map(l=>({id:String(l.id),date:l.date,area:l.area,text:l.text.trim().slice(0,200),pts:Math.max(0,Math.min(50,Math.round(+l.pts)||0)),reason:typeof l.reason==='string'?l.reason.slice(0,200):'',source:l.source==='ai'?'ai':'me',createdAt:typeof l.createdAt==='string'?l.createdAt:nowISO()})).slice(-3000):[];
+  s.seasons=Array.isArray(d.seasons)?d.seasons.filter(x=>x&&typeof x==='object'&&okD(x.start)).map(x=>{ let ar=null; if(x.area&&typeof x.area==='object'){ ar={}; AK.forEach(k=>{ ar[k]=Math.max(0,parseInt(x.area[k],10)||0); }); } return {id:String(x.id||x.start),start:x.start,end:okD(x.end)?x.end:x.start,xp:Math.max(0,parseInt(x.xp,10)||0),L:Math.max(1,parseInt(x.L,10)||1),rk:['E','D','C','B','A','S'].includes(x.rk)?x.rk:'E',cls:typeof x.cls==='string'?x.cls.slice(0,40):'',area:ar}; }).slice(0,50):[];
+  const st=s.settings; st.seasonStart=okD(st.seasonStart)?st.seasonStart:''; { const b=(st.seasonBase&&typeof st.seasonBase==='object')?st.seasonBase:{}; const sb={memo:Math.max(0,parseInt(b.memo,10)||0)}; if(okD(b.date)&&b.ca&&typeof b.ca==='object'){ sb.date=b.date; sb.ca={}; AK.forEach(a=>{ const o=b.ca[a]; if(!o||typeof o!=='object') return; sb.ca[a]={}; for(const c in o){ const v=Math.max(0,parseInt(o[c],10)||0); if(v&&/^[a-z]{2,10}$/.test(c)) sb.ca[a][c]=v; } }); } st.seasonBase=sb; }
+  st.shareAreas=Array.isArray(st.shareAreas)?AK.filter(k=>st.shareAreas.includes(k)):AK.slice(); if(!st.shareAreas.length) st.shareAreas=AK.slice();
+  const so=(d.social&&typeof d.social==='object')?d.social:{};
+  s.social={reports:Array.isArray(so.reports)?so.reports.map(cleanSnap).filter(Boolean).slice(0,60):[],ratingsIn:Array.isArray(so.ratingsIn)?so.ratingsIn.map(cleanRating).filter(Boolean).slice(0,200):[],ratingsOut:Array.isArray(so.ratingsOut)?so.ratingsOut.map(cleanRating).filter(Boolean).slice(0,200):[]};
+  s.evals={}; if(d.evals&&typeof d.evals==='object'){ Object.keys(d.evals).filter(okD).sort().slice(-90).forEach(k=>{ const e=d.evals[k]; if(e&&typeof e.t==='string'&&e.t.trim()) s.evals[k]={t:e.t.slice(0,1500),at:typeof e.at==='string'?e.at:nowISO()}; }); }
+}
+
 function renderWelcome(){
   return (loadNotice?'<div class="banner warn" style="margin-top:8px"><span>'+esc(loadNotice)+'</span></div>':'')+'<div class="card welcome" style="padding:26px 22px;margin-top:10px"><div class="ill" style="width:56px;height:56px;border-radius:18px;background:var(--accent-soft);color:var(--accent);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px"><span style="width:28px;height:28px;display:inline-flex">'+ICON.sun+'</span></div><h3>أهلًا بك في حياة</h3><p>مكان واحد لأهدافك ومهامك وعاداتك. يشتغل من غير إنترنت، وبياناتك تبقى على جهازك فقط.</p>'
     +'<form data-submit="welcome-start" novalidate><div class="field"><label for="w-name">اسمك</label><input id="w-name" type="text" maxlength="40" placeholder="اختياري — للتحية فقط" autocomplete="given-name"></div><label class="toggle"><span>أضف أمثلة توضيحية أقدر أمسحها بضغطة واحدة من الإعدادات</span><input type="checkbox" id="w-seed" checked></label><button class="btn primary block" type="submit">ابدأ</button></form></div>'
@@ -2965,7 +3581,7 @@ function seedSamples(){
 
 /* ===================== الأحداث ===================== */
 const A={
-  'tab':el=>{ if(sheetOpen) closeSheet(); let t=el.dataset.tab; if(t==='goals'){ filters.progView='goals'; t='progress'; } else if(t==='progress') filters.progView='vitals'; if(t==='habits'){ filters.taskView='habits'; t='tasks'; } else if(t==='tasks') filters.taskView='tasks'; if(tab===t) render(); switchTab(t); },
+  'tab':el=>{ if(sheetOpen) closeSheet(); let t=el.dataset.tab; if(t==='goals'){ filters.progView='goals'; t='progress'; } else if(t==='progress') filters.progView='areas'; if(t==='habits'){ filters.taskView='habits'; t='tasks'; } else if(t==='tasks') filters.taskView='tasks'; if(tab===t) render(); switchTab(t); },
   'task-view':el=>{ filters.taskView=el.dataset.v; render(); },
   /* --- الجسد والتغذية --- */
   'fit-set':el=>toggleSet(el.dataset.date||today(),el.dataset.ex,+el.dataset.i),
@@ -3102,7 +3718,7 @@ const A={
   'goal-reactivate':el=>{ const g=goalById(el.dataset.id); if(!g) return; commit('تمت إعادة تفعيل الهدف',()=>{ g.status='active'; g.doneAt=null; }); goalDetail(g.id); },
   'goal-archive':el=>{ const g=goalById(el.dataset.id); if(!g) return; commit('تمت أرشفة الهدف',()=>{ g.status='archived'; }); closeSheet(); },
   'delete-goal':el=>{ const id=el.dataset.id; commit('تم حذف الهدف',()=>{ state.goals=state.goals.filter(x=>x.id!==id); state.tasks.forEach(t=>{ if(t.goalId===id) t.goalId=null; }); state.habits.forEach(h=>{ if(h.goalId===id) h.goalId=null; }); },{ms:9000}); closeSheet(); },
-  'ms-toggle':el=>{ const g=goalById(el.dataset.gid); const m=g&&g.milestones.find(x=>x.id===el.dataset.id); if(!m) return; vibrate(8); if(!m.done) xpPop(el,'+20'); commit(null,()=>{ m.done=!m.done; }); refreshSheet(); },
+  'ms-toggle':el=>{ const g=goalById(el.dataset.gid); const m=g&&g.milestones.find(x=>x.id===el.dataset.id); if(!m) return; vibrate(8); if(!m.done) xpPop(el,'+20'); commit(null,()=>{ m.done=!m.done; m.doneAt=m.done?nowISO():null; }); refreshSheet(); },
   'ms-del':el=>{ const g=goalById(el.dataset.gid); if(!g) return; const id=el.dataset.id; commit('تم حذف المرحلة',()=>{ g.milestones=g.milestones.filter(x=>x.id!==id); }); goalDetail(g.id); },
   'open-settings':el=>openSettings(el.dataset.sub),
   'set-theme':el=>{ state.settings.theme=el.dataset.v; save(); applyTheme(); $$('#s-theme button').forEach(b=>b.classList.toggle('on',b.dataset.v===el.dataset.v)); },
@@ -3193,6 +3809,7 @@ const SUBMIT={
   'ms-add':f=>{ const g=goalById(f.dataset.gid); const v=(f.title.value||'').trim(); if(!g||!v) return; commit(null,()=>{ g.milestones.push({id:uid(),title:v,done:false}); }); goalDetail(g.id); setTimeout(()=>{ const i=$('#sheet-root input[name=title]'); if(i) i.focus(); },50); },
   'welcome-start':f=>{ const name=($('#w-name').value||'').trim(); const seed=$('#w-seed').checked; state.settings.name=name; state.settings.seeded=true; if(seed) seedSamples(); save(); render(); toast(seed?'أضفنا أمثلة — امسحها من الإعدادات وقت ما تحب':'يلا نبدأ — أضف هدفك الأول'); }
 };
+Object.assign(A,ACT13); Object.assign(SUBMIT,SUB13);
 document.addEventListener('click',e=>{ if(e.target.closest('a[data-stop]')) return; const el=e.target.closest('[data-action]'); if(!el) return; const h=A[el.dataset.action]; if(!h) return; e.preventDefault(); try{ h(el,e); }catch(err){ reportError(err); } });
 document.addEventListener('submit',e=>{ const f=e.target.closest('form[data-submit]'); if(!f) return; e.preventDefault(); const h=SUBMIT[f.dataset.submit]; if(!h) return; try{ h(f); }catch(err){ reportError(err); } });
 document.addEventListener('keydown',e=>{
@@ -3233,6 +3850,7 @@ if(pendingBodySeed){ try{ seedBodySamples(); save(); }catch(e){ reportError(e); 
 if(pendingFitSeed){ try{ seedFitSamples(); save(); }catch(e){ reportError(e); } pendingFitSeed=false; }
 try{ if(!FT().foods||!FT().foods.length){ if(!FT().foods) FT().foods=[]; seedFoods(); save(); } }catch(e){ reportError(e); }
 render();
+checkHash();
 setInterval(timerTick,1000);
 /* تلميح تثبيت آيفون */
 (function(){ try{
@@ -3248,6 +3866,4 @@ if(state.settings.seeded&&state.settings.skin==='solo'){ setTimeout(()=>{ try{ c
 setInterval(()=>{ if(today()!==lastRenderDay) render(); },30000);
 })();
 </script>
-<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
-</body>
-</html>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script></body></html>
