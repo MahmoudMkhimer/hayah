@@ -1,5 +1,5 @@
 /* حياة — Service Worker: يخزّن التطبيق ليعمل بدون إنترنت */
-const VERSION = 'hayah-v14.0';
+const VERSION = 'hayah-v14.0.1';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
@@ -31,7 +31,7 @@ self.addEventListener('fetch', (e) => {
   // ملفات التطبيق: الشبكة أولًا (لتصلك التحديثات) وإلا الكاش
   if (url.origin === self.location.origin) {
     e.respondWith(
-      fetch(req).then((res) => {
+      fetch(url.href, { cache: 'no-cache', credentials: 'same-origin' }).then((res) => {
         if (res && res.ok) caches.open(VERSION).then((c) => c.put(req, res.clone()));
         return res;
       }).catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html')))
