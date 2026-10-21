@@ -934,6 +934,11 @@ input,textarea,select{font-size:16px}
 .rep-h .metas{justify-content:center;display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .rep-a{padding:12px 14px;margin-top:10px;border-inline-start:4px solid var(--c)}
 .rep-a .hint{margin:10px 0 0;font-size:12px}
+.auth{max-width:420px;margin:20px auto 40px;background:var(--surface);border:1px solid var(--line-2);border-radius:18px;padding:22px 18px}
+.auth-logo{font-family:var(--font-display);font-size:36px;font-weight:800;text-align:center;color:var(--accent);margin-bottom:4px}
+.auth input[dir=ltr]{text-align:left}
+.viewas{position:sticky;top:6px;z-index:5;display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--warn-soft);color:var(--text);border:1px solid var(--warn);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13.5px;line-height:1.6}
+.viewas .btn{background:var(--surface);color:var(--text);flex:none}
 .rep-img{width:100%;display:block;border-radius:14px;border:1px solid var(--line-2)}
 .rep-f{margin:10px 0 0;padding-inline-start:18px;font-size:13.5px;line-height:1.8;color:var(--text-2)}
 </style>
@@ -1123,11 +1128,12 @@ let state=load();
 let saveTimer=null, dirty=false, storageBroken=false;
 function persist(){
   dirty=false; state.meta.updatedAt=nowISO();
+  if(VIEWAS) return;
   try{ localStorage.setItem(KEY,JSON.stringify(state)); storageBroken=false; }
   catch(e){ if(!storageBroken){ storageBroken=true; showError('تعذر الحفظ — مساحة التخزين ممتلئة أو محظورة. صدّر نسخة احتياطية من الإعدادات فورًا.'); } }
 }
-function save(){ dirty=true; xpVer++; clearTimeout(saveTimer); saveTimer=setTimeout(persist,120); }
-function dailyBackup(){ const d=today(); if(state.meta.backupDay!==d){ try{ localStorage.setItem(BKEY,JSON.stringify(state)); state.meta.backupDay=d; save(); }catch(e){} } }
+function save(){ dirty=true; xpVer++; try{ markDirty(); }catch(e){} clearTimeout(saveTimer); saveTimer=setTimeout(persist,120); }
+function dailyBackup(){ if(VIEWAS) return; const d=today(); if(state.meta.backupDay!==d){ try{ localStorage.setItem(BKEY,JSON.stringify(state)); state.meta.backupDay=d; save(); }catch(e){} } }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'&&dirty){ clearTimeout(saveTimer); persist(); } });
 window.addEventListener('pagehide',()=>{ if(dirty){ clearTimeout(saveTimer); persist(); } });
 
@@ -1183,6 +1189,7 @@ const filters={ tasks:'today', q:'', month:null, txAll:false, sessAll:false, pro
 let draft=null;
 const TABS=[['today','اليوم',ICON.sun],['tasks','المهام',ICON.list],['fit','الجسد',ICON.dumbbell],['money','المال',ICON.wallet],['deen','العبادة',ICON.mosque],['assist','المساعد',ICON.brain],['progress','التطوّر',ICON.heart]];
 function render(){
+  if(authGate()) return;
   if(!state.settings.seeded){ try{ renderHeader(); }catch(e){}
     let wh=''; try{ wh=renderWelcome(); }catch(e){ reportError(e); wh='<div class="card" style="padding:22px"><h3>أهلًا بك في حياة</h3><p class="hint">اكتب اسمك وابدأ.</p><form data-submit="welcome-start" novalidate><div class="field"><label for="w-name">اسمك</label><input id="w-name" type="text" maxlength="40" placeholder="اختياري"></div><label class="toggle" hidden><input type="checkbox" id="w-seed"></label><button type="submit" class="btn primary block">ابدأ</button></form></div>'; }
     $('#view').innerHTML=wh; $('.fab').hidden=true; $('.tabs').hidden=true; return; }
@@ -1193,7 +1200,7 @@ function render(){
   const fn={today:renderToday,tasks:renderTasks,fit:renderFit,money:renderMoney,deen:renderDeen,assist:renderAssist,progress:renderProgress}[tab]||renderToday;
   let html='';
   try{ html=fn(); }catch(e){ reportError(e); html='<div class="banner bad"><span>تعذر عرض هذه الشاشة. بياناتك محفوظة.</span><button class="btn" data-action="reload">إعادة تحميل</button></div>'; }
-  v.innerHTML=html;
+  v.innerHTML=viewAsBanner()+html;
   try{ renderTabs(); }catch(e){ reportError(e); }
   try{ renderTimerBar(); }catch(e){ reportError(e); }
   lastRenderDay=today();
@@ -2995,7 +3002,7 @@ function fmtDateTime(iso){ if(!iso) return '—'; const dt=new Date(iso); if(isN
 function openSettings(sub){
   const s=state.settings, samples=countSamples();
   const solo=s.skin==='solo';
-  const html='<div class="field" style="margin-top:4px"><label for="s-name">اسمك (للتحية)</label><input id="s-name" type="text" maxlength="40" value="'+esc(s.name)+'" data-change="name" placeholder="اسمك" autocomplete="given-name"></div>'
+  const html=accountSettingsHTML()+'<div class="field" style="margin-top:4px"><label for="s-name">اسمك (للتحية)</label><input id="s-name" type="text" maxlength="40" value="'+esc(s.name)+'" data-change="name" placeholder="اسمك" autocomplete="given-name"></div>'
     +'<div class="field"><span class="lbl">الثيم</span><div class="skins">'+SKINS.map(k=>'<button type="button" class="skin'+(s.skin===k[0]?' on':'')+'" data-action="set-skin" data-v="'+k[0]+'"><div class="sw" style="--pbg:'+k[2][0]+'"><i style="background:'+k[2][1]+'"></i><i style="background:'+k[2][2]+'"></i><i style="background:'+k[2][3]+'"></i></div>'+k[1]+'</button>').join('')+'</div>'+(solo?'<p class="hint">ثيم "النظام" مستوحى من نوافذ النظام في Solo Leveling — داكن دائمًا، والمسميات تتغير معه.</p>':'')+'</div>'
     +'<div class="field"'+(solo?' style="opacity:.45;pointer-events:none"':'')+'><span class="lbl">المظهر'+(solo?' — هذا الثيم داكن دائمًا':'')+'</span><div class="seg" id="s-theme">'+[['auto','تلقائي'],['light','فاتح'],['dark','داكن']].map(x=>'<button type="button" data-action="set-theme" data-v="'+x[0]+'" class="'+(s.theme===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div></div>'
     +'<div class="field"><span class="lbl">المال</span><button type="button" class="btn block" data-action="fin-settings">البنود والنسب والعملة والتصنيفات</button></div>'+'<div class="field"><span class="lbl">المساعد الذكي</span><button type="button" class="btn block" data-action="ai-settings">مفتاح Claude والميزانية الشهرية</button></div>'
@@ -3003,7 +3010,7 @@ function openSettings(sub){
     +'<div class="dsec"><h4>استيراد نسخة</h4><textarea class="inp export-box" id="s-import" placeholder="الصق نص النسخة هنا"></textarea><div class="btn-row"><button type="button" class="btn" data-action="import-merge">دمج مع الحالي</button><button type="button" class="btn danger" data-action="import-replace">استبدال الكل</button></div><p class="hint" id="s-import-msg">الدمج يضيف العناصر الجديدة ويحدّث المتطابقة. الاستبدال يمسح الحالي ويضع النسخة مكانه (مع إمكانية التراجع).</p></div>'
     +(samples?'<div class="dsec"><h4>بيانات المثال</h4><button type="button" class="btn block" data-action="remove-samples">حذف كل الأمثلة (<span class="num">'+samples+'</span>)</button></div>':'')
     +seasonSettingsHTML()+'<div class="dsec"><h4>حذف كل البيانات</h4><p class="hint" style="margin:0 0 8px">اكتب كلمة <b>مسح</b> ثم اضغط الزر. يمكن التراجع خلال ثوانٍ فقط.</p><div class="addline"><input class="inp" type="text" id="s-wipe" placeholder="مسح" autocomplete="off"><button type="button" class="btn danger" style="width:auto;padding:0 14px" data-action="wipe">حذف الكل</button></div></div>'
-    +'<div class="dsec"><h4>عن التطبيق</h4><div class="kv"><span>الأهداف / المهام / العادات</span><span class="num">'+state.goals.length+' / '+state.tasks.length+' / '+state.habits.length+'</span></div><div class="kv"><span>آخر حفظ</span><span>'+esc(fmtDateTime(state.meta.updatedAt))+'</span></div><div class="kv"><span>النسخة</span><span>13 — الجوانب والكاليستنكس</span></div><div class="kv"><span>التخزين</span><span>'+(storageBroken?'متعطل':'محلي على الجهاز')+'</span></div></div>';
+    +'<div class="dsec"><h4>عن التطبيق</h4><div class="kv"><span>الأهداف / المهام / العادات</span><span class="num">'+state.goals.length+' / '+state.tasks.length+' / '+state.habits.length+'</span></div><div class="kv"><span>آخر حفظ</span><span>'+esc(fmtDateTime(state.meta.updatedAt))+'</span></div><div class="kv"><span>النسخة</span><span>14 — الحسابات والأصحاب ولوحة المالك</span></div><div class="kv"><span>التخزين</span><span>'+(storageBroken?'متعطل':'محلي على الجهاز')+'</span></div></div>';
   openSheet(html,{title:'الإعدادات',focus:false});
   if(sub==='backup'){ setTimeout(()=>{ const el=$('#s-backup'); if(el) el.scrollIntoView({block:'start'}); },80); }
 }
@@ -3474,7 +3481,7 @@ function handleIncoming(kind,payload){ let o; try{ o=b64d(payload); }catch(e){ t
 function parseShareText(t){ const m=String(t||'').match(/#([sr])=([A-Za-z0-9_-]{20,})/); return m?[m[1],m[2]]:null; }
 function checkHash(){ try{ const m=parseShareText(location.hash); if(!m) return; try{ history.replaceState(null,'',location.pathname+location.search); }catch(e){} setTimeout(()=>{ try{ handleIncoming(m[0],m[1]); }catch(e){ reportError(e); } },350); }catch(e){ reportError(e); } }
 window.addEventListener('hashchange',checkHash);
-function renderFriends(){ const S=SOC(), sa=state.settings.shareAreas; let out='';
+function renderFriends(){ const S=SOC(), sa=state.settings.shareAreas; let out=frSectionHTML(); if(out) out+='<div style="height:14px"></div>';
   out+='<div class="card" style="padding:14px"><h3 class="fr-h">تقرير بالصورة</h3><p class="hint" style="margin:4px 0 10px">صورة فيها تقييم يومك أو أسبوعك في الجوانب اللي تختارها، تبعتها لأي حد على واتساب أو الإيميل. الفلوس مش بتظهر فيها.</p><div class="btn-row"><button type="button" class="btn primary" data-action="rep-open" data-v="day">تقرير اليوم</button><button type="button" class="btn" data-action="rep-open" data-v="week">آخر ٧ أيام</button></div></div>'+reminderCard();
   out+='<div class="card" style="padding:14px;margin-top:14px"><h3 class="fr-h">لينك لصاحب عنده التطبيق</h3><p class="hint" style="margin:4px 0 10px">لو صاحبك عنده «حياة»: بيلصق اللينك في التطبيق ويشوف تقريرك تفاعلي ويقيّمك بالنجوم ويبعتلك تقييمه بلينك. الجوانب المختارة هنا هي نفسها اللي في الصورة.</p><div class="qchips">'+AREA5.map(a=>'<button type="button" data-action="share-area" data-k="'+a.k+'" class="'+(sa.includes(a.k)?'on':'')+'">'+a.ic+' '+esc(a.n)+'</button>').join('')+'</div><div class="btn-row" style="margin-top:12px"><button type="button" class="btn primary" data-action="share-make">ابعت لينك</button><button type="button" class="btn" data-action="share-preview">معاينة</button></div><p class="hint" style="margin:8px 0 0">مفيش سيرفر ولا حسابات: البيانات جوّه اللينك نفسه. المصاريف والفلوس مش بتتبعت. كل ما تحب تحدّث ابعت لينك جديد.</p></div>';
   out+='<div class="section">'+sectionH('وصلك لينك؟')+'<div class="card" style="padding:12px"><textarea class="inp" id="sh-paste" rows="2" placeholder="الصق اللينك هنا (تقرير أو تقييم من صاحبك)"></textarea><button type="button" class="btn block" style="margin-top:8px" data-action="share-paste">افتح</button><p class="hint" style="margin:6px 0 0">على الآيفون والمتصفح اللينك بيفتح التطبيق لوحده. على تطبيق الأندرويد: انسخ الرسالة والصقها هنا.</p></div></div>';
@@ -3553,6 +3560,7 @@ function initReminder(){ const LN=capPlugin('LocalNotifications'); if(!LN) retur
 document.addEventListener('change',e=>{ const el=e.target, k=el&&el.dataset&&el.dataset.ch13; if(!k) return; try{ const st=state.settings;
   if(k==='rep-rem'){ st.reportReminder.on=!!el.checked; save(); scheduleReminder(true).then(ok=>{ if(st.reportReminder.on&&ok) toast('هيوصلك إشعار كل يوم الساعة '+pad(st.reportReminder.h)+':'+pad(st.reportReminder.m)); if(st.reportReminder.on&&!ok){ st.reportReminder.on=false; save(); render(); } }); }
   else if(k==='rep-time'){ const m=/^(\d{1,2}):(\d{2})/.exec(el.value||''); if(!m) return; st.reportReminder.h=Math.min(23,+m[1]); st.reportReminder.m=Math.min(59,+m[2]); save(); render(); if(st.reportReminder.on) scheduleReminder(true); }
+  else if(k==='fr-share'){ st.friendShare=!!el.checked; save(); toast(st.friendShare?'أصحابك هيشوفوا تقدّمك':'أصحابك مش هيشوفوا تقدّمك',{ms:1800}); }
   else if(k==='rep-email'){ const v=(el.value||'').trim(); if(v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){ toast('الإيميل مش مظبوط'); return; } st.reportEmail=v.slice(0,120); save(); toast(v?'اتحفظ الإيميل':'اتشال الإيميل',{ms:1500}); }
 }catch(err){ reportError(err); } });
 const ACT13B={
@@ -3563,6 +3571,222 @@ const ACT13B={
   'rep-mail':()=>reportMail(),
   'rep-copy':async()=>{ const t=reportText((draft&&draft.period)||'day'); try{ await navigator.clipboard.writeText(t); toast('اتنسخ التقرير كنص'); }catch(e){ toast('مقدرتش أنسخ'); } }
 };
+
+
+/* ===================== v14 — الحسابات والمزامنة والأصحاب ولوحة المالك ===================== */
+var SB_URL='https://ldzebwzwogrhfjtxwdqi.supabase.co', SB_KEY='sb_publishable_l0EzH7q2LIjKd6pTHou7XQ_xqfNtXNB';
+var AUTH=null, SYNC=null, ME=null, VIEWAS=null, OWNSTATE=null, suppressDirty=false, pushTimer=null, pushing=false, localVer=0, FR=null, ADM=null, syncMsg='', syncStarted=false, sbRefreshing=null;
+function sbOn(){ return !!(SB_URL&&SB_KEY); }
+function lsGet(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } }
+function lsSet(k,v){ try{ if(v==null) localStorage.removeItem(k); else localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+AUTH=(a=>(a&&a.uid&&a.rt)?a:null)(lsGet('hayah.auth'));
+SYNC=Object.assign({uid:'',rev:0,dirty:false,at:''},lsGet('hayah.sync')||{});
+ME=lsGet('hayah.me');
+function saveSync(){ lsSet('hayah.sync',SYNC); }
+function isOwner(){ return !!(ME&&ME.role==='owner'&&!ME.disabled); }
+function sbErrMsg(j,status){ const code=String((j&&(j.error_code||j.code||j.error))||''); const msg=String((j&&(j.msg||j.message||j.error_description||j.hint))||'');
+  const M={invalid_credentials:'الإيميل أو الباسورد غلط.',invalid_grant:'الإيميل أو الباسورد غلط.',user_already_exists:'الإيميل ده عليه حساب — ادخل بدل ما تعمل حساب جديد.',email_exists:'الإيميل ده عليه حساب — ادخل بدل ما تعمل حساب جديد.',weak_password:'الباسورد ضعيف — خليه 8 حروف أو أكتر وفيه أرقام وحروف.',email_address_invalid:'الإيميل مش مظبوط.',validation_failed:'البيانات ناقصة أو مش مظبوطة.',over_email_send_rate_limit:'اتبعتت إيميلات كتير — استنى شوية وجرّب تاني.',over_request_rate_limit:'طلبات كتير — استنى دقيقة.',otp_expired:'الكود غلط أو انتهى — اطلب كود جديد.',email_not_confirmed:'لازم تأكد الإيميل الأول.',signup_disabled:'التسجيل مقفول حاليًا.',user_banned:'الحساب ده موقوف.',same_password:'الباسورد الجديد زي القديم.'};
+  if(M[code]) return M[code]; if(/Invalid login credentials/i.test(msg)) return M.invalid_credentials; if(/already (registered|exists)/i.test(msg)) return M.user_already_exists;
+  if(/\bconflict\b/.test(msg)) return 'conflict'; if(/\bdisabled\b/.test(msg)) return 'الحساب ده موقوف من صاحب التطبيق.'; if(/\bnot_found\b/.test(msg)) return 'مفيش حساب بالإيميل ده — اتأكد إن صاحبك عامل حساب في التطبيق.'; if(/\bforbidden\b/.test(msg)) return 'مش مسموح.'; if(/\bself\b/.test(msg)) return 'ده إيميلك انت 🙂'; if(/owner_cannot_delete_self/.test(msg)) return 'المالك مايقدرش يحذف حسابه.';
+  return msg?msg.slice(0,160):('خطأ من السيرفر ('+status+')'); }
+function sbSession(j){ AUTH={at:j.access_token,rt:j.refresh_token,exp:j.expires_at||(Math.floor(Date.now()/1000)+(j.expires_in||3600)),uid:(j.user&&j.user.id)||(AUTH&&AUTH.uid),email:(j.user&&j.user.email)||(AUTH&&AUTH.email)}; lsSet('hayah.auth',AUTH); }
+function sbRefresh(){ if(!AUTH) return Promise.reject(new Error('سجّل دخول الأول')); if(sbRefreshing) return sbRefreshing;
+  sbRefreshing=(async()=>{ let res=null; try{ res=await fetch(SB_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'apikey':SB_KEY,'content-type':'application/json'},body:JSON.stringify({refresh_token:AUTH.rt})}); }catch(e){ throw Object.assign(new Error('مفيش إنترنت أو السيرفر مش بيرد.'),{code:'network'}); }
+    const j=await res.json().catch(()=>null); if(!res.ok){ if(res.status===400||res.status===401||res.status===403) sbExpired(); throw new Error(sbErrMsg(j,res.status)); } sbSession(j); })().finally(()=>{ sbRefreshing=null; });
+  return sbRefreshing; }
+function sbExpired(){ AUTH=null; lsSet('hayah.auth',null); try{ toast('انتهت جلسة الدخول — ادخل تاني',{ms:4500}); render(); }catch(e){} }
+async function sbFetch(path,o){ o=o||{}; if(!sbOn()) throw new Error('السيرفر مش متظبط');
+  const go=async()=>{ const h={'apikey':SB_KEY,'content-type':'application/json'}; if(o.auth!==false){ if(!AUTH) throw Object.assign(new Error('سجّل دخول الأول'),{code:'no_auth'}); if(Date.now()/1000>AUTH.exp-60) await sbRefresh(); h['Authorization']='Bearer '+AUTH.at; } if(o.prefer) h['Prefer']=o.prefer;
+    let res; try{ res=await fetch(SB_URL+path,{method:o.method||'GET',headers:h,body:o.body!==undefined?JSON.stringify(o.body):undefined}); }catch(e){ throw Object.assign(new Error('مفيش إنترنت أو السيرفر مش بيرد.'),{code:'network'}); }
+    const t=await res.text(); let j=null; try{ j=t?JSON.parse(t):null; }catch(e){} return {res,j}; };
+  let r=await go();
+  if(r.res.status===401&&o.auth!==false&&AUTH){ await sbRefresh(); r=await go(); }
+  if(!r.res.ok){ const m=sbErrMsg(r.j,r.res.status); const e=new Error(m); e.code=m==='conflict'?'conflict':String((r.j&&(r.j.error_code||r.j.code))||r.res.status); e.status=r.res.status; throw e; }
+  return r.j; }
+function hasMeaningful(s){ try{ return (s.tasks.length+s.goals.length+s.habits.length+s.journal.length+s.finance.incomes.length+s.finance.expenses.length+s.body.sessions.length+s.cali.logs.length+Object.keys(s.deen.prayers).length+s.deen.quran.reads.length)>0; }catch(e){ return false; } }
+function cloudPayload(){ const c=clone(state); if(c.ai) c.ai.key=''; if(c.settings){ c.settings.avatar=null; c.settings.avatarSnap=null; } return c; }
+function freshState(name){ const s=defaultState(); s.settings.name=(name||'').slice(0,40); s.settings.seeded=true; return s; }
+function adoptState(s,keepLocal){ const key=keepLocal&&state.ai?state.ai.key:'', av=keepLocal&&state.settings?state.settings.avatar:null; state=migrate(sanitize(s)); if(key) state.ai.key=key; if(av) state.settings.avatar=av; state.settings.seeded=true; try{ if(!FT().foods.length) seedFoods(); }catch(e){} suppressDirty=true; try{ save(); }finally{ suppressDirty=false; } xpVer++; try{ applyTheme(); }catch(e){} }
+function buildSummary(){ try{ const X=xpLedger(), li=levelInfo(), cl=classOf(), d=today(), ev=dayEval(d); const ev7=[]; for(let i=winDays(7)-1;i>=0;i--) ev7.push(dayEval(addDays(d,-i)).all); const area={}; AREA5.forEach(a=>{ area[a.k]={lv:areaLevel(X.area[a.k]),x:X.area[a.k]}; });
+  return {name:state.settings.name||'',L:li.L,rk:rankFor(li.L),xp:X.total,cls:cl.name,area,ev:{all:ev.all,str:ev.str,end:ev.end,spi:ev.spi,int:ev.int,dis:ev.dis},ev7,prayers:prayersDone(d),n:{tasks:state.tasks.length,goals:state.goals.length,habits:state.habits.length,journal:state.journal.length,cali:state.cali.logs.length,sessions:B().sessions.length},season:SS()||null,at:nowISO()}; }catch(e){ return null; } }
+function buildShareCloud(){ try{ if(state.settings.friendShare===false) return {}; const s=buildSnap(state.settings.shareAreas); s.id='live'; return s; }catch(e){ return null; } }
+function setSyncMsg(m){ syncMsg=m||''; const el=$('#sync-st'); if(el) el.textContent=syncLabel(); }
+function syncLabel(){ if(syncMsg) return syncMsg; if(SYNC.dirty) return 'فيه تعديلات لسه هتتزامن'; return SYNC.at?'آخر مزامنة '+fmtDateTime(SYNC.at):'لسه'; }
+function markDirty(){ if(suppressDirty) return; localVer++; if(VIEWAS){ VIEWAS.dirty=true; schedulePush(1500); return; } if(!AUTH||!sbOn()) return; if(!SYNC.dirty){ SYNC.dirty=true; saveSync(); } schedulePush(); }
+function schedulePush(ms){ clearTimeout(pushTimer); pushTimer=setTimeout(()=>{ pushNow().catch(()=>{}); },ms||2500); }
+async function pushNow(){ if(pushing){ schedulePush(1500); return; } if(VIEWAS) return pushViewAs();
+  if(!AUTH||!sbOn()||!SYNC.dirty||navigator.onLine===false||(ME&&ME.disabled)) return;
+  pushing=true; const v=localVer; setSyncMsg('بيزامن…');
+  try{ const rev=await sbFetch('/rest/v1/rpc/push_data',{method:'POST',body:{p_uid:AUTH.uid,p_data:cloudPayload(),p_rev:SYNC.rev,p_summary:buildSummary(),p_share:buildShareCloud(),p_name:state.settings.name||''}});
+    SYNC.rev=+rev; SYNC.at=nowISO(); SYNC.uid=AUTH.uid; if(localVer===v) SYNC.dirty=false; saveSync(); setSyncMsg('');
+  }catch(e){ if(e.code==='conflict'){ pushing=false; await resolveConflict(); } else if(/موقوف/.test(e.message)){ ME=Object.assign(ME||{},{disabled:true}); lsSet('hayah.me',ME); render(); } else setSyncMsg('تعذّرت المزامنة: '+e.message); }
+  finally{ pushing=false; if(SYNC.dirty&&localVer!==v) schedulePush(); } }
+async function resolveConflict(){ const row=(await sbFetch('/rest/v1/user_data?select=data,rev,updated_at,updated_by&user_id=eq.'+AUTH.uid))[0]; if(!row) return;
+  const remoteAt=(row.data&&row.data.meta&&row.data.meta.updatedAt)||row.updated_at||'', localAt=state.meta.updatedAt||'';
+  const byOwner=row.updated_by&&row.updated_by!==AUTH.uid;
+  if(byOwner||remoteAt>localAt){ lsSet('hayah.v1.conflict',state); adoptState(row.data,true); SYNC.rev=row.rev; SYNC.dirty=false; SYNC.at=nowISO(); saveSync(); render(); toast(byOwner?'صاحب التطبيق عدّل في حسابك — اتحدثت البيانات':'اتحدثت بياناتك من جهازك التاني',{ms:5000}); }
+  else { SYNC.rev=row.rev; SYNC.dirty=true; saveSync(); schedulePush(300); } }
+async function loadMe(){ const r=(await sbFetch('/rest/v1/profiles?select=id,email,name,role,disabled&id=eq.'+AUTH.uid))[0]; if(r){ ME={role:r.role,disabled:!!r.disabled,name:r.name,email:r.email}; lsSet('hayah.me',ME); } return ME; }
+async function pullNow(force){ if(!AUTH||!sbOn()||VIEWAS||navigator.onLine===false) return;
+  try{ const wasDisabled=!!(ME&&ME.disabled); await loadMe(); if(ME&&ME.disabled){ render(); return; } if(wasDisabled) render();
+    const r=(await sbFetch('/rest/v1/user_data?select=rev&user_id=eq.'+AUTH.uid))[0]; if(!r) return;
+    if(r.rev>SYNC.rev){ if(SYNC.dirty) await resolveConflict(); else { const row=(await sbFetch('/rest/v1/user_data?select=data,rev&user_id=eq.'+AUTH.uid))[0]; if(row&&row.data&&Object.keys(row.data).length){ adoptState(row.data,true); SYNC.rev=row.rev; SYNC.at=nowISO(); saveSync(); render(); } } }
+    else if(SYNC.dirty) await pushNow();
+    else if(force) sbFetch('/rest/v1/rpc/touch',{method:'POST',body:{}}).catch(()=>{});
+    setSyncMsg('');
+  }catch(e){ setSyncMsg('تعذّرت المزامنة: '+e.message); } }
+function syncBoot(){ if(!sbOn()||!AUTH) return; pullNow(true).then(()=>frLoad(true)).catch(()=>{}); if(syncStarted) return; syncStarted=true;
+  setInterval(()=>{ if(document.visibilityState==='visible') pullNow(false); },90000);
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') pullNow(false); else if(SYNC.dirty) pushNow(); });
+  window.addEventListener('online',()=>pullNow(false)); }
+async function afterLogin(user,name){ const uid=user.id; ME=null; await loadMe();
+  if(ME&&ME.disabled){ render(); return; }
+  const row=(await sbFetch('/rest/v1/user_data?select=data,rev&user_id=eq.'+uid))[0]||{data:{},rev:0};
+  let remoteHas=false; try{ remoteHas=row.rev>0&&!!row.data&&Object.keys(row.data).length>0&&hasMeaningful(sanitize(clone(row.data))); }catch(e){} const localHas=hasMeaningful(state)&&state.settings.seeded, prev=SYNC.uid;
+  if(!remoteHas){
+    if(!(localHas&&(!prev||prev===uid))){ if(localHas) lsSet('hayah.v1.prev',state); adoptState(freshState(name||(ME&&ME.name)),false); }
+    if(name&&!state.settings.name) state.settings.name=name; state.settings.seeded=true;
+    SYNC={uid,rev:row.rev||0,dirty:true,at:''}; saveSync(); suppressDirty=true; save(); suppressDirty=false; await pushNow();
+  } else if(prev===uid){ SYNC.uid=uid; saveSync(); await pullNow(true); }
+  else if(localHas&&!prev){ const c=await askLinkChoice(); if(c==='device'){ SYNC={uid,rev:row.rev,dirty:true,at:''}; saveSync(); await pushNow(); } else { lsSet('hayah.v1.prev',state); adoptState(row.data,false); SYNC={uid,rev:row.rev,dirty:false,at:nowISO()}; saveSync(); } }
+  else { if(localHas) lsSet('hayah.v1.prev',state); adoptState(row.data,false); SYNC={uid,rev:row.rev,dirty:false,at:nowISO()}; saveSync(); }
+  render(); syncBoot(); toast('أهلًا '+(state.settings.name||'')+' — بياناتك متزامنة مع حسابك',{ms:3500}); }
+function askLinkChoice(){ return new Promise(res=>{ let done=false; const fin=v=>{ if(done) return; done=true; res(v); };
+  window.__linkPick=v=>{ fin(v); closeSheet(); };
+  openSheet('<p style="line-height:1.9;margin:0">الجهاز ده عليه بيانات، وحسابك فيه بيانات تانية محفوظة. تحب تكمّل بأنهي؟</p><div class="form-actions" style="flex-direction:column;align-items:stretch"><button type="button" class="btn primary" onclick="__linkPick(\'cloud\')">بيانات الحساب (المحفوظة أونلاين)</button><button type="button" class="btn" onclick="__linkPick(\'device\')">بيانات الجهاز ده (هتستبدل اللي أونلاين)</button></div><p class="hint">النسخة اللي مش هتختارها بتتحفظ احتياطي على الجهاز.</p>',{title:'أنهي بيانات؟',focus:false,onClose:()=>fin('cloud')}); }); }
+
+/* --- شاشة الدخول --- */
+function authHTML(){ const v=filters.authView||'login'; const local=hasMeaningful(state)&&state.settings.seeded&&!SYNC.uid;
+  let h='<div class="auth"><div class="auth-logo">حياة</div><p class="hint" style="text-align:center;margin:0 0 14px">ادخل بحسابك عشان بياناتك تتحفظ أونلاين وتتزامن، وتقدر تتابع أصحابك.</p>'
+    +(local?'<div class="banner"><span>البيانات اللي على الجهاز ده هتتنقل لحسابك أول ما تدخل أو تعمل حساب.</span></div>':'')
+    +(v!=='reset'?'<div class="seg" style="margin-bottom:12px"><button type="button" data-action="auth-view" data-v="login" class="'+(v==='login'?'on':'')+'">دخول</button><button type="button" data-action="auth-view" data-v="signup" class="'+(v==='signup'?'on':'')+'">حساب جديد</button></div>':'');
+  if(v==='login') h+='<form data-submit="auth-login" novalidate><div class="field" style="margin-top:4px"><label for="au-email">الإيميل</label><input id="au-email" type="email" name="email" inputmode="email" autocomplete="email" dir="ltr" required></div><div class="field"><label for="au-pass">الباسورد</label><input id="au-pass" type="password" name="pass" autocomplete="current-password" dir="ltr" required></div><p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><button type="submit" class="btn primary block" style="margin-top:14px">دخول</button><button type="button" class="link-btn" style="margin-top:10px" data-action="auth-view" data-v="reset">نسيت الباسورد؟</button></form>';
+  else if(v==='signup') h+='<form data-submit="auth-signup" novalidate><div class="field" style="margin-top:4px"><label for="au-name">اسمك</label><input id="au-name" type="text" name="name" maxlength="40" autocomplete="name" value="'+esc(state.settings.name||'')+'" required></div><div class="field"><label for="au-email">الإيميل</label><input id="au-email" type="email" name="email" inputmode="email" autocomplete="email" dir="ltr" required></div><div class="field"><label for="au-pass">الباسورد (8 حروف أو أكتر)</label><input id="au-pass" type="password" name="pass" autocomplete="new-password" dir="ltr" required></div><div class="field"><label for="au-pass2">أكّد الباسورد</label><input id="au-pass2" type="password" name="pass2" autocomplete="new-password" dir="ltr" required></div>'
+    +'<p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><button type="submit" class="btn primary block" style="margin-top:14px">اعمل الحساب</button><p class="hint" style="text-align:center;margin:10px 0 0;font-size:12px">بالتسجيل، صاحب التطبيق يقدر يشوف بيانات حسابك ويديرها.</p></form>';
+  else h+='<form data-submit="auth-reset" novalidate><p class="hint" style="margin:0 0 6px">هيوصلك كود على الإيميل، اكتبه هنا مع الباسورد الجديد.</p><div class="field" style="margin-top:4px"><label for="au-email">الإيميل</label><div class="addline"><input id="au-email" type="email" name="email" inputmode="email" autocomplete="email" dir="ltr" value="'+esc(filters.authEmail||'')+'"><button type="button" class="btn" style="width:auto;padding:0 14px" data-action="auth-sendcode">ابعت الكود</button></div></div><div class="field"><label for="au-code">الكود</label><input id="au-code" type="text" name="code" inputmode="numeric" autocomplete="one-time-code" dir="ltr"></div><div class="field"><label for="au-pass">الباسورد الجديد</label><input id="au-pass" type="password" name="pass" autocomplete="new-password" dir="ltr"></div><p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><button type="submit" class="btn primary block" style="margin-top:14px">غيّر الباسورد وادخل</button><button type="button" class="link-btn" style="margin-top:10px" data-action="auth-view" data-v="login">رجوع للدخول</button></form>';
+  return h+'</div>'; }
+function lockedHTML(){ return '<div class="auth"><div class="auth-logo">حياة</div><div class="banner bad"><span>الحساب ده موقوف من صاحب التطبيق. لو ده غلط كلّمه.</span></div><button type="button" class="btn block" data-action="acc-logout-now">تسجيل خروج</button></div>'; }
+function authGate(){ if(!sbOn()) return false; const lock=!AUTH||(!!(ME&&ME.disabled)&&!VIEWAS); if(!lock) return false; try{ renderHeader(); }catch(e){} const el=$('#lvl'); if(el) el.hidden=true; $('#view').innerHTML=AUTH?lockedHTML():authHTML(); $('.fab').hidden=true; $('.tabs').hidden=true; return true; }
+function authBusy(f,on,label){ const b=f&&f.querySelector('button[type=submit]'); if(!b) return; if(on){ b.dataset.t=b.textContent; b.textContent=label||'لحظة…'; b.disabled=true; } else { b.textContent=b.dataset.t||b.textContent; b.disabled=false; } }
+const EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+async function authLogin(f){ const email=f.email.value.trim().toLowerCase(), pw=f.pass.value; if(!EMAIL_RE.test(email)) return formErr('اكتب إيميل صحيح.'); if(!pw) return formErr('اكتب الباسورد.'); authBusy(f,true);
+  try{ const j=await sbFetch('/auth/v1/token?grant_type=password',{method:'POST',auth:false,body:{email,password:pw}}); sbSession(j); await afterLogin(j.user,null); }catch(e){ authBusy(f,false); formErr(e.message); } }
+async function authSignup(f){ const name=f.name.value.trim(), email=f.email.value.trim().toLowerCase(), pw=f.pass.value; if(!name) return formErr('اكتب اسمك.'); if(!EMAIL_RE.test(email)) return formErr('اكتب إيميل صحيح.'); if(pw.length<8) return formErr('الباسورد لازم 8 حروف أو أكتر.'); if(pw!==f.pass2.value) return formErr('الباسوردين مش زي بعض.'); authBusy(f,true);
+  try{ const j=await sbFetch('/auth/v1/signup',{method:'POST',auth:false,body:{email,password:pw,data:{name,consent:'true'}}}); if(!j||!j.access_token){ authBusy(f,false); return formErr('اتبعتلك إيميل تأكيد — افتحه وأكّد، وبعدها ادخل.'); } sbSession(j); state.settings.name=name; await afterLogin(j.user,name); }catch(e){ authBusy(f,false); formErr(e.message); } }
+async function authSendCode(){ const i=$('#au-email'); const email=(i&&i.value||'').trim().toLowerCase(); if(!EMAIL_RE.test(email)) return formErr('اكتب إيميلك الأول.'); filters.authEmail=email;
+  try{ await sbFetch('/auth/v1/recover',{method:'POST',auth:false,body:{email}}); toast('لو الإيميل عليه حساب، الكود هيوصلك خلال دقيقة (بص في الـSpam كمان)',{ms:6000}); }catch(e){ formErr(e.message); } }
+async function authReset(f){ const email=f.email.value.trim().toLowerCase(), code=f.code.value.replace(/\D/g,''), pw=f.pass.value; if(!EMAIL_RE.test(email)) return formErr('اكتب الإيميل.'); if(code.length<6) return formErr('اكتب الكود اللي وصلك.'); if(pw.length<8) return formErr('الباسورد الجديد لازم 8 حروف أو أكتر.'); authBusy(f,true);
+  try{ const j=await sbFetch('/auth/v1/verify',{method:'POST',auth:false,body:{type:'recovery',email,token:code}}); sbSession(j); await sbFetch('/auth/v1/user',{method:'PUT',body:{password:pw}}); filters.authView='login'; await afterLogin(j.user,null); }catch(e){ authBusy(f,false); formErr(e.message); } }
+
+/* --- الحساب في الإعدادات --- */
+function accountSettingsHTML(){ if(!sbOn()||!AUTH) return ''; return '<div class="dsec" style="margin-top:4px"><h4>الحساب</h4><div class="card" style="padding:4px 14px"><div class="kv"><span>الإيميل</span><span dir="ltr">'+esc(AUTH.email||'')+'</span></div><div class="kv"><span>المزامنة</span><span id="sync-st">'+esc(syncLabel())+'</span></div>'+(isOwner()?'<div class="kv"><span>الدور</span><span>👑 المالك</span></div>':'')+'</div>'
+  +'<div class="btn-row" style="margin-top:8px">'+(isOwner()?'<button type="button" class="btn primary" data-action="adm-open">👑 لوحة المالك</button>':'')+'<button type="button" class="btn" data-action="sync-now">زامن دلوقتي</button></div><div class="btn-row" style="margin-top:8px"><button type="button" class="btn" data-action="acc-pass">تغيير الباسورد</button><button type="button" class="btn danger" data-action="acc-logout">تسجيل خروج</button></div>'+(!isOwner()?'<button type="button" class="link-btn" style="margin-top:8px;font-size:13px" data-action="acc-delete">حذف حسابي نهائيًا</button>':'')+'</div>'; }
+function logoutSheet(){ const pend=SYNC.dirty; openSheet('<p style="line-height:1.9;margin:0">لما تخرج، بياناتك بتتمسح من الجهاز ده وتفضل محفوظة في حسابك. أول ما تدخل تاني بترجع.</p>'+(pend?'<div class="banner warn" style="margin-top:10px"><span>فيه تعديلات لسه ماتزامنتش. هحاول أزامنها الأول — لو مفيش إنترنت هتضيع.</span></div>':'')+'<div class="form-actions"><button type="button" class="btn danger" data-action="acc-logout-now">خروج</button><button type="button" class="btn" data-action="close-sheet">إلغاء</button></div>',{title:'تسجيل خروج',focus:false}); }
+async function logoutNow(){ if(VIEWAS) viewAsExit(); if(SYNC.dirty){ try{ await pushNow(); }catch(e){} } try{ if(AUTH) await sbFetch('/auth/v1/logout',{method:'POST',body:{}}); }catch(e){} AUTH=null; ME=null; FR=null; ADM=null; lsSet('hayah.auth',null); lsSet('hayah.me',null); SYNC={uid:'',rev:0,dirty:false,at:''}; saveSync(); suppressDirty=true; try{ state=defaultState(); save(); }finally{ suppressDirty=false; } xpVer++; if(sheetOpen) closeSheet(); filters.authView='login'; render(); }
+function passSheet(){ openSheet('<form data-submit="acc-pass-save" novalidate><div class="field" style="margin-top:4px"><label for="np1">الباسورد الجديد</label><input id="np1" type="password" name="p1" autocomplete="new-password" dir="ltr" autofocus></div><div class="field"><label for="np2">أكّده</label><input id="np2" type="password" name="p2" autocomplete="new-password" dir="ltr"></div><p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><div class="form-actions"><button type="submit" class="btn primary">حفظ</button></div></form>',{title:'تغيير الباسورد'}); }
+async function passSave(f){ const p=f.p1.value; if(p.length<8) return formErr('8 حروف أو أكتر.'); if(p!==f.p2.value) return formErr('الباسوردين مش زي بعض.'); try{ await sbFetch('/auth/v1/user',{method:'PUT',body:{password:p}}); closeSheet(); toast('اتغيّر الباسورد'); }catch(e){ formErr(e.message); } }
+function deleteMeSheet(){ openSheet('<p style="line-height:1.9;margin:0">ده بيحذف حسابك وكل بياناتك من السيرفر نهائيًا، وبيمسحها من الجهاز ده. مفيش رجوع.</p><div class="field"><label for="dm-c">اكتب كلمة <b>حذف</b> للتأكيد</label><input id="dm-c" type="text" autocomplete="off"></div><p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><div class="form-actions"><button type="button" class="btn danger" data-action="acc-delete-now">احذف حسابي</button></div>',{title:'حذف الحساب',focus:false}); }
+async function deleteMeNow(){ if((($('#dm-c')||{}).value||'').trim()!=='حذف') return formErr('اكتب كلمة حذف.'); try{ await sbFetch('/rest/v1/rpc/delete_account',{method:'POST',body:{p_uid:AUTH.uid}}); SYNC.dirty=false; await logoutNow(); toast('اتحذف حسابك',{ms:4000}); }catch(e){ formErr(e.message); } }
+
+/* --- الأصحاب داخل التطبيق --- */
+async function frLoad(notify){ if(!AUTH||!sbOn()) return; const me=AUTH.uid;
+  try{ const fs=await sbFetch('/rest/v1/friends?select=a,b,status,created_at'); const ids=Array.from(new Set(fs.map(f=>f.a===me?f.b:f.a)));
+    const ps=ids.length?await sbFetch('/rest/v1/profiles?select=id,name,email,last_seen,share&id=in.('+ids.join(',')+')'):[]; const pm={}; ps.forEach(p=>{ pm[p.id]=p; });
+    const rs=await sbFetch('/rest/v1/ratings?select=*&order=created_at.desc&limit=100'); const em=state.settings.friendEmails||{};
+    FR={at:Date.now(),me,names:pm,friends:fs.filter(f=>f.status==='accepted').map(f=>{ const id=f.a===me?f.b:f.a; return Object.assign({id,name:'',email:em[id]||''},pm[id]||{}); }),
+      incoming:fs.filter(f=>f.status==='pending'&&f.b===me).map(f=>Object.assign({id:f.a,name:'',email:''},pm[f.a]||{})),
+      outgoing:fs.filter(f=>f.status==='pending'&&f.a===me).map(f=>({id:f.b,email:em[f.b]||''})),
+      rin:rs.filter(r=>r.to_id===me), rout:rs.filter(r=>r.from_id===me)};
+    if(notify){ const nr=FR.rin.filter(r=>!r.seen).length, ni=FR.incoming.length; if(nr||ni) toast((ni?'عندك '+nOf(ni,'طلب صداقة','طلبين صداقة','طلبات صداقة','طلب صداقة'):'')+(ni&&nr?' و':'')+(nr?nOf(nr,'تقييم جديد','تقييمين جداد','تقييمات جديدة','تقييم جديد'):'')+' — في التطوّر ← الأصحاب',{ms:5000}); }
+    if(tab==='progress'&&filters.progView==='friends') render();
+  }catch(e){ FR=Object.assign(FR||{},{err:e.message}); if(tab==='progress'&&filters.progView==='friends') render(); } }
+function frSectionHTML(){ if(!sbOn()||!AUTH) return ''; if(!FR){ frLoad(false); return '<div class="card" style="padding:14px"><p class="hint" style="margin:0">بيحمّل أصحابك…</p></div>'; }
+  const share=state.settings.friendShare!==false; let h='<div class="card" style="padding:14px"><h3 class="fr-h">أصحابك في حياة</h3><p class="hint" style="margin:4px 0 10px">ضيف صاحبك بالإيميل اللي عامل بيه حساب. لما يقبل، كل واحد فيكم بيشوف تقدّم التاني أول بأول (الجوانب اللي اختارها بس) ويقدر يقيّمه.</p><div class="addline"><input class="inp" id="fr-email" type="email" inputmode="email" dir="ltr" placeholder="إيميل صاحبك" autocomplete="off"><button type="button" class="btn primary" style="width:auto;padding:0 16px" data-action="fr-add">أضف</button></div>'
+    +'<label class="toggle"><span>خلّي أصحابي يشوفوا تقدّمي (الجوانب المختارة تحت)</span><input type="checkbox" data-ch13="fr-share"'+(share?' checked':'')+'></label>'+(FR.err?'<p class="hint" style="color:var(--bad)">'+esc(FR.err)+'</p>':'')+'</div>';
+  if(FR.incoming&&FR.incoming.length) h+='<div class="section">'+sectionH('طلبات صداقة',FR.incoming.length)+'<div class="list">'+FR.incoming.map(p=>'<div class="row" style="min-height:56px"><div class="row-main" style="cursor:default"><div class="row-title">'+esc(p.name||p.email||'مستخدم')+'</div><div class="row-meta"><span dir="ltr">'+esc(p.email||'')+'</span></div></div><button type="button" class="btn sm primary" data-action="fr-accept" data-id="'+p.id+'">قبول</button><button type="button" class="btn sm" data-action="fr-decline" data-id="'+p.id+'">رفض</button></div>').join('')+'</div></div>';
+  if(FR.friends&&FR.friends.length) h+='<div class="section">'+sectionH('أصحابك',FR.friends.length,'<button class="link-btn" data-action="fr-refresh">تحديث</button>')+'<div class="list">'+FR.friends.map(p=>{ const s=cleanSnap(p.share); const av=s&&s.o.length?Math.round(s.o.reduce((a,b)=>a+b,0)/s.o.length):null; return '<div class="tx" data-action="fr-open" data-id="'+p.id+'"><span class="ti">👤</span><div class="tm"><div class="tt">'+esc(p.name||p.email||'صديق')+(s?' · Lv '+s.L+' '+esc(s.rk)+(s.c?' · '+esc(s.c):''):'')+'</div><div class="ts"><span>'+(p.last_seen?'آخر ظهور '+esc(agoLabel(isoDay(p.last_seen))):'لسه ماظهرش')+(av!=null?' · متوسط الأسبوع '+av:'')+(s?' · '+Object.keys(s.a).map(k=>AREA_MAP[k].ic).join(''):' · مش مشارك تقدّمه')+'</span><span class="tap-hint">افتح وقيّم</span></div></div></div>'; }).join('')+'</div></div>';
+  if(FR.outgoing&&FR.outgoing.length) h+='<div class="section">'+sectionH('طلبات مستنية موافقة',FR.outgoing.length)+'<div class="list">'+FR.outgoing.map(p=>'<div class="row" style="min-height:50px"><div class="row-main" style="cursor:default"><div class="row-title" dir="ltr" style="text-align:end">'+esc(p.email||'مستخدم')+'</div></div><button type="button" class="btn sm" data-action="fr-remove" data-id="'+p.id+'">إلغاء</button></div>').join('')+'</div></div>';
+  if(FR.rin&&FR.rin.length){ const agg={}; AREA5.forEach(a=>{ const v=FR.rin.slice(0,20).map(r=>+r.stars[a.k]||0).filter(Boolean); if(v.length) agg[a.k]=v.reduce((p,q)=>p+q,0)/v.length; }); const ov=FR.rin.slice(0,20).map(r=>r.overall).filter(Boolean);
+    h+='<div class="section">'+sectionH('تقييمات أصحابك ليك',FR.rin.length)+'<div class="card" style="padding:4px 14px">'+(ov.length?'<div class="rate-row"><b>الكلي</b><span>'+stars(ov.reduce((p,q)=>p+q,0)/ov.length)+' <small class="num">'+(Math.round(ov.reduce((p,q)=>p+q,0)/ov.length*10)/10)+'</small></span></div>':'')+AREA5.filter(a=>agg[a.k]).map(a=>'<div class="rate-row"><span>'+a.ic+' '+esc(a.n)+'</span><span>'+stars(agg[a.k])+' <small class="num">'+(Math.round(agg[a.k]*10)/10)+'</small></span></div>').join('')+'</div>'
+      +'<div class="list" style="margin-top:10px">'+FR.rin.slice(0,30).map(r=>{ const p=FR.names[r.from_id]; return '<div class="tx" data-action="frr-open" data-id="'+r.id+'"><span class="ti">'+(r.seen?'⭐':'🆕')+'</span><div class="tm"><div class="tt">'+esc((p&&(p.name||p.email))||'صديق')+(r.overall?' — '+stars(r.overall):'')+'</div><div class="ts"><span>'+esc(agoLabel(isoDay(r.created_at)))+(r.comment?' · '+esc(r.comment.slice(0,50)):'')+'</span><span class="tap-hint">افتح</span></div></div></div>'; }).join('')+'</div></div>'; }
+  return h; }
+function frReportSheet(id){ const p=FR&&FR.friends.find(x=>x.id===id); if(!p) return; const s=cleanSnap(p.share);
+  let html=s?reportHTML(Object.assign({},s,{n:p.name||s.n})):'<div class="banner"><span>'+esc(p.name||'صاحبك')+' مش مشارك تقدّمه دلوقتي — بس تقدر تقيّمه برضه.</span></div>';
+  draft={kind:'frrate',fid:id,st:{},o:0}; const areas=s?AREA5.filter(a=>s.a[a.k]):AREA5;
+  html+='<div class="dsec"><h4>قيّم '+esc(p.name||'صاحبك')+'</h4><div class="card" style="padding:4px 14px">'+areas.map(a=>'<div class="rate-row"><span>'+a.ic+' '+esc(a.n)+'</span>'+starsHTML(a.k,0)+'</div>').join('')+'<div class="rate-row"><b>التقييم الكلي</b>'+starsHTML('o',0)+'</div></div><div class="field"><label for="r-c">كلمة ليه (تشجيع أو نصيحة)</label><textarea id="r-c" maxlength="500" placeholder="اختياري"></textarea></div><button type="button" class="btn primary block" style="margin-top:14px" data-action="frr-send">ابعت التقييم</button></div>'
+    +'<button type="button" class="btn danger block" style="margin-top:10px" data-action="fr-remove" data-id="'+id+'">شيله من أصحابي</button>';
+  openSheet(html,{title:p.name||'صاحبك',focus:false}); }
+function frRatingSheet(id){ const r=FR&&FR.rin.find(x=>x.id===id); if(!r) return; const p=FR.names[r.from_id];
+  openSheet('<div class="rep-h"><div class="rep-n">'+esc((p&&(p.name||p.email))||'صديق')+'</div><div class="metas"><span class="chip">قيّمك '+esc(agoLabel(isoDay(r.created_at)))+'</span></div></div>'+(r.overall?'<div style="text-align:center;margin-top:10px;font-size:28px">'+stars(r.overall)+'</div>':'')+'<div class="card" style="padding:4px 14px;margin-top:12px">'+AREA5.filter(a=>r.stars[a.k]).map(a=>'<div class="rate-row"><span>'+a.ic+' '+esc(a.n)+'</span>'+stars(r.stars[a.k])+'</div>').join('')+'</div>'+(r.comment?'<div class="ev-ai">'+esc(r.comment)+'</div>':''),{title:'تقييم',focus:false});
+  if(!r.seen){ r.seen=true; sbFetch('/rest/v1/ratings?id=eq.'+r.id,{method:'PATCH',body:{seen:true},prefer:'return=minimal'}).catch(()=>{}); } }
+
+/* --- لوحة المالك --- */
+async function admOpen(){ if(!isOwner()) return; openSheet('<p class="hint">بيحمّل المستخدمين…</p>',{title:'👑 لوحة المالك',focus:false});
+  try{ const [ps,ds]=await Promise.all([sbFetch('/rest/v1/profiles?select=id,email,name,role,disabled,created_at,last_seen,consent_at&order=created_at.asc'),sbFetch('/rest/v1/user_data?select=user_id,summary,rev,updated_at')]); const dm={}; ds.forEach(x=>{ dm[x.user_id]=x; });
+    ADM={q:(ADM&&ADM.q)||'',users:ps.map(p=>Object.assign({},p,{sum:(dm[p.id]||{}).summary||{},rev:(dm[p.id]||{}).rev||0,updated_at:(dm[p.id]||{}).updated_at||null}))}; admRender();
+  }catch(e){ openSheet('<div class="banner bad"><span>'+esc(e.message)+'</span></div>',{title:'👑 لوحة المالك',focus:false}); } }
+function admRow(u){ const s=u.sum||{}; const seen=u.last_seen?agoLabel(isoDay(u.last_seen)):'ماظهرش'; return '<div class="tx" data-action="adm-user" data-id="'+u.id+'"><span class="ti">'+(u.role==='owner'?'👑':u.disabled?'⛔':'👤')+'</span><div class="tm"><div class="tt">'+esc(u.name||'(من غير اسم)')+(s.L?' · Lv '+s.L+' '+esc(s.rk||''):'')+(s.cls&&s.cls!=='لم تتحدد بعد'?' · '+esc(s.cls):'')+'</div><div class="ts"><span dir="ltr">'+esc(u.email)+'</span><span>'+esc(seen)+(s.ev?' · اليوم '+s.ev.all:'')+'</span></div></div></div>'; }
+function admRender(){ if(!ADM) return; const d=today(); const q=(ADM.q||'').toLowerCase(); const U=ADM.users.filter(u=>!q||((u.name||'')+' '+(u.email||'')).toLowerCase().includes(q)); const act=ADM.users.filter(u=>u.last_seen&&isoDay(u.last_seen)===d).length, wk=ADM.users.filter(u=>u.last_seen&&isoDay(u.last_seen)>=addDays(d,-6)).length;
+  const html='<div class="stats" style="margin-top:0"><div class="stat"><b class="num">'+ADM.users.length+'</b><small>مستخدم</small></div><div class="stat"><b class="num">'+act+'</b><small>نشط النهارده</small></div><div class="stat"><b class="num">'+wk+'</b><small>آخر ٧ أيام</small></div><div class="stat"><b class="num">'+ADM.users.filter(u=>u.disabled).length+'</b><small>موقوف</small></div></div>'
+    +'<div class="field"><input class="inp" type="search" id="adm-q" data-in14="adm-q" value="'+esc(ADM.q||'')+'" placeholder="دوّر بالاسم أو الإيميل" autocomplete="off"></div><div class="list" id="adm-list" style="margin-top:10px">'+(U.length?U.map(admRow).join(''):'<p class="hint" style="padding:12px">مفيش نتايج.</p>')+'</div><button type="button" class="btn block" style="margin-top:12px" data-action="adm-open">تحديث</button>';
+  openSheet(html,{title:'👑 لوحة المالك',focus:false,ctx:{kind:'adm'}}); }
+function admUser(id){ const u=ADM&&ADM.users.find(x=>x.id===id); if(!u) return; const s=u.sum||{}; const me=u.id===AUTH.uid;
+  let html='<div class="detail-h" style="text-align:center"><h3>'+esc(u.name||'(من غير اسم)')+'</h3><div class="metas" style="justify-content:center"><span class="chip" dir="ltr">'+esc(u.email)+'</span>'+(u.role==='owner'?'<span class="chip warn">👑 المالك</span>':'')+(u.disabled?'<span class="chip bad">موقوف</span>':'')+'</div></div>'
+    +'<div class="card" style="padding:4px 14px"><div class="kv"><span>اتسجّل</span><span>'+esc(fmtDate(isoDay(u.created_at)))+'</span></div><div class="kv"><span>آخر ظهور</span><span>'+(u.last_seen?esc(fmtDateTime(u.last_seen)):'—')+'</span></div><div class="kv"><span>شاف ملاحظة الخصوصية</span><span>'+(u.consent_at?'✓ '+esc(fmtDate(isoDay(u.consent_at))):'—')+'</span></div><div class="kv"><span>المستوى</span><span class="num">'+(s.L?'Lv '+s.L+' · '+esc(s.rk||'')+' · '+fmtNum(s.xp||0)+' نقطة':'—')+'</span></div><div class="kv"><span>الفئة</span><span>'+esc(s.cls||'—')+'</span></div>'+(s.n?'<div class="kv"><span>السجلات</span><span class="num">'+s.n.tasks+' مهمة · '+s.n.habits+' عادة · '+s.n.goals+' هدف · '+s.n.journal+' يوميات</span></div>':'')+'</div>';
+  if(s.area) html+='<div class="dsec"><h4>الجوانب</h4><div class="cls-bars">'+AREA5.map(a=>'<div class="clb" style="--c:'+a.c+'"><span>'+a.ic+' '+esc(a.n)+'</span><b class="num">Lv '+((s.area[a.k]||{}).lv||1)+'</b></div>').join('')+'</div></div>';
+  if(s.ev7&&s.ev7.length) html+='<div class="dsec"><h4><span>التقييم اليومي</span><span class="num">اليوم '+(s.ev?s.ev.all:'—')+'</span></h4>'+sBars(s.ev7,'var(--accent)')+'</div>';
+  html+='<button type="button" class="btn primary block" style="margin-top:14px" data-action="adm-view" data-id="'+u.id+'">👁 افتح حسابه بالكامل</button><p class="hint">هتشوف التطبيق كله ببياناته، وأي تعديل بتعمله بيتحفظ في حسابه.</p>';
+  if(!me) html+='<div class="btn-row" style="margin-top:8px"><button type="button" class="btn" data-action="adm-toggle" data-id="'+u.id+'">'+(u.disabled?'✅ تفعيل الحساب':'⛔ إيقاف الحساب')+'</button><button type="button" class="btn danger" data-action="adm-wipe" data-id="'+u.id+'">🧹 مسح بياناته</button></div><button type="button" class="btn danger block" style="margin-top:8px" data-action="adm-del" data-id="'+u.id+'">🗑 حذف الحساب نهائيًا</button>';
+  openSheet(html,{title:'حساب',focus:false}); }
+function admConfirm(id,kind){ const u=ADM&&ADM.users.find(x=>x.id===id); if(!u) return; const t={wipe:['مسح بيانات '+(u.name||u.email),'هيرجع حسابه فاضي كأنه لسه متسجّل. الحساب نفسه يفضل.','امسح'],del:['حذف '+(u.name||u.email)+' نهائيًا','الحساب وكل بياناته بيتحذفوا من السيرفر ومايقدرش يدخل تاني بنفس الحساب.','احذف']}[kind];
+  draft={kind:'admc',id,act:kind}; openSheet('<p style="line-height:1.9;margin:0">'+esc(t[1])+'</p><div class="field"><label for="admc">اكتب <b>'+t[2]+'</b> للتأكيد</label><input id="admc" type="text" autocomplete="off"></div><p class="hint" id="f-err" style="color:var(--bad);font-weight:600" hidden></p><div class="form-actions"><button type="button" class="btn danger" data-action="adm-do" data-w="'+t[2]+'">'+t[2]+'</button></div>',{title:t[0],focus:false}); }
+async function admDo(el){ if(!draft||draft.kind!=='admc') return; if((($('#admc')||{}).value||'').trim()!==el.dataset.w) return formErr('اكتب الكلمة زي ما هي.'); const id=draft.id, act=draft.act; const u=ADM.users.find(x=>x.id===id);
+  try{ if(act==='wipe'){ const s=freshState(u&&u.name); await sbFetch('/rest/v1/rpc/push_data',{method:'POST',body:{p_uid:id,p_data:s,p_rev:null,p_summary:{}}}); toast('اتمسحت بياناته'); }
+    else { await sbFetch('/rest/v1/rpc/delete_account',{method:'POST',body:{p_uid:id}}); toast('اتحذف الحساب'); }
+    await admOpen(); }catch(e){ formErr(e.message); } }
+async function admToggle(id){ const u=ADM&&ADM.users.find(x=>x.id===id); if(!u) return; try{ await sbFetch('/rest/v1/profiles?id=eq.'+id,{method:'PATCH',body:{disabled:!u.disabled},prefer:'return=minimal'}); u.disabled=!u.disabled; toast(u.disabled?'اتوقف الحساب':'اتفعّل الحساب'); admUser(id); }catch(e){ toast(e.message); } }
+async function viewAsStart(id){ const u=ADM&&ADM.users.find(x=>x.id===id); try{ const row=(await sbFetch('/rest/v1/user_data?select=data,rev&user_id=eq.'+id))[0]; if(!row) return toast('مفيش بيانات للحساب ده');
+    if(dirty){ clearTimeout(saveTimer); persist(); } clearTimeout(pushTimer); if(SYNC.dirty) await pushNow().catch(()=>{});
+    OWNSTATE=state; VIEWAS={uid:id,name:(u&&(u.name||u.email))||'',rev:row.rev,dirty:false};
+    const d=(row.data&&Object.keys(row.data).length)?row.data:freshState(u&&u.name); state=migrate(sanitize(d)); state.settings.seeded=true; xpVer++;
+    if(sheetOpen) closeSheet(); tab='today'; render(); window.scrollTo(0,0); toast('بتشوف حساب '+VIEWAS.name,{ms:2500});
+  }catch(e){ toast(e.message); } }
+async function pushViewAs(){ if(!VIEWAS||!VIEWAS.dirty) return; pushing=true; const v=localVer, V=VIEWAS;
+  try{ const rev=await sbFetch('/rest/v1/rpc/push_data',{method:'POST',body:{p_uid:V.uid,p_data:cloudPayload(),p_rev:V.rev,p_summary:buildSummary()}}); V.rev=+rev; if(localVer===v) V.dirty=false; const b=$('#va-st'); if(b) b.textContent='اتحفظ ✓'; }
+  catch(e){ if(e.code==='conflict'&&VIEWAS===V){ toast('صاحب الحساب عدّل من جهازه — اتحمّلت آخر نسخة',{ms:4500}); const row=(await sbFetch('/rest/v1/user_data?select=data,rev&user_id=eq.'+V.uid))[0]; if(row){ state=migrate(sanitize(row.data)); V.rev=row.rev; V.dirty=false; xpVer++; render(); } } else toast('مقدرتش أحفظ في حسابه: '+e.message,{ms:5000}); }
+  finally{ pushing=false; } }
+function viewAsExit(){ if(!VIEWAS) return; const fin=()=>{ if(!OWNSTATE) return; state=OWNSTATE; OWNSTATE=null; VIEWAS=null; xpVer++; if(sheetOpen) closeSheet(); render(); toast('رجعت لحسابك',{ms:1800}); }; clearTimeout(pushTimer); if(VIEWAS.dirty) pushViewAs().finally(fin); else fin(); }
+function viewAsBanner(){ return VIEWAS?'<div class="viewas"><span>👁 بتشوف حساب <b>'+esc(VIEWAS.name)+'</b> — التعديلات بتتحفظ في حسابه <small id="va-st"></small></span><button type="button" class="btn sm" data-action="va-exit">رجوع لحسابي</button></div>':''; }
+
+document.addEventListener('input',e=>{ const el=e.target, k=el&&el.dataset&&el.dataset.in14; if(!k) return; if(k==='adm-q'&&ADM){ ADM.q=el.value; const q=ADM.q.toLowerCase(); const L=$('#adm-list'); if(L){ const U=ADM.users.filter(u=>!q||((u.name||'')+' '+(u.email||'')).toLowerCase().includes(q)); L.innerHTML=U.length?U.map(admRow).join(''):'<p class="hint" style="padding:12px">مفيش نتايج.</p>'; } } });
+const ACT14={
+  'auth-view':el=>{ filters.authView=el.dataset.v; render(); },
+  'auth-sendcode':()=>{ authSendCode(); },
+  'sync-now':async()=>{ setSyncMsg('بيزامن…'); if(SYNC.dirty) await pushNow(); await pullNow(true); setSyncMsg(''); toast('اتزامن'); },
+  'acc-logout':()=>logoutSheet(),
+  'acc-logout-now':()=>{ logoutNow(); },
+  'acc-pass':()=>passSheet(),
+  'acc-delete':()=>deleteMeSheet(),
+  'acc-delete-now':()=>{ deleteMeNow(); },
+  'adm-open':()=>{ admOpen(); },
+  'adm-user':el=>admUser(el.dataset.id),
+  'adm-view':el=>{ viewAsStart(el.dataset.id); },
+  'adm-toggle':el=>{ admToggle(el.dataset.id); },
+  'adm-wipe':el=>admConfirm(el.dataset.id,'wipe'),
+  'adm-del':el=>admConfirm(el.dataset.id,'del'),
+  'adm-do':el=>{ admDo(el); },
+  'va-exit':()=>viewAsExit(),
+  'fr-add':async el=>{ const i=$('#fr-email'); const email=(i&&i.value||'').trim().toLowerCase(); if(!EMAIL_RE.test(email)) return toast('اكتب إيميل صاحبك صح'); el.disabled=true; try{ const r=await sbFetch('/rest/v1/rpc/request_friend',{method:'POST',body:{p_email:email}}); if(r&&r.id) commit(null,()=>{ state.settings.friendEmails=Object.assign({},state.settings.friendEmails||{},{[r.id]:email}); },{noUndo:true}); toast('اتبعت الطلب'+(r&&r.name?' لـ '+r.name:'')+' — لما يقبل هيظهر عندك'); i.value=''; await frLoad(false); }catch(e){ toast(e.message,{ms:4500}); } finally{ el.disabled=false; } },
+  'fr-accept':async el=>{ try{ await sbFetch('/rest/v1/rpc/respond_friend',{method:'POST',body:{p_from:el.dataset.id,p_accept:true}}); toast('بقيتوا أصحاب 🤝'); frLoad(false); }catch(e){ toast(e.message); } },
+  'fr-decline':async el=>{ try{ await sbFetch('/rest/v1/rpc/respond_friend',{method:'POST',body:{p_from:el.dataset.id,p_accept:false}}); frLoad(false); }catch(e){ toast(e.message); } },
+  'fr-remove':async el=>{ const id=el.dataset.id, me=AUTH.uid; try{ await sbFetch('/rest/v1/friends?or=(and(a.eq.'+me+',b.eq.'+id+'),and(a.eq.'+id+',b.eq.'+me+'))',{method:'DELETE',prefer:'return=minimal'}); if(sheetOpen) closeSheet(); toast('اتشال'); frLoad(false); }catch(e){ toast(e.message); } },
+  'fr-refresh':()=>{ frLoad(false); },
+  'fr-open':el=>frReportSheet(el.dataset.id),
+  'frr-open':el=>frRatingSheet(el.dataset.id),
+  'frr-send':async el=>{ if(!draft||draft.kind!=='frrate') return; const o=draft.o, st={}; Object.keys(draft.st).forEach(k=>{ if(draft.st[k]) st[k]=draft.st[k]; }); if(!o&&!Object.keys(st).length) return toast('اختار نجوم الأول'); el.disabled=true;
+    try{ await sbFetch('/rest/v1/ratings',{method:'POST',body:{from_id:AUTH.uid,to_id:draft.fid,stars:st,overall:o,comment:(($('#r-c')||{}).value||'').trim().slice(0,500)},prefer:'return=minimal'}); closeSheet(); toast('وصله تقييمك ⭐'); frLoad(false); }catch(e){ el.disabled=false; toast(e.message); } }
+};
+const SUB14={ 'auth-login':f=>{ authLogin(f); }, 'auth-signup':f=>{ authSignup(f); }, 'auth-reset':f=>{ authReset(f); }, 'acc-pass-save':f=>{ passSave(f); } };
 
 
 /* ===================== المساعد — إضافات ===================== */
@@ -3606,7 +3830,7 @@ const ACT13={
   'share-paste':()=>{ const v=($('#sh-paste')||{}).value||''; const m=parseShareText(v); if(!m) return toast('ملقيتش لينك صالح في النص ده'); if(handleIncoming(m[0],m[1])){ const t=$('#sh-paste'); if(t) t.value=''; } },
   'report-open':el=>reportSheet(el.dataset.id),
   'report-del':el=>{ const id=el.dataset.id; commit('اتحذف التقرير',()=>{ SOC().reports=SOC().reports.filter(x=>x.id!==id); }); closeSheet(); },
-  'rate-star':el=>{ if(!draft||draft.kind!=='rate') return; const k=el.dataset.k, v=+el.dataset.v; if(k==='o') draft.o=v; else draft.st[k]=v; $$('#sheet-root [data-action="rate-star"][data-k="'+k+'"]').forEach(b=>b.classList.toggle('on',+b.dataset.v<=v)); vibrate(6); },
+  'rate-star':el=>{ if(!draft||(draft.kind!=='rate'&&draft.kind!=='frrate')) return; const k=el.dataset.k, v=+el.dataset.v; if(k==='o') draft.o=v; else draft.st[k]=v; $$('#sheet-root [data-action="rate-star"][data-k="'+k+'"]').forEach(b=>b.classList.toggle('on',+b.dataset.v<=v)); vibrate(6); },
   'rate-send':()=>{ if(!draft||draft.kind!=='rate') return; const s=SOC().reports.find(x=>x.id===draft.sid); if(!s) return; const name=(($('#r-n')||{}).value||'').trim().slice(0,40)||state.settings.name||'صديق'; const r=cleanRating({k:'hr',v:1,id:uid(),to:s.id,toN:s.n,n:name,at:today(),st:draft.st,o:draft.o,c:(($('#r-c')||{}).value||'').trim()}); if(!r) return toast('اختار نجوم الأول');
     if(!state.settings.name&&name!=='صديق') state.settings.name=name; commit(null,()=>{ SOC().ratingsOut.unshift(r); SOC().ratingsOut=SOC().ratingsOut.slice(0,200); },{noUndo:true}); closeSheet(); shareLink('r',r,name+' قيّمك في «حياة» — افتح اللينك تشوف التقييم:'); },
   'rin-open':el=>ratingSheet(el.dataset.id),
@@ -3631,6 +3855,7 @@ function sanitize13(d,s,dn){
   s.seasons=Array.isArray(d.seasons)?d.seasons.filter(x=>x&&typeof x==='object'&&okD(x.start)).map(x=>{ let ar=null; if(x.area&&typeof x.area==='object'){ ar={}; AK.forEach(k=>{ ar[k]=Math.max(0,parseInt(x.area[k],10)||0); }); } return {id:String(x.id||x.start),start:x.start,end:okD(x.end)?x.end:x.start,xp:Math.max(0,parseInt(x.xp,10)||0),L:Math.max(1,parseInt(x.L,10)||1),rk:['E','D','C','B','A','S'].includes(x.rk)?x.rk:'E',cls:typeof x.cls==='string'?x.cls.slice(0,40):'',area:ar}; }).slice(0,50):[];
   const st=s.settings; st.seasonStart=okD(st.seasonStart)?st.seasonStart:''; { const b=(st.seasonBase&&typeof st.seasonBase==='object')?st.seasonBase:{}; const sb={memo:Math.max(0,parseInt(b.memo,10)||0)}; if(okD(b.date)&&b.ca&&typeof b.ca==='object'){ sb.date=b.date; sb.ca={}; AK.forEach(a=>{ const o=b.ca[a]; if(!o||typeof o!=='object') return; sb.ca[a]={}; for(const c in o){ const v=Math.max(0,parseInt(o[c],10)||0); if(v&&/^[a-z]{2,10}$/.test(c)) sb.ca[a][c]=v; } }); } st.seasonBase=sb; }
   { const r=(st.reportReminder&&typeof st.reportReminder==='object')?st.reportReminder:{}; const h=parseInt(r.h,10), m=parseInt(r.m,10); st.reportReminder={on:!!r.on,h:(h>=0&&h<=23)?h:23,m:(m>=0&&m<=59)?m:0}; st.reportEmail=(typeof st.reportEmail==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(st.reportEmail.trim()))?st.reportEmail.trim().slice(0,120):''; }
+  st.friendShare=st.friendShare!==false; { const fe=(st.friendEmails&&typeof st.friendEmails==='object')?st.friendEmails:{}; const o={}; for(const k in fe){ if(/^[0-9a-f-]{36}$/.test(k)&&typeof fe[k]==='string') o[k]=fe[k].slice(0,120); } st.friendEmails=o; }
   st.shareAreas=Array.isArray(st.shareAreas)?AK.filter(k=>st.shareAreas.includes(k)):AK.slice(); if(!st.shareAreas.length) st.shareAreas=AK.slice();
   const so=(d.social&&typeof d.social==='object')?d.social:{};
   s.social={reports:Array.isArray(so.reports)?so.reports.map(cleanSnap).filter(Boolean).slice(0,60):[],ratingsIn:Array.isArray(so.ratingsIn)?so.ratingsIn.map(cleanRating).filter(Boolean).slice(0,200):[],ratingsOut:Array.isArray(so.ratingsOut)?so.ratingsOut.map(cleanRating).filter(Boolean).slice(0,200):[]};
@@ -3896,7 +4121,7 @@ const SUBMIT={
   'ms-add':f=>{ const g=goalById(f.dataset.gid); const v=(f.title.value||'').trim(); if(!g||!v) return; commit(null,()=>{ g.milestones.push({id:uid(),title:v,done:false}); }); goalDetail(g.id); setTimeout(()=>{ const i=$('#sheet-root input[name=title]'); if(i) i.focus(); },50); },
   'welcome-start':f=>{ const name=($('#w-name').value||'').trim(); const seed=$('#w-seed').checked; state.settings.name=name; state.settings.seeded=true; if(seed) seedSamples(); save(); render(); toast(seed?'أضفنا أمثلة — امسحها من الإعدادات وقت ما تحب':'يلا نبدأ — أضف هدفك الأول'); }
 };
-Object.assign(A,ACT13,ACT13B); Object.assign(SUBMIT,SUB13);
+Object.assign(A,ACT13,ACT13B,ACT14); Object.assign(SUBMIT,SUB13,SUB14);
 document.addEventListener('click',e=>{ if(e.target.closest('a[data-stop]')) return; const el=e.target.closest('[data-action]'); if(!el) return; const h=A[el.dataset.action]; if(!h) return; e.preventDefault(); try{ h(el,e); }catch(err){ reportError(err); } });
 document.addEventListener('submit',e=>{ const f=e.target.closest('form[data-submit]'); if(!f) return; e.preventDefault(); const h=SUBMIT[f.dataset.submit]; if(!h) return; try{ h(f); }catch(err){ reportError(err); } });
 document.addEventListener('keydown',e=>{
@@ -3939,6 +4164,7 @@ try{ if(!FT().foods||!FT().foods.length){ if(!FT().foods) FT().foods=[]; seedFoo
 render();
 checkHash();
 try{ initReminder(); }catch(e){ reportError(e); }
+try{ syncBoot(); }catch(e){ reportError(e); }
 setInterval(timerTick,1000);
 /* تلميح تثبيت آيفون */
 (function(){ try{
