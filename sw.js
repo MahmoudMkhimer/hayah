@@ -1,5 +1,5 @@
 /* حياة — Service Worker: يخزّن التطبيق ليعمل بدون إنترنت */
-const VERSION = 'hayah-v14.0.1';
+const VERSION = 'hayah-v14.1';
 const SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
